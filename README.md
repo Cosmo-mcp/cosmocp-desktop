@@ -1,2 +1,2 @@
 # cosmocp-desktop
-MCP Host application
+MCP Host
