@@ -1,2 +1,4 @@
 # cosmocp-desktop
-MCP Host
+
+1. src -> Electron Application
+2. web-app -> Angular application
