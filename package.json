@@ -9,34 +9,16 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts,.tsx .",
-    "ng": "ng",
-    "web-app:serve": "ng serve",
-    "web-app:build": "ng build",
-    "web-app:watch": "ng build --watch --configuration development",
-    "web-app:test": "ng test"
+    "lint": "eslint --ext .ts,.tsx ."
   },
   "keywords": [],
   "author": {
     "name": "Cosmo-mcp",
     "email": "gaurav@cosmocp.com"
   },
-  "prettier": {
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
-  },
   "license": "AGPL",
   "private": true,
   "devDependencies": {
-    "@angular/build": "^20.1.0",
-    "@angular/cli": "^20.1.0",
-    "@angular/compiler-cli": "^20.1.0",
     "@electron-forge/cli": "^7.8.1",
     "@electron-forge/maker-deb": "^7.8.1",
     "@electron-forge/maker-rpm": "^7.8.1",
@@ -56,17 +38,6 @@
     "vite": "^7.0.4"
   },
   "dependencies": {
-    "@angular/common": "^20.1.0",
-    "@angular/compiler": "^20.1.0",
-    "@angular/core": "^20.1.0",
-    "@angular/forms": "^20.1.0",
-    "@angular/platform-browser": "^20.1.0",
-    "@angular/router": "^20.1.0",
-    "@primeuix/themes": "^1.2.1",
-    "electron-squirrel-startup": "^1.0.1",
-    "primeicons": "^7.0.0",
-    "primeng": "^20.0.0-rc.1",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "electron-squirrel-startup": "^1.0.1"
   }
 }
