@@ -1,4 +1,18 @@
 import { defineConfig } from 'vite';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// https://vitejs.dev/config
-export default defineConfig({});
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export default defineConfig({
+  build: {
+    outDir: path.resolve(__dirname, '.vite/preload'),
+    lib: {
+      entry: './src/preload/index.ts',
+      formats: ['cjs']
+    },
+    sourcemap: true,
+    emptyOutDir: true,
+  },
+});
