@@ -9,7 +9,7 @@ declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
 
 let mainWindow: BrowserWindow | null;
-
+const isDev = process.env.NODE_ENV === 'development';
 async function createWindow(): Promise<void> {
   mainWindow = new BrowserWindow({
     height: 600,
@@ -26,13 +26,11 @@ async function createWindow(): Promise<void> {
 
   mainWindow.setMenuBarVisibility(false);
 
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    // In development, load from Vite's dev server
-    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  if (!isDev) {
+    //react local url
+    mainWindow.loadURL('http://localhost:3000');
   } else {
-    // In production, load the built HTML file from the Vite output directory.
-    // From .vite/main/, we need to go up one level, then into renderer/, then into the named directory.
-    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    mainWindow.loadFile(path.join(__dirname, '../../src/renderer/.next/server/app/index.html'));
   }
 
 }
