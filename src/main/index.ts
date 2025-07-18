@@ -26,7 +26,7 @@ async function createWindow(): Promise<void> {
 
   mainWindow.setMenuBarVisibility(false);
 
-  if (!isDev) {
+  if (isDev) {
     //react local url
     mainWindow.loadURL('http://localhost:3000');
   } else {
