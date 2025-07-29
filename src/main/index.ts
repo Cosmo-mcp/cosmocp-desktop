@@ -1,7 +1,7 @@
 // src/main/index.ts
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
-import { registerIpcHandlers } from './ipc/index';
+import { registerIpcHandlers } from './ipc';
 
 // These global constants ARE provided by Electron Forge's Vite plugin.
 // Even if we're "ignoring Vite", these are essential for the template's runtime behavior.

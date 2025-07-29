@@ -15,8 +15,6 @@ export const chatAPI: ChatAPI = {
     abortChat: (data) => ipcRenderer.send('chat-abort', data),
     onChatData: (channel, callback) => ipcRenderer.on(channel, (_e, chunk) => callback(chunk)),
     onceChatEnd: (channel, callback) => ipcRenderer.once(channel, () => callback()),
-    onceChatError: (channel, callback) =>
-        ipcRenderer.once(channel, (_e, error) => callback(error)),
-    removeChatListener: (channel) =>
-        ipcRenderer.removeAllListeners(channel),
+    onceChatError: (channel, callback) => ipcRenderer.once(channel, (_e, error) => callback(error)),
+    removeChatListener: (channel) => ipcRenderer.removeAllListeners(channel),
 };
