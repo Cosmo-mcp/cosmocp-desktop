@@ -1,9 +1,7 @@
-import { ipcMain } from 'electron';
+import {ipcMain} from 'electron';
+import {ChatAbortArgs, chatAbortMessage, chatSendMessage, ChatSendMessageArgs} from './chat-handler';
 
 export function registerIpcHandlers(): void {
-  ipcMain.handle('request-hello-message', async (_event, name: string) => {
-    console.log(`Main process received 'request-hello-message' from renderer with name: ${name}`);
-    await new Promise(resolve => setTimeout(resolve, 200)); // Simulate async work
-    return `Hello, ${name}! This is a message from the Main Process.`;
-  });
+    ipcMain.on('chat-send-messages', (_event, args: ChatSendMessageArgs) => chatSendMessage(_event, args));
+    ipcMain.on('chat-abort', (_event, args: ChatAbortArgs) => chatAbortMessage(_event, args));
 }

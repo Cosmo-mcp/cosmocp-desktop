@@ -1,23 +1,29 @@
-import { ipcMain } from 'electron';
-import { streamText, ModelMessage, UIMessage } from 'ai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import {streamText, ModelMessage, UIMessage} from 'ai';
+import {createGoogleGenerativeAI} from '@ai-sdk/google';
 import WebContents = Electron.Main.WebContents;
-
+import IpcMainEvent = Electron.IpcMainEvent;
 
 const GEMINI_API_KEY = "<add your key here>";
+const MODEL_NAME = 'gemini-2.0-flash-lite';
 const activeStreams = new Map<string, AbortController>();
 const google = createGoogleGenerativeAI({apiKey: GEMINI_API_KEY})
 
-ipcMain.on('chat-send-messages', async (event, args: {
+export interface ChatSendMessageArgs {
     chatId: string;
     messages: UIMessage[];
     streamChannel: string;
-}) => {
+}
+
+export interface ChatAbortArgs {
+    streamChannel: string;
+}
+
+export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessageArgs) {
     const webContents = event.sender as WebContents;
-    const modelMessages: ModelMessage[] = args.messages.map((msg) => {
+    const modelMessages: ModelMessage[] = args.messages.map(msg => {
         const textContent = msg.parts
-            .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
-            .map((part) => part.text)
+            .filter(part => part.type === 'text')
+            .map(part => part.text)
             .join('');
         return {
             role: msg.role,
@@ -25,19 +31,22 @@ ipcMain.on('chat-send-messages', async (event, args: {
         };
     });
 
+    console.log(`Model messages for channel ${args.streamChannel}:`);
+    modelMessages.forEach(msg => console.log(msg));
+
     const controller = new AbortController();
     activeStreams.set(args.streamChannel, controller);
 
-    console.log("Received message from chatId " + args.chatId);
-
-    streamText({
-        model: google('gemini-2.0-flash-lite'),
+    const result = streamText({
+        model: google(MODEL_NAME),
         messages: modelMessages,
         abortSignal: controller.signal,
         onChunk: async (chunk) => {
+            console.log('Received chunk', chunk);
             webContents.send(`${args.streamChannel}-data`, chunk);
         },
         onFinish: async () => {
+            console.log('Finished receiving chunk');
             activeStreams.delete(args.streamChannel);
             webContents.send(`${args.streamChannel}-end`);
         },
@@ -49,12 +58,15 @@ ipcMain.on('chat-send-messages', async (event, args: {
             webContents.send(`${args.streamChannel}-error`, error);
         }
     });
-});
 
-ipcMain.on('chat-abort', (_event, { streamChannel }) => {
-    const controller = activeStreams.get(streamChannel);
+    // for some reason, the onChunk is triggered only when we await the textStream/consume streamText
+    await result.textStream;
+}
+
+export async function chatAbortMessage(_event: IpcMainEvent, args: ChatAbortArgs) {
+    const controller = activeStreams.get(args.streamChannel);
     if (controller) {
-        activeStreams.delete(streamChannel);
+        activeStreams.delete(args.streamChannel);
         controller.abort();
     }
-});
+}

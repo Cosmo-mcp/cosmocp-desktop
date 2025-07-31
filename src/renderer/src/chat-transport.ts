@@ -12,6 +12,7 @@ export const ipcChatTransport: ChatTransport<UIMessage> = {
                     cleanup();
                     controller.close();
                 };
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const onError = (err: any) => {
                     cleanup();
                     controller.error(new Error(err?.message || 'Stream Error'));
