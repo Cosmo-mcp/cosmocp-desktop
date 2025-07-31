@@ -1,188 +1,90 @@
-'use client';
+'use client'
 
-import { DefaultChatTransport } from 'ai';
-import { useChat } from '@ai-sdk/react';
-import { useEffect, useState } from 'react';
-import useSWR, { useSWRConfig } from 'swr';
-import { ChatHeader } from '@/components/chat-header';
-import type { Vote } from '@/lib/db/schema';
-import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
-import { Artifact } from './artifact';
-import { MultimodalInput } from './multimodal-input';
-import { Messages } from './messages';
-import type { VisibilityType } from './visibility-selector';
-import { useArtifactSelector } from '@/hooks/use-artifact';
-import { unstable_serialize } from 'swr/infinite';
-import { getChatHistoryPaginationKey } from './sidebar-history';
-import { toast } from './toast';
-import type { Session } from 'next-auth';
-import { useSearchParams } from 'next/navigation';
-import { useChatVisibility } from '@/hooks/use-chat-visibility';
-import { useAutoResume } from '@/hooks/use-auto-resume';
-import { ChatSDKError } from '@/lib/errors';
-import type { Attachment, ChatMessage } from '@/lib/types';
-import { useDataStream } from './data-stream-provider';
+import {
+  ChatHandler,
+  ChatSection as ChatSectionUI,
+  Message,
+} from '@llamaindex/chat-ui'
 
-export function Chat({
-  id,
-  initialMessages,
-  initialChatModel,
-  initialVisibilityType,
-  isReadonly,
-  session,
-  autoResume,
-}: {
-  id: string;
-  initialMessages: ChatMessage[];
-  initialChatModel: string;
-  initialVisibilityType: VisibilityType;
-  isReadonly: boolean;
-  session: Session;
-  autoResume: boolean;
-}) {
-  const { visibilityType } = useChatVisibility({
-    chatId: id,
-    initialVisibilityType,
-  });
+import '@llamaindex/chat-ui/styles/markdown.css'
+import '@llamaindex/chat-ui/styles/pdf.css'
+import '@llamaindex/chat-ui/styles/editor.css'
+import { useState } from 'react'
 
-  const { mutate } = useSWRConfig();
-  const { setDataStream } = useDataStream();
+const initialMessages: Message[] = [
+  {
+    content: 'Write simple Javascript hello world code',
+    role: 'user',
+  },
+  {
+    role: 'assistant',
+    content:
+      'Got it! Here\'s the simplest JavaScript code to print "Hello, World!" to the console:\n\n```javascript\nconsole.log("Hello, World!");\n```\n\nYou can run this code in any JavaScript environment, such as a web browser\'s console or a Node.js environment. Just paste the code and execute it to see the output.',
+  },
+  {
+    content: 'Write a simple math equation',
+    role: 'user',
+  },
+  {
+    role: 'assistant',
+    content:
+      "Let's explore a simple mathematical equation using LaTeX:\n\n The quadratic formula is: $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$\n\nThis formula helps us solve quadratic equations in the form $ax^2 + bx + c = 0$. The solution gives us the x-values where the parabola intersects the x-axis.",
+  },
+]
 
-  const [input, setInput] = useState<string>('');
-
-  const {
-    messages,
-    setMessages,
-    sendMessage,
-    status,
-    stop,
-    regenerate,
-    resumeStream,
-  } = useChat<ChatMessage>({
-    id,
-    messages: initialMessages,
-    experimental_throttle: 100,
-    generateId: generateUUID,
-    transport: new DefaultChatTransport({
-      api: '/api/chat',
-      fetch: fetchWithErrorHandlers,
-      prepareSendMessagesRequest({ messages, id, body }) {
-        return {
-          body: {
-            id,
-            message: messages.at(-1),
-            selectedChatModel: initialChatModel,
-            selectedVisibilityType: visibilityType,
-            ...body,
-          },
-        };
-      },
-    }),
-    onData: (dataPart) => {
-      setDataStream((ds) => (ds ? [...ds, dataPart] : []));
-    },
-    onFinish: () => {
-      mutate(unstable_serialize(getChatHistoryPaginationKey));
-    },
-    onError: (error) => {
-      if (error instanceof ChatSDKError) {
-        toast({
-          type: 'error',
-          description: error.message,
-        });
-      }
-    },
-  });
-
-  const searchParams = useSearchParams();
-  const query = searchParams.get('query');
-
-  const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
-
-  useEffect(() => {
-    if (query && !hasAppendedQuery) {
-      sendMessage({
-        role: 'user' as const,
-        parts: [{ type: 'text', text: query }],
-      });
-
-      setHasAppendedQuery(true);
-      window.history.replaceState({}, '', `/chat/${id}`);
-    }
-  }, [query, sendMessage, hasAppendedQuery, id]);
-
-  const { data: votes } = useSWR<Array<Vote>>(
-    messages.length >= 2 ? `/api/vote?chatId=${id}` : null,
-    fetcher,
-  );
-
-  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
-
-  useAutoResume({
-    autoResume,
-    initialMessages,
-    resumeStream,
-    setMessages,
-  });
-
+export function ChatSection() {
+  // You can replace the handler with a useChat hook from Vercel AI SDK
+  const handler = useMockChat(initialMessages)
   return (
-    <>
-      <div className="flex flex-col min-w-0 h-dvh bg-background">
-        <ChatHeader
-          chatId={id}
-          selectedModelId={initialChatModel}
-          selectedVisibilityType={initialVisibilityType}
-          isReadonly={isReadonly}
-          session={session}
-        />
+    <div className="flex max-h-[80vh] flex-col gap-6 overflow-y-auto">
+      <ChatSectionUI handler={handler} />
+    </div>
+  )
+}
 
-        <Messages
-          chatId={id}
-          status={status}
-          votes={votes}
-          messages={messages}
-          setMessages={setMessages}
-          regenerate={regenerate}
-          isReadonly={isReadonly}
-          isArtifactVisible={isArtifactVisible}
-        />
+function useMockChat(initMessages: Message[]): ChatHandler {
+  const [messages, setMessages] = useState<Message[]>(initMessages)
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-        <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
-          {!isReadonly && (
-            <MultimodalInput
-              chatId={id}
-              input={input}
-              setInput={setInput}
-              status={status}
-              stop={stop}
-              attachments={attachments}
-              setAttachments={setAttachments}
-              messages={messages}
-              setMessages={setMessages}
-              sendMessage={sendMessage}
-              selectedVisibilityType={visibilityType}
-            />
-          )}
-        </form>
-      </div>
+  const append = async (message: Message) => {
+    setIsLoading(true)
 
-      <Artifact
-        chatId={id}
-        input={input}
-        setInput={setInput}
-        status={status}
-        stop={stop}
-        attachments={attachments}
-        setAttachments={setAttachments}
-        sendMessage={sendMessage}
-        messages={messages}
-        setMessages={setMessages}
-        regenerate={regenerate}
-        votes={votes}
-        isReadonly={isReadonly}
-        selectedVisibilityType={visibilityType}
-      />
-    </>
-  );
+    const mockResponse: Message = {
+      role: 'assistant',
+      content: '',
+    }
+    setMessages(prev => [...prev, message, mockResponse])
+
+    const mockContent =
+      'This is a mock response. In a real implementation, this would be replaced with an actual AI response.'
+
+    let streamedContent = ''
+    const words = mockContent.split(' ')
+
+    for (const word of words) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      streamedContent += (streamedContent ? ' ' : '') + word
+      setMessages(prev => {
+        return [
+          ...prev.slice(0, -1),
+          {
+            role: 'assistant',
+            content: streamedContent,
+          },
+        ]
+      })
+    }
+
+    setIsLoading(false)
+    return mockContent
+  }
+
+  return {
+    messages,
+    input,
+    setInput,
+    isLoading,
+    append,
+  }
 }
