@@ -1,13 +1,13 @@
 'use client';
 
-import {startTransition, useMemo, useOptimistic, useState} from 'react';
+import {startTransition, useEffect, useMemo, useOptimistic, useState} from 'react';
 
 import {Button} from '@/components/ui/button';
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
 import {cn} from '@/lib/utils';
 
 import {CheckCircleFillIcon, ChevronDownIcon} from './icons';
-import {chatModels} from "@/lib/models";
+import {Model} from "../../../main/ipc/dto";
 
 export function ModelSelector({
                                   selectedModelId,
@@ -18,11 +18,13 @@ export function ModelSelector({
     const [open, setOpen] = useState(false);
     const [optimisticModelId, setOptimisticModelId] =
         useOptimistic(selectedModelId);
+    const [availableChatModels, setAvailableChatModels] = useState<Model[]>([]);
 
-    const availableChatModelIds: Array<string> = new Array<string>('chat-model', 'chat-model-reasoning');
-    const availableChatModels = chatModels.filter((chatModel) =>
-        availableChatModelIds.includes(chatModel.id),
-    );
+    useEffect(() => {
+        window.chatAPI.getModels().then((models) => {
+            setAvailableChatModels(models);
+        });
+    }, []);
 
     const selectedChatModel = useMemo(
         () =>

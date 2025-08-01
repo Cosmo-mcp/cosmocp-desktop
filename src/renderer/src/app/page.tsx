@@ -2,8 +2,6 @@
 import {JSX} from "react";
 import {generateUUID} from "@/lib/utils";
 import {Chat} from "@/components/chat";
-import {DEFAULT_CHAT_MODEL} from "@/lib/models";
-
 
 export default function Page(): JSX.Element {
     const id = generateUUID();
@@ -13,7 +11,7 @@ export default function Page(): JSX.Element {
                 key={id}
                 id={id}
                 initialMessages={[]}
-                initialChatModel={DEFAULT_CHAT_MODEL}
+                initialChatModel='gemini-2.0-flash-lite'
             />
         </>
     );
