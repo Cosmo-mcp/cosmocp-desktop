@@ -2,6 +2,7 @@
 
 import {ChatHeader} from '@/components/chat-header';
 import type {ChatMessage} from '@/lib/types';
+import {ModeToggle} from "@/components/ModeToggle";
 
 export function Chat({
                          id,
@@ -19,6 +20,7 @@ export function Chat({
                     chatId={id}
                     selectedModelId={initialChatModel}
                 />
+                <ModeToggle/>
             </div>
         </>
     );
