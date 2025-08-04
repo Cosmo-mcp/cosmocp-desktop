@@ -2,6 +2,7 @@
 
 import {ModelSelector} from '@/components/model-selector';
 import {memo} from 'react';
+import {ModeToggle} from "@/components/ModeToggle";
 
 function PureChatHeader({
                             selectedModelId
@@ -16,6 +17,7 @@ function PureChatHeader({
                 selectedModelId={selectedModelId}
                 className="order-1 md:order-2"
             />
+            <ModeToggle/>
         </header>
     );
 }
