@@ -8,6 +8,7 @@ import {cn} from '@/lib/utils';
 
 import {CheckCircleFillIcon, ChevronDownIcon} from './icons';
 import {Model} from "../../../main/ipc/dto";
+import {AddModelDialog} from "./add-model-dialog";
 
 export function ModelSelector({
                                   selectedModelId,
@@ -16,6 +17,7 @@ export function ModelSelector({
     selectedModelId: string;
 } & React.ComponentProps<typeof Button>) {
     const [open, setOpen] = useState(false);
+    const [addModelDialogOpen, setAddModelDialogOpen] = useState(false);
     const [optimisticModelId, setOptimisticModelId] =
         useOptimistic(selectedModelId);
     const [availableChatModels, setAvailableChatModels] = useState<Model[]>([]);
@@ -89,7 +91,18 @@ export function ModelSelector({
                         </DropdownMenuItem>
                     );
                 })}
+                <DropdownMenuItem
+                    onSelect={() => {
+                        setAddModelDialogOpen(true);
+                    }}
+                >
+                    Add Model
+                </DropdownMenuItem>
             </DropdownMenuContent>
+            <AddModelDialog
+                open={addModelDialogOpen}
+                onOpenChange={setAddModelDialogOpen}
+            />
         </DropdownMenu>
     );
 }
