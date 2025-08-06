@@ -7,8 +7,7 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {cn} from '@/lib/utils';
 
 import {CheckCircleFillIcon, ChevronDownIcon} from './icons';
-import {Model} from "../../../main/ipc/dto";
-import {AddModelDialog} from "./add-model-dialog";
+import {Provider} from "../../../main/ipc/dto";
 
 export function ModelSelector({
                                   selectedModelId,
@@ -17,16 +16,17 @@ export function ModelSelector({
     selectedModelId: string;
 } & React.ComponentProps<typeof Button>) {
     const [open, setOpen] = useState(false);
-    const [addModelDialogOpen, setAddModelDialogOpen] = useState(false);
     const [optimisticModelId, setOptimisticModelId] =
         useOptimistic(selectedModelId);
-    const [availableChatModels, setAvailableChatModels] = useState<Model[]>([]);
+    const [providers, setProviders] = useState<Provider[]>([]);
 
     useEffect(() => {
-        window.chatAPI.getModels().then((models) => {
-            setAvailableChatModels(models);
-        });
+        window.chatAPI.getProviders().then(setProviders);
     }, []);
+
+    const availableChatModels = useMemo(() => {
+        return providers.flatMap(provider => provider.models);
+    }, [providers]);
 
     const selectedChatModel = useMemo(
         () =>
@@ -78,9 +78,6 @@ export function ModelSelector({
                             >
                                 <div className="flex flex-col gap-1 items-start">
                                     <div>{chatModel.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                        {chatModel.description}
-                                    </div>
                                 </div>
 
                                 <div
@@ -91,18 +88,7 @@ export function ModelSelector({
                         </DropdownMenuItem>
                     );
                 })}
-                <DropdownMenuItem
-                    onSelect={() => {
-                        setAddModelDialogOpen(true);
-                    }}
-                >
-                    Add Model
-                </DropdownMenuItem>
             </DropdownMenuContent>
-            <AddModelDialog
-                open={addModelDialogOpen}
-                onOpenChange={setAddModelDialogOpen}
-            />
         </DropdownMenu>
     );
 }

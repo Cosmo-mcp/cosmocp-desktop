@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { UIMessageChunk } from "ai";
-import {Model} from "../main/ipc/dto";
+import {Model, Provider} from "../main/ipc/dto";
 
 export interface ChatAPI {
     sendChatMessages: (data: any) => void;
@@ -9,8 +9,10 @@ export interface ChatAPI {
     onceChatEnd: (channel: string, callback: () => void) => void;
     onceChatError: (channel: string, callback: (error: any) => void) => void;
     removeChatListener: (channel: string) => void;
-    getModels: () => Promise<Model[]>;
-    saveModel: (model: Model) => Promise<void>;
+    getProviders: () => Promise<Provider[]>;
+    addProvider: (provider: Provider) => Promise<void>;
+    updateProvider: (provider: Provider) => Promise<void>;
+    deleteProvider: (providerId: string) => Promise<void>;
 }
 
 export const chatAPI: ChatAPI = {
@@ -20,6 +22,8 @@ export const chatAPI: ChatAPI = {
     onceChatEnd: (channel, callback) => ipcRenderer.once(channel, () => callback()),
     onceChatError: (channel, callback) => ipcRenderer.once(channel, (_e, error) => callback(error)),
     removeChatListener: (channel) => ipcRenderer.removeAllListeners(channel),
-    getModels: () => ipcRenderer.invoke('get-models'),
-    saveModel: (model) => ipcRenderer.invoke('save-model', model),
+    getProviders: () => ipcRenderer.invoke('get-providers'),
+    addProvider: (provider) => ipcRenderer.invoke('add-provider', provider),
+    updateProvider: (provider) => ipcRenderer.invoke('update-provider', provider),
+    deleteProvider: (providerId) => ipcRenderer.invoke('delete-provider', providerId),
 };
