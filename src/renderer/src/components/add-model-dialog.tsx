@@ -8,8 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useEffect, useState } from 'react';
-import {Model} from "@/lib/types";
+import { useState } from 'react';
 
 const modelProviders = [
   'OpenAI',
