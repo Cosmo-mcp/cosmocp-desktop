@@ -14,7 +14,7 @@ function saveKeyFile(data: {string: string}) {
     fs.writeFileSync(KEY_STORE_FILE, JSON.stringify(data));
 }
 
-const keyStoreService = {
+export const keyStoreService = {
     saveKey: (keyProvider: string, apiKey: string, metadata = {}) => {
         if (!safeStorage.isEncryptionAvailable()) {
             throw new Error('Encryption not available');
@@ -52,5 +52,3 @@ const keyStoreService = {
         saveKeyFile(data);
     },
 };
-
-module.exports = keyStoreService;

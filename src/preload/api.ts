@@ -10,6 +10,7 @@ export interface ChatAPI {
     onceChatError: (channel: string, callback: (error: any) => void) => void;
     removeChatListener: (channel: string) => void;
     getModels: () => Promise<Model[]>;
+    saveModel: (model: Model) => Promise<void>;
 }
 
 export const chatAPI: ChatAPI = {
@@ -20,4 +21,5 @@ export const chatAPI: ChatAPI = {
     onceChatError: (channel, callback) => ipcRenderer.once(channel, (_e, error) => callback(error)),
     removeChatListener: (channel) => ipcRenderer.removeAllListeners(channel),
     getModels: () => ipcRenderer.invoke('get-models'),
+    saveModel: (model) => ipcRenderer.invoke('save-model', model),
 };
