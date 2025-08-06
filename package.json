@@ -32,14 +32,16 @@
     "@typescript-eslint/parser": "^5.62.0",
     "electron": "37.2.0",
     "eslint": "^8.57.1",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "ts-node": "^10.9.2",
-    "typescript": "~5.8.3",
+    "typescript": "^5.8.3",
     "vite": "^7.0.4"
   },
   "dependencies": {
+    "@ai-sdk/google": "^2.0.0",
+    "ai": "^5.0.0",
     "electron-squirrel-startup": "^1.0.1",
-    "ai": "5.0.0-beta.28",
-    "@ai-sdk/google": "2.0.0-beta.15"
+    "zod": "^3.25.76"
   }
 }
