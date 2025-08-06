@@ -1,17 +1,14 @@
 
 'use client';
 
-<<<<<<< Updated upstream
 import { Button } from '@/components/ui/button';
-=======
->>>>>>> Stashed changes
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 
 const modelProviders = [
   'OpenAI',
@@ -30,7 +27,6 @@ export function AddModelDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-<<<<<<< Updated upstream
   const [apiEndpoint, setApiEndpoint] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [models, setModels] = useState<Model[]>([]);
@@ -57,8 +53,6 @@ export function AddModelDialog({
       });
     }
   };
-=======
->>>>>>> Stashed changes
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -100,11 +94,8 @@ export function AddModelDialog({
                     <input
                       type="text"
                       id="api-endpoint"
-<<<<<<< Updated upstream
                       value={apiEndpoint}
                       onChange={(e) => setApiEndpoint(e.target.value)}
-=======
->>>>>>> Stashed changes
                       className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     />
                   </div>
@@ -118,18 +109,12 @@ export function AddModelDialog({
                     <input
                       type="password"
                       id="api-key"
-<<<<<<< Updated upstream
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
                       className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     />
                   </div>
                   <Button onClick={handleSave}>Save</Button>
-=======
-                      className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                  </div>
->>>>>>> Stashed changes
                 </form>
               </div>
             ) : (
