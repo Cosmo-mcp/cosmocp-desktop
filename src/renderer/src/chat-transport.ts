@@ -1,8 +1,11 @@
-import { ChatTransport, UIMessageChunk } from "ai";
-import { UIMessage } from "@ai-sdk/react";
+import {ChatRequestOptions, ChatTransport, UIMessageChunk} from "ai";
+import {ReadableStream} from "node:stream/web";
+import Error from "next/error";
+import {ChatMessage} from "@/lib/types";
 
-export const ipcChatTransport: ChatTransport<UIMessage> = {
-    sendMessages({chatId, messages, abortSignal}) {
+export class IpcChatTransport implements ChatTransport<ChatMessage> {
+
+    sendMessages({trigger, chatId, messageId, messages, abortSignal}) {
         const streamChannel = `chat-stream-${chatId}`;
 
         const stream = new ReadableStream<UIMessageChunk>({
@@ -45,7 +48,9 @@ export const ipcChatTransport: ChatTransport<UIMessage> = {
             }
         });
         return Promise.resolve(stream);
-    }, reconnectToStream: async () => {
-        return null;
+    }
+
+    reconnectToStream(options: { chatId: string } & ChatRequestOptions): Promise<ReadableStream<UIMessageChunk> | null> {
+        return Promise.resolve(undefined);
     }
 }
