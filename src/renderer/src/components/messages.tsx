@@ -38,7 +38,7 @@ function PureMessages({
     status,
   });
 
-  useDataStream();
+  //useDataStream();
 
   return (
     <div

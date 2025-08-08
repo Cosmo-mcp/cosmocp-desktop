@@ -41,7 +41,7 @@ const PurePreviewMessage = ({
         (part) => part.type === 'file',
     );
 
-    useDataStream();
+    //useDataStream();
 
     return (
         <AnimatePresence>

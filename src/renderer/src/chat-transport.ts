@@ -1,11 +1,31 @@
-import {ChatRequestOptions, ChatTransport, UIMessageChunk} from "ai";
-import {ReadableStream} from "node:stream/web";
-import Error from "next/error";
-import {ChatMessage} from "@/lib/types";
+import {ChatRequestOptions, ChatTransport, UIMessageChunk} from 'ai'
+import {ChatMessage} from '@/lib/types'
+
+// Note: The global AbortSignal type is used directly, no import needed for modern browsers/environments.
+// Note: The browser's native ReadableStream is used, no import needed.
 
 export class IpcChatTransport implements ChatTransport<ChatMessage> {
+    reconnectToStream(
+        options: {
+            chatId: string
+        } & ChatRequestOptions
+    ): Promise<ReadableStream<UIMessageChunk> | null> {
+        // TODO: Implement IPC call to the main process to reconnect to a stream.
+        // This will likely involve listening to an IPC channel for chunks.
+        console.error('reconnectToStream is not implemented.')
+        return Promise.reject(new Error('Not implemented'))
+    }
 
-    sendMessages({trigger, chatId, messageId, messages, abortSignal}) {
+    sendMessages(
+        options: {
+            trigger: 'submit-message' | 'regenerate-message'
+            chatId: string
+            messageId: string | undefined
+            messages: ChatMessage[]
+            abortSignal: AbortSignal | undefined
+        } & ChatRequestOptions
+    ): Promise<ReadableStream<UIMessageChunk>> {
+        const chatId = options.chatId;
         const streamChannel = `chat-stream-${chatId}`;
 
         const stream = new ReadableStream<UIMessageChunk>({
@@ -32,12 +52,13 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
                 window.chatAPI.onceChatError(`${streamChannel}-error`, onError);
 
                 // Send to main process
+                const messages = options.messages;
                 window.chatAPI.sendChatMessages({
                     chatId, messages, streamChannel,
                 });
 
-                if (abortSignal) {
-                    abortSignal.addEventListener('abort', () => {
+                if (options.abortSignal) {
+                    options.abortSignal.addEventListener('abort', () => {
                         cleanup();
                         window.chatAPI.abortChat(streamChannel);
                         controller.error(new Error('Aborted by user'));
@@ -48,9 +69,5 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
             }
         });
         return Promise.resolve(stream);
-    }
-
-    reconnectToStream(options: { chatId: string } & ChatRequestOptions): Promise<ReadableStream<UIMessageChunk> | null> {
-        return Promise.resolve(undefined);
     }
 }
