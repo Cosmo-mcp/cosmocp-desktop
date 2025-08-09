@@ -1,4 +1,3 @@
-// src/main/index.ts
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { registerIpcHandlers } from './ipc';
@@ -29,6 +28,7 @@ async function createWindow(): Promise<void> {
   if (isDev) {
     //react local url
     mainWindow.loadURL('http://localhost:3000');
+    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../../src/renderer/.next/server/app/index.html'));
   }
