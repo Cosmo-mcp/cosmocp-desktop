@@ -7,7 +7,7 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {cn} from '@/lib/utils';
 
 import {CheckCircleFillIcon, ChevronDownIcon} from './icons';
-import {Model} from "../../../main/ipc/dto";
+import {Model} from "../../../common/models/model";
 
 export function ModelSelector({
                                   selectedModelId,
@@ -22,7 +22,7 @@ export function ModelSelector({
     const [availableChatModels, setAvailableChatModels] = useState<Model[]>([]);
 
     useEffect(() => {
-        window.chatAPI.getModels().then(models => setAvailableChatModels(models));
+        window.chatAPI.getModels("mock-model-provider").then(models => setAvailableChatModels(models));
     }, []);
 
     useEffect(() => {

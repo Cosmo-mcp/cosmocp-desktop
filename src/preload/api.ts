@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { UIMessageChunk } from "ai";
-import {Model} from "../main/ipc/dto";
+import {Model} from "../common/models/model";
 
 export interface ChatAPI {
     sendChatMessages: (data: any) => void;
@@ -9,7 +9,7 @@ export interface ChatAPI {
     onceChatEnd: (channel: string, callback: () => void) => void;
     onceChatError: (channel: string, callback: (error: any) => void) => void;
     removeChatListener: (channel: string) => void;
-    getModels: () => Promise<Model[]>;
+    getModels: (providerId: string) => Promise<Model[]>;
 }
 
 export const chatAPI: ChatAPI = {
@@ -19,5 +19,5 @@ export const chatAPI: ChatAPI = {
     onceChatEnd: (channel, callback) => ipcRenderer.once(channel, () => callback()),
     onceChatError: (channel, callback) => ipcRenderer.once(channel, (_e, error) => callback(error)),
     removeChatListener: (channel) => ipcRenderer.removeAllListeners(channel),
-    getModels: () => ipcRenderer.invoke('get-models'),
+    getModels: (providerId: string) => ipcRenderer.invoke('get-models', providerId),
 };
