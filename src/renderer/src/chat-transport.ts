@@ -1,52 +1,21 @@
-import {ChatRequestOptions, ChatTransport, UIMessageChunk} from 'ai'
+import {ChatRequestOptions, ChatTransport, convertToModelMessages, streamText, UIMessageChunk} from 'ai'
 import {ChatMessage} from '@/lib/types'
-import {ParseResult} from "@ai-sdk/provider-utils";
+import {createGoogleGenerativeAI} from '@ai-sdk/google';
 
 // Note: The global AbortSignal type is used directly, no import needed for modern browsers/environments.
 // Note: The browser's native ReadableStream is used, no import needed.
 
+const GEMINI_API_KEY = "<api-key-here>";
+const MODEL_NAME = 'gemini-2.0-flash-lite';
+const google = createGoogleGenerativeAI({apiKey: GEMINI_API_KEY})
+
 export class IpcChatTransport implements ChatTransport<ChatMessage> {
-    reconnectToStream(
-        options: {
-            chatId: string
-        } & ChatRequestOptions
-    ): Promise<ReadableStream<UIMessageChunk> | null> {
-        const chatId = options.chatId;
-        const streamChannel = `chat-stream-${chatId}`;
-
-        const stream = new ReadableStream<UIMessageChunk>({
-            start(controller) {
-                const onData = (chunk: UIMessageChunk) => {
-                    controller.enqueue(chunk);
-                }
-                const onEnd = () => {
-                    cleanup();
-                    controller.close();
-                };
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const onError = (err: any) => {
-                    cleanup();
-                    controller.error(new Error(err?.message || 'Stream Error'));
-                }
-
-                const cleanup = () => {
-                    window.chatAPI.removeChatListener(`${streamChannel}-data`);
-                    window.chatAPI.removeChatListener(`${streamChannel}-end`);
-                    window.chatAPI.removeChatListener(`${streamChannel}-error`);
-                };
-
-                window.chatAPI.onChatData(`${streamChannel}-data`, onData);
-                window.chatAPI.onceChatEnd(`${streamChannel}-end`, onEnd);
-                window.chatAPI.onceChatError(`${streamChannel}-error`, onError);
-
-            }, cancel() {
-                window.chatAPI.abortChat(streamChannel);
-            }
-        });
-        return Promise.resolve(stream);
+    // ignore for now
+    async reconnectToStream(): Promise<ReadableStream<UIMessageChunk> | null> {
+        return Promise.resolve(null);
     }
 
-    sendMessages(
+    async sendMessages(
         options: {
             trigger: 'submit-message' | 'regenerate-message'
             chatId: string
@@ -55,51 +24,14 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
             abortSignal: AbortSignal | undefined
         } & ChatRequestOptions
     ): Promise<ReadableStream<UIMessageChunk>> {
-        const chatId = options.chatId;
-        const streamChannel = `chat-stream-${chatId}`;
+        const prompt = convertToModelMessages(options.messages);
 
-        const stream = new ReadableStream<UIMessageChunk>({
-            start(controller) {
-                const onData = (chunk: UIMessageChunk) => {
-                    controller.enqueue(chunk);
-                }
-                const onEnd = () => {
-                    cleanup();
-                    controller.close();
-                };
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const onError = (err: any) => {
-                    cleanup();
-                    controller.error(new Error(err?.message || 'Stream Error'));
-                };
-
-                const cleanup = () => {
-                    window.chatAPI.removeChatListener(`${streamChannel}-data`);
-                    window.chatAPI.removeChatListener(`${streamChannel}-end`);
-                    window.chatAPI.removeChatListener(`${streamChannel}-error`);
-                };
-
-                window.chatAPI.onChatData(`${streamChannel}-data`, onData);
-                window.chatAPI.onceChatEnd(`${streamChannel}-end`, onEnd);
-                window.chatAPI.onceChatError(`${streamChannel}-error`, onError);
-
-                // Send to main process
-                const messages = options.messages;
-                window.chatAPI.sendChatMessages({
-                    chatId, messages, streamChannel,
-                });
-
-                if (options.abortSignal) {
-                    options.abortSignal.addEventListener('abort', () => {
-                        cleanup();
-                        window.chatAPI.abortChat(streamChannel);
-                        controller.error(new Error('Aborted by user'));
-                    });
-                }
-            }, cancel() {
-                window.chatAPI.abortChat(streamChannel);
-            }
+        const result = streamText({
+            model: google(MODEL_NAME),
+            messages: prompt,
+            abortSignal: options.abortSignal,
         });
-        return Promise.resolve(stream);
+
+        return result.toUIMessageStream();
     }
 }

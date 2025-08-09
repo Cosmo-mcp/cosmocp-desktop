@@ -28,7 +28,6 @@ export function Chat({
         status,
         stop,
         regenerate,
-        resumeStream,
     } = useChat<ChatMessage>({
         id,
         messages: initialMessages,
