@@ -32,7 +32,9 @@ export class ProviderService {
 
     constructor() {
         this.loadProviders();
-        this.createMockProvider(); // TODO (shashank): get rid of this method once ui is complete
+        if (this.providers.length === 0) {
+            this.createMockProvider(); // TODO (shashank): get rid of this method once ui is complete
+        }
     }
 
     private async loadProviders() {
