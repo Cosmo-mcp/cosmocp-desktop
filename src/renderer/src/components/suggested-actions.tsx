@@ -55,8 +55,6 @@ function PureSuggestedActions({
                     <Button
                         variant="ghost"
                         onClick={async () => {
-                            window.history.replaceState({}, '', `/chat/${chatId}`);
-
                             sendMessage({
                                 role: 'user',
                                 parts: [{type: 'text', text: suggestedAction.action}],

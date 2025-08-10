@@ -4,7 +4,7 @@ import {ChatMessage} from "../../renderer/src/lib/types";
 import WebContents = Electron.Main.WebContents;
 import IpcMainEvent = Electron.IpcMainEvent;
 
-const GEMINI_API_KEY = "<add your key here>";
+const GEMINI_API_KEY = "AIzaSyBBLtM0f9KFlY9pe9jYStnt-3xXki75C80";
 const MODEL_NAME = 'gemini-2.0-flash-lite';
 const activeStreams = new Map<string, AbortController>();
 const google = createGoogleGenerativeAI({apiKey: GEMINI_API_KEY})
@@ -42,10 +42,6 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
         model: google(MODEL_NAME),
         messages: modelMessages,
         abortSignal: controller.signal,
-        onChunk: async (chunk) => {
-            console.log('Received chunk', chunk);
-            webContents.send(`${args.streamChannel}-data`, chunk);
-        },
         onFinish: async () => {
             console.log('Finished receiving chunk');
             activeStreams.delete(args.streamChannel);
@@ -60,8 +56,17 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
         }
     });
 
-    // for some reason, the onChunk is triggered only when we await the textStream/consume streamText
-    await result.textStream;
+    const reader = result.fullStream.getReader();
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+            break;
+        }
+        console.log('Received chunk', value);
+        webContents.send(`${args.streamChannel}-data`, value);
+    }
 }
 
 export async function chatAbortMessage(_event: IpcMainEvent, args: ChatAbortArgs) {

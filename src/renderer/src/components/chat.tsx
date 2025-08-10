@@ -7,6 +7,7 @@ import {useChat} from "@ai-sdk/react";
 import {IpcChatTransport} from "@/chat-transport";
 import {MultimodalInput} from "@/components/multimodal-input";
 import {useState} from "react";
+import {useDataStream} from "@/components/data-stream-provider";
 
 export function Chat({
                          id,
@@ -31,7 +32,16 @@ export function Chat({
     } = useChat<ChatMessage>({
         id,
         messages: initialMessages,
-        transport: new IpcChatTransport()
+        transport: new IpcChatTransport(),
+        onData: (dataPart) => {
+            console.log(dataPart);
+        },
+        onFinish: () => {
+            console.log("onFinish");
+        },
+        onError: (error) => {
+            console.error(error);
+        },
     });
 
     return (
