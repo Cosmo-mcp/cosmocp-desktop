@@ -29,6 +29,7 @@ async function createWindow(): Promise<void> {
     //react local url
     mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
+    mainWindow.maximize();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../../src/renderer/.next/server/app/index.html'));
   }
