@@ -27,7 +27,7 @@ const decryptApiKey = (encryptedKey: string): string => {
     return safeStorage.decryptString(buffer);
 };
 
-class ProviderService {
+export class ProviderService {
     private providers: ModelProvider[] = [];
 
     constructor() {
@@ -66,7 +66,9 @@ class ProviderService {
 
     private isDuplicate(provider: ModelProviderCreate): boolean {
         return this.providers.some(
-            p => p.type === provider.type && p.apiKey === provider.apiKey && p.apiUrl === provider.apiUrl
+            p => p.type === provider.type
+                && p.apiKey === provider.apiKey
+                && p.apiUrl === provider.apiUrl
         );
     }
 
@@ -142,5 +144,3 @@ class ProviderService {
         this.saveProviders();
     }
 }
-
-export const providerService = new ProviderService();
