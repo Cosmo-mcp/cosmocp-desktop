@@ -1,8 +1,8 @@
-import {streamText, ModelMessage, UIMessage} from 'ai';
+import {ModelMessage, streamText} from 'ai';
 import {createGoogleGenerativeAI} from '@ai-sdk/google';
+import {ChatMessage} from "../../renderer/src/lib/types";
 import WebContents = Electron.Main.WebContents;
 import IpcMainEvent = Electron.IpcMainEvent;
-import {ChatMessage} from "../../renderer/src/lib/types";
 
 const GEMINI_API_KEY = "<add your key here>";
 const MODEL_NAME = 'gemini-2.0-flash-lite';
@@ -20,45 +20,43 @@ export interface ChatAbortArgs {
 }
 
 export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessageArgs) {
-    setTimeout(async () => {
-        const webContents = event.sender as WebContents;
-        const modelMessages: ModelMessage[] = args.messages.map(msg => {
-            const textContent = msg.parts
-                .filter(part => part.type === 'text')
-                .map(part => part.text)
-                .join('');
-            return {
-                role: msg.role,
-                content: textContent,
-            };
-        });
+    const webContents = event.sender as WebContents;
+    const modelMessages: ModelMessage[] = args.messages.map(msg => {
+        const textContent = msg.parts
+            .filter(part => part.type === 'text')
+            .map(part => part.text)
+            .join('');
+        return {
+            role: msg.role,
+            content: textContent,
+        };
+    });
 
-        console.log(`Model messages for channel ${args.streamChannel}:`);
-        modelMessages.forEach(msg => console.log(msg));
+    console.log(`Model messages for channel ${args.streamChannel}:`);
+    modelMessages.forEach(msg => console.log(msg));
 
-        const result = streamText({
-            model: google(MODEL_NAME),
-            messages: modelMessages,
-            onError: async (error) => {
-                activeStreams.delete(args.streamChannel);
-                //webContents.send(`${args.streamChannel}-error`, error);
-            }
-        });
-
-        const reader = result.textStream.getReader();
-
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-            const {done, value} = await reader.read();
-            if (done) {
-                console.log('Finished receiving chunk');
-                //webContents.send(`${args.streamChannel}-end`);
-                break;
-            }
-            console.log('Received chunk', value);
-            webContents.send(`${args.streamChannel}-data`, value);
+    const result = streamText({
+        model: google(MODEL_NAME),
+        messages: modelMessages,
+        onError: async (error) => {
+            activeStreams.delete(args.streamChannel);
+            //webContents.send(`${args.streamChannel}-error`, error);
         }
-    }, 500);
+    });
+
+    const reader = result.textStream.getReader();
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) {
+            console.log('Finished receiving chunk');
+            //webContents.send(`${args.streamChannel}-end`);
+            break;
+        }
+        console.log('Received chunk', value);
+        webContents.send(`${args.streamChannel}-data`, value);
+    }
 }
 
 export async function chatAbortMessage(_event: IpcMainEvent, args: ChatAbortArgs) {
