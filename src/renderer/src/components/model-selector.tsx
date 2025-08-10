@@ -7,7 +7,7 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {cn} from '@/lib/utils';
 
 import {CheckCircleFillIcon, ChevronDownIcon} from './icons';
-import {Model} from "../../../common/models/model";
+import {Model} from "cosmo-commons/models/model";
 
 export function ModelSelector({
                                   selectedModelId,
