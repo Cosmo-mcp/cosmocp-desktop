@@ -28,11 +28,9 @@ export function Chat({
         status,
         stop,
         regenerate,
-        resumeStream,
     } = useChat<ChatMessage>({
         id,
         messages: initialMessages,
-        experimental_throttle: 100,
         transport: new IpcChatTransport()
     });
 

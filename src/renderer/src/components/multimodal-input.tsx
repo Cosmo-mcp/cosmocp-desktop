@@ -56,50 +56,8 @@ function PureMultimodalInput({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const {width} = useWindowSize();
 
-    useEffect(() => {
-        if (textareaRef.current) {
-            adjustHeight();
-        }
-    }, []);
-
-    const adjustHeight = () => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
-        }
-    };
-
-    const resetHeight = () => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = '98px';
-        }
-    };
-
-    const [localStorageInput, setLocalStorageInput] = useLocalStorage(
-        'input',
-        '',
-    );
-
-    useEffect(() => {
-        if (textareaRef.current) {
-            const domValue = textareaRef.current.value;
-            // Prefer DOM value over localStorage to handle hydration
-            const finalValue = domValue || localStorageInput || '';
-            setInput(finalValue);
-            adjustHeight();
-        }
-        // Only run once after hydration
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        setLocalStorageInput(input);
-    }, [input, setLocalStorageInput]);
-
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInput(event.target.value);
-        adjustHeight();
     };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,11 +78,15 @@ function PureMultimodalInput({
                     text: input,
                 },
             ],
-        });
+        }).then(r => {
+            console.log("in then")
+        }).catch(() => {
+            console.log("in catch")
+        }).finally(() => {
+            console.log("in finally")
+        })
 
         setAttachments([]);
-        setLocalStorageInput('');
-        resetHeight();
         setInput('');
 
         if (width && width > 768) {
@@ -136,7 +98,6 @@ function PureMultimodalInput({
         attachments,
         sendMessage,
         setAttachments,
-        setLocalStorageInput,
         width,
         chatId,
     ]);

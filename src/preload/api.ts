@@ -13,11 +13,25 @@ export interface ChatAPI {
 }
 
 export const chatAPI: ChatAPI = {
-    sendChatMessages: (data) => ipcRenderer.send('chat-send-messages', data),
-    abortChat: (data) => ipcRenderer.send('chat-abort', data),
-    onChatData: (channel, callback) => ipcRenderer.on(channel, (_e, chunk) => callback(chunk)),
-    onceChatEnd: (channel, callback) => ipcRenderer.once(channel, () => callback()),
-    onceChatError: (channel, callback) => ipcRenderer.once(channel, (_e, error) => callback(error)),
-    removeChatListener: (channel) => ipcRenderer.removeAllListeners(channel),
-    getModels: () => ipcRenderer.invoke('get-models'),
+    sendChatMessages: (data) => {
+        ipcRenderer.send('chat-send-messages', data)
+    },
+    abortChat: (data) => {
+        ipcRenderer.send('chat-abort', data)
+    },
+    onChatData: (channel, callback) => {
+        ipcRenderer.on(channel, (_e, chunk) => callback(chunk))
+    },
+    onceChatEnd: (channel, callback) => {
+        ipcRenderer.once(channel, () => callback())
+    },
+    onceChatError: (channel, callback) => {
+        ipcRenderer.once(channel, (_e, error) => callback(error))
+    },
+    removeChatListener: (channel) => {
+        //ipcRenderer.removeAllListeners(channel)
+    },
+    getModels: () => {
+        return ipcRenderer.invoke('get-models')
+    },
 };
