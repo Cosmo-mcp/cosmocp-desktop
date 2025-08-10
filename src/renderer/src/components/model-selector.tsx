@@ -1,6 +1,6 @@
 'use client';
 
-import {startTransition, useEffect, useMemo, useOptimistic, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 
 import {Button} from '@/components/ui/button';
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
@@ -11,27 +11,30 @@ import {Model} from "../../../main/ipc/dto";
 
 export function ModelSelector({
                                   selectedModelId,
+                                  onModelChange,
                                   className,
                               }: {
     selectedModelId: string;
+    onModelChange?: (modelId: string) => void;
 } & React.ComponentProps<typeof Button>) {
     const [open, setOpen] = useState(false);
-    const [optimisticModelId, setOptimisticModelId] =
-        useOptimistic(selectedModelId);
+    const [currentModelId, setCurrentModelId] = useState(selectedModelId);
     const [availableChatModels, setAvailableChatModels] = useState<Model[]>([]);
 
     useEffect(() => {
-        window.chatAPI.getModels().then((models) => {
-            setAvailableChatModels(models);
-        });
+        window.chatAPI.getModels().then(models => setAvailableChatModels(models));
     }, []);
+
+    useEffect(() => {
+        setCurrentModelId(selectedModelId);
+    }, [selectedModelId]);
 
     const selectedChatModel = useMemo(
         () =>
             availableChatModels.find(
-                (chatModel) => chatModel.id === optimisticModelId,
+                (chatModel) => chatModel.id === currentModelId,
             ),
-        [optimisticModelId, availableChatModels],
+        [currentModelId, availableChatModels],
     );
 
     return (
@@ -62,12 +65,10 @@ export function ModelSelector({
                             key={id}
                             onSelect={() => {
                                 setOpen(false);
-
-                                startTransition(() => {
-                                    setOptimisticModelId(id);
-                                });
+                                setCurrentModelId(id);
+                                onModelChange?.(id);
                             }}
-                            data-active={id === optimisticModelId}
+                            data-active={id === currentModelId}
                             asChild
                         >
                             <button
