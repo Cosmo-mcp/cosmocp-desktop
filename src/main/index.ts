@@ -1,6 +1,9 @@
 import { app, BrowserWindow } from 'electron';
+import dotenv from 'dotenv';
 import path from 'path';
 import { registerIpcHandlers } from './ipc';
+
+dotenv.config();
 
 // These global constants ARE provided by Electron Forge's Vite plugin.
 // Even if we're "ignoring Vite", these are essential for the template's runtime behavior.

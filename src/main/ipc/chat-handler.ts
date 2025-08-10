@@ -4,7 +4,7 @@ import {ChatMessage} from "../../renderer/src/lib/types";
 import WebContents = Electron.Main.WebContents;
 import IpcMainEvent = Electron.IpcMainEvent;
 
-const GEMINI_API_KEY = "AIzaSyBBLtM0f9KFlY9pe9jYStnt-3xXki75C80";
+const GEMINI_API_KEY = process.env['GEMINI-API-KEY'];
 const MODEL_NAME = 'gemini-2.0-flash-lite';
 const activeStreams = new Map<string, AbortController>();
 const google = createGoogleGenerativeAI({apiKey: GEMINI_API_KEY})
