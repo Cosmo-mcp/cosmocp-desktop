@@ -1,4 +1,4 @@
-import {ModelMessage, streamText} from 'ai';
+import {convertToModelMessages, ModelMessage, streamText, UIMessage} from 'ai';
 import {createGoogleGenerativeAI} from '@ai-sdk/google';
 import {config} from 'dotenv';
 import {ChatMessage} from "../../renderer/src/lib/types";
@@ -7,7 +7,7 @@ import IpcMainEvent = Electron.IpcMainEvent;
 
 config();
 
-const GEMINI_API_KEY = process.env['GEMINI-API-KEY'];
+const GEMINI_API_KEY = process.env['GEMINI_API_KEY'];
 const MODEL_NAME = 'gemini-2.0-flash-lite';
 const activeStreams = new Map<string, AbortController>();
 const google = createGoogleGenerativeAI({apiKey: GEMINI_API_KEY})
@@ -24,16 +24,7 @@ export interface ChatAbortArgs {
 
 export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessageArgs) {
     const webContents = event.sender as WebContents;
-    const modelMessages: ModelMessage[] = args.messages.map(msg => {
-        const textContent = msg.parts
-            .filter(part => part.type === 'text')
-            .map(part => part.text)
-            .join('');
-        return {
-            role: msg.role,
-            content: textContent,
-        };
-    });
+    const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
 
     console.log(`Model messages for channel ${args.streamChannel}:`);
     modelMessages.forEach(msg => console.log(msg));
@@ -63,12 +54,13 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-        const { done, value } = await reader.read();
+        const {done, value} = await reader.read();
         if (done) {
             break;
         }
         console.log('Received chunk', value);
-        webContents.send(`${args.streamChannel}-data`, value);
+        const updatedValue = {...value, delta: value.text};
+        webContents.send(`${args.streamChannel}-data`, updatedValue);
     }
 }
 
