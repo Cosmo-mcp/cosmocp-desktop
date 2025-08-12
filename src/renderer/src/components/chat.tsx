@@ -7,7 +7,6 @@ import {useChat} from "@ai-sdk/react";
 import {IpcChatTransport} from "@/chat-transport";
 import {MultimodalInput} from "@/components/multimodal-input";
 import {useState} from "react";
-import {useDataStream} from "@/components/data-stream-provider";
 
 export function Chat({
                          id,

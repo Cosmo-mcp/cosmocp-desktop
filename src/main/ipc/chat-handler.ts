@@ -49,8 +49,7 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
             webContents.send(`${args.streamChannel}-error`, error);
         }
     });
-
-    const reader = result.fullStream.getReader();
+    const reader = result.toUIMessageStream().getReader();
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
@@ -59,8 +58,7 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
             break;
         }
         console.log('Received chunk', value);
-        const updatedValue = {...value, delta: value.text};
-        webContents.send(`${args.streamChannel}-data`, updatedValue);
+        webContents.send(`${args.streamChannel}-data`, value);
     }
 }
 
