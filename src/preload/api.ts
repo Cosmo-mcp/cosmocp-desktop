@@ -29,7 +29,7 @@ export const chatAPI: ChatAPI = {
         ipcRenderer.once(channel, (_e, error) => callback(error))
     },
     removeChatListener: (channel) => {
-        //ipcRenderer.removeAllListeners(channel)
+        ipcRenderer.removeAllListeners(channel)
     },
     getModels: () => {
         return ipcRenderer.invoke('get-models')
