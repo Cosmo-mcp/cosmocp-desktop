@@ -1,4 +1,4 @@
-import {convertToModelMessages, ModelMessage, streamText, UIMessage} from 'ai';
+import {convertToModelMessages, ModelMessage, smoothStream, streamText} from 'ai';
 import {createGoogleGenerativeAI} from '@ai-sdk/google';
 import {config} from 'dotenv';
 import {ChatMessage} from "../../renderer/src/lib/types";
@@ -36,6 +36,7 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
         model: google(MODEL_NAME),
         messages: modelMessages,
         abortSignal: controller.signal,
+        experimental_transform: smoothStream(),
         onFinish: async () => {
             console.log('Finished receiving chunk');
             activeStreams.delete(args.streamChannel);
@@ -49,16 +50,10 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
             webContents.send(`${args.streamChannel}-error`, error);
         }
     });
-    const reader = result.toUIMessageStream().getReader();
 
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        const {done, value} = await reader.read();
-        if (done) {
-            break;
-        }
-        console.log('Received chunk', value);
-        webContents.send(`${args.streamChannel}-data`, value);
+    for await (const chunk of result.toUIMessageStream()) {
+        console.log('Received chunk', chunk);
+        webContents.send(`${args.streamChannel}-data`, chunk);
     }
 }
 
