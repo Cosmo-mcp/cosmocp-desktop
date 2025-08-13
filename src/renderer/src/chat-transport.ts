@@ -89,12 +89,12 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
                 if (options.abortSignal) {
                     options.abortSignal.addEventListener('abort', () => {
                         cleanup();
-                        //window.chatAPI.abortChat(streamChannel);
+                        window.chatAPI.abortChat(streamChannel);
                         controller.error(new Error('Aborted by user'));
                     });
                 }
             }, cancel() {
-                //window.chatAPI.abortChat(streamChannel);
+                window.chatAPI.abortChat(streamChannel);
             }
         });
         return Promise.resolve(stream);
