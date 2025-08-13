@@ -1,16 +1,20 @@
-import {streamText, ModelMessage, UIMessage} from 'ai';
+import {convertToModelMessages, ModelMessage, streamText, UIMessage} from 'ai';
 import {createGoogleGenerativeAI} from '@ai-sdk/google';
+import {config} from 'dotenv';
+import {ChatMessage} from "../../renderer/src/lib/types";
 import WebContents = Electron.Main.WebContents;
 import IpcMainEvent = Electron.IpcMainEvent;
 
-const GEMINI_API_KEY = "<add your key here>";
+config();
+
+const GEMINI_API_KEY = process.env['GEMINI_API_KEY'];
 const MODEL_NAME = 'gemini-2.0-flash-lite';
 const activeStreams = new Map<string, AbortController>();
 const google = createGoogleGenerativeAI({apiKey: GEMINI_API_KEY})
 
 export interface ChatSendMessageArgs {
     chatId: string;
-    messages: UIMessage[];
+    messages: ChatMessage[];
     streamChannel: string;
 }
 
@@ -20,16 +24,7 @@ export interface ChatAbortArgs {
 
 export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessageArgs) {
     const webContents = event.sender as WebContents;
-    const modelMessages: ModelMessage[] = args.messages.map(msg => {
-        const textContent = msg.parts
-            .filter(part => part.type === 'text')
-            .map(part => part.text)
-            .join('');
-        return {
-            role: msg.role,
-            content: textContent,
-        };
-    });
+    const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
 
     console.log(`Model messages for channel ${args.streamChannel}:`);
     modelMessages.forEach(msg => console.log(msg));
@@ -41,10 +36,6 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
         model: google(MODEL_NAME),
         messages: modelMessages,
         abortSignal: controller.signal,
-        onChunk: async (chunk) => {
-            console.log('Received chunk', chunk);
-            webContents.send(`${args.streamChannel}-data`, chunk);
-        },
         onFinish: async () => {
             console.log('Finished receiving chunk');
             activeStreams.delete(args.streamChannel);
@@ -58,9 +49,17 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
             webContents.send(`${args.streamChannel}-error`, error);
         }
     });
+    const reader = result.toUIMessageStream().getReader();
 
-    // for some reason, the onChunk is triggered only when we await the textStream/consume streamText
-    await result.textStream;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) {
+            break;
+        }
+        console.log('Received chunk', value);
+        webContents.send(`${args.streamChannel}-data`, value);
+    }
 }
 
 export async function chatAbortMessage(_event: IpcMainEvent, args: ChatAbortArgs) {
