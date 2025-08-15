@@ -22,7 +22,7 @@ export function ModelSelector({
     const [availableChatModels, setAvailableChatModels] = useState<Model[]>([]);
 
     useEffect(() => {
-        window.chatAPI.getModels("mock-model-provider").then(models => setAvailableChatModels(models));
+        window.modelProviderAPI.getModels("mock-model-provider").then(models => setAvailableChatModels(models));
     }, []);
 
     useEffect(() => {

@@ -27,7 +27,7 @@ const decryptApiKey = (encryptedKey: string): string => {
     return safeStorage.decryptString(buffer);
 };
 
-export class ProviderService {
+export class ModelProviderService {
     private providers: ModelProvider[] = [];
 
     constructor() {
@@ -74,7 +74,7 @@ export class ProviderService {
         );
     }
 
-    public async addProvider(providerData: ModelProviderCreate): Promise<ModelProvider> {
+    public async addProvider(providerData: ModelProviderCreate): Promise<void> {
         const parsed = ModelProviderCreateSchema.parse(providerData);
         if (this.isDuplicate(providerData)) {
             throw new Error('Duplicate provider entry.');
@@ -96,7 +96,6 @@ export class ProviderService {
         ModelProviderSchema.parse(newProvider);
         this.providers.push(newProvider);
         await this.saveProviders();
-        return newProvider;
     }
 
     public getProviders(): Omit<ModelProvider, 'apiKey'>[] {
