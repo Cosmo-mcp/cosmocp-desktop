@@ -112,23 +112,15 @@ export class ModelProviderService {
             // TODO(shashank): add logic to fetch model for a predefined provider
         }
         // TODO (shashank): add logic to fetch models for a custom provider
-        return [
-            {
-                id: "1",
-                name: "cosmo-1-lite",
-                description: "Fake model 1.0"
-            },
-            {
-                id: "2",
-                name: "cosmo-1-pro",
-                description: "Fake model 1.0 Pro"
-            },
-            {
-                id: "3",
-                name: "cosmo-1-pro-thinking",
-                description: "Fake model 1.0 Pro - Thinking"
-            }
-        ];
+        return [{
+            id: 'gemini-2.0-flash-lite',
+            name: 'Gemini Flash Lite',
+            description: 'Fast and efficient model for everyday tasks.'
+        }, {
+            id: 'gemini-2.0-pro-lite',
+            name: 'Gemini Pro Lite',
+            description: 'Most capable model for complex reasoning.'
+        }];
     }
 
     // TODO (shashank): remove this method later, this is only till we don't have a UI in place
