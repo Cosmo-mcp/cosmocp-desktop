@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { registerIpcHandlers } from './ipc';
 
+
 // These global constants ARE provided by Electron Forge's Vite plugin.
 // Even if we're "ignoring Vite", these are essential for the template's runtime behavior.
 //declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
@@ -29,6 +30,7 @@ async function createWindow(): Promise<void> {
     //react local url
     mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
+    mainWindow.maximize();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../../src/renderer/.next/server/app/index.html'));
   }

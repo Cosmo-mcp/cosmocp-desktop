@@ -42,6 +42,7 @@
     "@ai-sdk/google": "^2.0.0",
     "ai": "^5.0.0",
     "electron-squirrel-startup": "^1.0.1",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "dotenv": "^17.2.1"
   }
 }
