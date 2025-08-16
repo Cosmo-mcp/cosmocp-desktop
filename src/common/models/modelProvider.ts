@@ -1,0 +1,62 @@
+import { z } from 'zod';
+
+export const ModelProviderTypes = {
+    predefined: ['openai', 'anthropic', 'google'] as const,
+    custom: 'custom' as const,
+};
+
+// Fields that only the service sets, never user-provided
+const ServiceOnlyFields = {
+    id: z.string().uuid(),
+    createdAt: z.date(),
+};
+
+// Fields the user can set for both provider types
+const BaseUserEditableFields = {
+    name: z.string().min(1, 'Name is required'),
+    apiKey: z.string().min(1, 'API key is required'),
+    comment: z.string().optional(),
+    metadata: z.record(z.any()).optional(), // TODO(shashank): decide later if we really need this
+};
+
+// Schema for service-level objects (full model with service-generated fields)
+const PredefinedModelProviderSchema = z.object({
+    ...ServiceOnlyFields,
+    ...BaseUserEditableFields,
+    type: z.enum(ModelProviderTypes.predefined),
+    apiUrl: z.string().url('Invalid API URL').optional(), // service may set this
+});
+
+const CustomModelProviderSchema = z.object({
+    ...ServiceOnlyFields,
+    ...BaseUserEditableFields,
+    type: z.literal(ModelProviderTypes.custom),
+    apiUrl: z.string().url('Invalid API URL'), // user must set
+});
+
+export const ModelProviderSchema = z.discriminatedUnion('type', [
+    PredefinedModelProviderSchema,
+    CustomModelProviderSchema,
+]);
+
+// User-facing create schema - strips out service-only fields
+const PredefinedModelProviderCreateSchema = z.object({
+    ...BaseUserEditableFields,
+    type: z.enum(ModelProviderTypes.predefined),
+    apiUrl: z.string().url('Invalid API URL').optional(), // user may omit
+});
+
+const CustomModelProviderCreateSchema = z.object({
+    ...BaseUserEditableFields,
+    type: z.literal(ModelProviderTypes.custom),
+    apiUrl: z.string().url('Invalid API URL'), // required
+});
+
+export const ModelProviderCreateSchema = z.discriminatedUnion('type', [
+    PredefinedModelProviderCreateSchema,
+    CustomModelProviderCreateSchema,
+]);
+
+// Types
+export type ModelProvider = z.infer<typeof ModelProviderSchema>;
+export type ModelProviderCreate = z.infer<typeof ModelProviderCreateSchema>;

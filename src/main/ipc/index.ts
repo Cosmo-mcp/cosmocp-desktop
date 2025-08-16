@@ -1,21 +1,15 @@
 import {ipcMain} from 'electron';
 import {ChatAbortArgs, chatAbortMessage, chatSendMessage, ChatSendMessageArgs} from './chat-handler';
-import {Model} from "./dto";
+import {ModelProviderService} from "../services/modelProviderService";
+import {ModelProviderCreate} from "../../common/models/modelProvider";
 
 export function registerIpcHandlers(): void {
+
+    const modelProviderService = new ModelProviderService();
+
     ipcMain.on('chat-send-messages', (_event, args: ChatSendMessageArgs) => chatSendMessage(_event, args));
     ipcMain.on('chat-abort', (_event, args: ChatAbortArgs) => chatAbortMessage(_event, args));
-    ipcMain.handle('get-models', () => getModels());
-}
-
-export async function getModels(): Promise<Model[]> {
-    return [{
-        id: 'gemini-2.0-flash-lite',
-        name: 'Gemini Flash Lite',
-        description: 'Fast and efficient model for everyday tasks.'
-    }, {
-        id: 'gemini-2.0-pro-lite',
-        name: 'Gemini Pro Lite',
-        description: 'Most capable model for complex reasoning.'
-    }];
+    ipcMain.handle('add-model-provider', (_event, providerData: ModelProviderCreate) => modelProviderService.addProvider(providerData));
+    ipcMain.handle('get-model-providers', () => modelProviderService.getProviders());
+    ipcMain.handle('get-models-for-provider-id', (_event, providerId) => modelProviderService.getModels(providerId));
 }

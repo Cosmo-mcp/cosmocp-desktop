@@ -1,6 +1,7 @@
 import { ipcRenderer } from 'electron';
 import { UIMessageChunk } from "ai";
-import {Model} from "../main/ipc/dto";
+import {Model} from "../common/models/model";
+import {ModelProvider, ModelProviderCreate} from "../common/models/modelProvider";
 
 export interface ChatAPI {
     sendChatMessages: (data: any) => void;
@@ -9,7 +10,12 @@ export interface ChatAPI {
     onceChatEnd: (channel: string, callback: () => void) => void;
     onceChatError: (channel: string, callback: (error: any) => void) => void;
     removeChatListener: (channel: string) => void;
-    getModels: () => Promise<Model[]>;
+}
+
+export interface ModelProviderAPI {
+    addProvider: (providerData: ModelProviderCreate) => Promise<void>;
+    getProviders: () => Promise<Omit<ModelProvider, 'apiKey'>[]>;
+    getModels: (providerId: string) => Promise<Model[]>;
 }
 
 export const chatAPI: ChatAPI = {
@@ -31,7 +37,16 @@ export const chatAPI: ChatAPI = {
     removeChatListener: (channel) => {
         ipcRenderer.removeAllListeners(channel)
     },
-    getModels: () => {
-        return ipcRenderer.invoke('get-models')
+};
+
+export const modelProviderAPI: ModelProviderAPI = {
+    addProvider(providerData: ModelProviderCreate): Promise<void> {
+        return ipcRenderer.invoke('add-model-provider', providerData)
+    },
+    getProviders(): Promise<Omit<ModelProvider, "apiKey">[]> {
+        return ipcRenderer.invoke('get-model-providers')
+    },
+    getModels: (providerId: string) => {
+        return ipcRenderer.invoke('get-models-for-provider-id', providerId)
     },
 };
