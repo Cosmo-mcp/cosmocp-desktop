@@ -1,13 +1,16 @@
-import { app, safeStorage } from 'electron';
+import {app, safeStorage} from 'electron';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 import {
     ModelProvider,
-    ModelProviderCreate, ModelProviderCreateSchema, ModelProviderSchema,
-    ModelProviderTypes
-} from '../../common/models/modelProvider';
-import {Model} from "../../common/models/model";
+    ModelProviderCreate,
+    ModelProviderCreateSchema,
+    ModelProviders,
+    ModelProviderSchema,
+    PredefinedProviders
+} from '@models/modelProvider';
+import {Model} from "@models/model";
 
 const providersFilePath = path.join(app.getPath('appData'), 'providers.json');
 
@@ -35,6 +38,55 @@ export class ModelProviderService {
         if (this.providers.length === 0) {
             this.createMockProvider(); // TODO (shashank): get rid of this method once ui is complete
         }
+    }
+
+    public async addProvider(providerData: ModelProviderCreate): Promise<void> {
+        const parsed = ModelProviderCreateSchema.parse(providerData);
+        if (this.isDuplicate(providerData)) {
+            throw new Error('Duplicate provider entry.');
+        }
+
+        // TODO(shashank): convert this to actually fetch model list from local cache (or the remote provider directly)
+        function getDefaultApiUrl(type: string) {
+            return `https://remotehost${type}.com/api/v1/chat`;
+        }
+
+        const newProvider: ModelProvider = {
+            ...providerData,
+            id: crypto.randomUUID(),
+            createdAt: new Date(),
+            apiUrl: parsed.type === ModelProviders.CUSTOM
+                ? parsed.apiUrl
+                : parsed.apiUrl ?? getDefaultApiUrl(parsed.type)
+        };
+        ModelProviderSchema.parse(newProvider);
+        this.providers.push(newProvider);
+        await this.saveProviders();
+    }
+
+    public getProviders(): Omit<ModelProvider, 'apiKey'>[] {
+        // Only return safe, non-sensitive data to the renderer.
+        return this.providers.map(({apiKey, ...rest}) => rest);
+    }
+
+    public async getModels(providerId: string): Promise<Model[]> {
+        const provider = this.providers.find(p => p.id === providerId);
+        if (!provider) {
+            throw new Error('Provider not found.');
+        }
+        if (provider.type in PredefinedProviders) {
+            // TODO(shashank): add logic to fetch model for a predefined provider
+        }
+        // TODO (shashank): add logic to fetch models for a custom provider
+        return [{
+            id: 'gemini-2.0-flash-lite',
+            name: 'Gemini Flash Lite',
+            description: 'Fast and efficient model for everyday tasks.'
+        }, {
+            id: 'gemini-2.0-pro-lite',
+            name: 'Gemini Pro Lite',
+            description: 'Most capable model for complex reasoning.'
+        }];
     }
 
     private async loadProviders() {
@@ -74,55 +126,6 @@ export class ModelProviderService {
         );
     }
 
-    public async addProvider(providerData: ModelProviderCreate): Promise<void> {
-        const parsed = ModelProviderCreateSchema.parse(providerData);
-        if (this.isDuplicate(providerData)) {
-            throw new Error('Duplicate provider entry.');
-        }
-
-        // TODO(shashank): convert this to actually fetch model list from local cache (or the remote provider directly)
-        function getDefaultApiUrl(type: string) {
-            return `https://remotehost${type}.com/api/v1/chat`;
-        }
-
-        const newProvider: ModelProvider = {
-            ...providerData,
-            id: crypto.randomUUID(),
-            createdAt: new Date(),
-            apiUrl: parsed.type === ModelProviderTypes.custom
-                ? parsed.apiUrl
-                : parsed.apiUrl ?? getDefaultApiUrl(parsed.type)
-        };
-        ModelProviderSchema.parse(newProvider);
-        this.providers.push(newProvider);
-        await this.saveProviders();
-    }
-
-    public getProviders(): Omit<ModelProvider, 'apiKey'>[] {
-        // Only return safe, non-sensitive data to the renderer.
-        return this.providers.map(({ apiKey, ...rest }) => rest);
-    }
-
-    public async getModels(providerId: string): Promise<Model[]> {
-        const provider = this.providers.find(p => p.id === providerId);
-        if (!provider) {
-            throw new Error('Provider not found.');
-        }
-        if (provider.type in ModelProviderTypes.predefined) {
-            // TODO(shashank): add logic to fetch model for a predefined provider
-        }
-        // TODO (shashank): add logic to fetch models for a custom provider
-        return [{
-            id: 'gemini-2.0-flash-lite',
-            name: 'Gemini Flash Lite',
-            description: 'Fast and efficient model for everyday tasks.'
-        }, {
-            id: 'gemini-2.0-pro-lite',
-            name: 'Gemini Pro Lite',
-            description: 'Most capable model for complex reasoning.'
-        }];
-    }
-
     // TODO (shashank): remove this method later, this is only till we don't have a UI in place
     private createMockProvider() {
         const mockProvider: ModelProvider = {
@@ -130,7 +133,7 @@ export class ModelProviderService {
             createdAt: new Date(),
             name: "Mock Model Provider",
             apiKey: 'mock-model-provider-key',
-            type: 'custom',
+            type: ModelProviders.CUSTOM,
             apiUrl: 'http://localhost:8080/api/v1/chat/completions',
         };
         this.providers.push(mockProvider);

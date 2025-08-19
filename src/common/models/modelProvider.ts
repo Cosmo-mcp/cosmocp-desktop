@@ -1,9 +1,21 @@
 import { z } from 'zod';
 
-export const ModelProviderTypes = {
-    predefined: ['openai', 'anthropic', 'google'] as const,
-    custom: 'custom' as const,
-};
+export const enum ModelProviders {
+    OPENAI= 'openai',
+    ANTHROPIC= 'anthropic',
+    GOOGLE= 'google',
+    CUSTOM= 'custom',
+}
+
+export const PredefinedProviders = [
+    ModelProviders.OPENAI,
+    ModelProviders.ANTHROPIC,
+    ModelProviders.GOOGLE,
+] as const;
+
+export const CustomProvider = [ModelProviders.CUSTOM] as const;
+
+export type ProviderLite = Omit<ModelProvider, "apiKey">[];
 
 // Fields that only the service sets, never user-provided
 const ServiceOnlyFields = {
@@ -23,15 +35,15 @@ const BaseUserEditableFields = {
 const PredefinedModelProviderSchema = z.object({
     ...ServiceOnlyFields,
     ...BaseUserEditableFields,
-    type: z.enum(ModelProviderTypes.predefined),
+    type: z.enum(PredefinedProviders),
     apiUrl: z.string().url('Invalid API URL').optional(), // service may set this
 });
 
 const CustomModelProviderSchema = z.object({
     ...ServiceOnlyFields,
     ...BaseUserEditableFields,
-    type: z.literal(ModelProviderTypes.custom),
-    apiUrl: z.string().url('Invalid API URL'), // user must set
+    type: z.enum(CustomProvider),
+    apiUrl: z.string().url('Invalid API URL').optional(),
 });
 
 export const ModelProviderSchema = z.discriminatedUnion('type', [
@@ -42,13 +54,13 @@ export const ModelProviderSchema = z.discriminatedUnion('type', [
 // User-facing create schema - strips out service-only fields
 const PredefinedModelProviderCreateSchema = z.object({
     ...BaseUserEditableFields,
-    type: z.enum(ModelProviderTypes.predefined),
+    type: z.enum(PredefinedProviders),
     apiUrl: z.string().url('Invalid API URL').optional(), // user may omit
 });
 
 const CustomModelProviderCreateSchema = z.object({
     ...BaseUserEditableFields,
-    type: z.literal(ModelProviderTypes.custom),
+    type: z.enum(CustomProvider),
     apiUrl: z.string().url('Invalid API URL'), // required
 });
 
