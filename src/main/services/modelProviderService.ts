@@ -9,8 +9,8 @@ import {
     ModelProviders,
     ModelProviderSchema,
     PredefinedProviders
-} from '@models/modelProvider';
-import {Model} from "@models/model";
+} from '../../common/models/modelProvider';
+import {Model} from "../../common/models/model";
 
 const providersFilePath = path.join(app.getPath('appData'), 'providers.json');
 
