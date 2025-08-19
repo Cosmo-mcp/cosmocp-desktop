@@ -8,7 +8,7 @@ import {cn} from '@/lib/utils';
 
 import {CheckCircleFillIcon, ChevronDownIcon} from './icons';
 import {Model} from 'cosmo-commons/models/model';
-import {ModelProviderCreate, ModelProviderTypes, ProviderLite} from '@/lib/types';
+import {ModelProviderCreate, ModelProviderTypes, PREDEFINED_PROVIDER_TYPES, ProviderLite} from '@/lib/types';
 
 // Add proper provider type aliases
 type PredefinedProviderType = typeof ModelProviderTypes.predefined;
@@ -34,7 +34,7 @@ export function ModelSelector({
     const [addingProvider, setAddingProvider] = useState(false);
 
     // Add provider form state
-    const [newProviderType, setNewProviderType] = useState<ProviderType>(ModelProviderTypes.predefined);
+    const [newProviderType, setNewProviderType] = useState<ProviderType>(PREDEFINED_PROVIDER_TYPES[0] as ProviderType);
     const [newProviderName, setNewProviderName] = useState('');
     const [newProviderApiKey, setNewProviderApiKey] = useState('');
     const [newProviderApiUrl, setNewProviderApiUrl] = useState('');

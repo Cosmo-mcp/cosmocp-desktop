@@ -30,7 +30,7 @@ export interface Attachment {
 }
 
 // TODO: fix imports, same copied from src/common/models/modelProvider.ts, file import not working
-const PREDEFINED_PROVIDER_TYPES = ['openai', 'anthropic', 'google'] as const;
+export const PREDEFINED_PROVIDER_TYPES = ['openai', 'anthropic', 'google'] as const;
 type PredefinedProviderType = typeof PREDEFINED_PROVIDER_TYPES;
 export const ModelProviderTypes = {
     predefined: PREDEFINED_PROVIDER_TYPES,
