@@ -43,7 +43,7 @@ const CustomModelProviderSchema = z.object({
     ...ServiceOnlyFields,
     ...BaseUserEditableFields,
     type: z.enum(CustomProvider),
-    apiUrl: z.string().url('Invalid API URL').optional(),
+    apiUrl: z.string().url('Invalid API URL'), // user must set,
 });
 
 export const ModelProviderSchema = z.discriminatedUnion('type', [
