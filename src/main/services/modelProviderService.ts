@@ -4,15 +4,8 @@ import path from 'path';
 import crypto from 'crypto';
 import {
     ModelProvider,
-    ModelProviderCreate,
-    ModelProviderCreateSchema,
-    ModelProviders,
-    ModelProviderSchema,
-    PredefinedProviders
-} from '../../common/models/modelProvider';
-import {Model} from "../../common/models/model";
     ModelProviderCreate, ModelProviderCreateSchema, ModelProviderLite, ModelProviderSchema,
-    ModelProviderTypes
+    ModelProviderType, PredefinedProviders
 } from '../../renderer/src/common/models/modelProvider';
 import {Model} from "../../renderer/src/common/models/model";
 
@@ -101,7 +94,7 @@ export class ModelProviderService {
             ...providerData,
             id: crypto.randomUUID(),
             createdAt: new Date(),
-            apiUrl: parsed.type === ModelProviders.CUSTOM
+            apiUrl: parsed.type === ModelProviderType.CUSTOM
                 ? parsed.apiUrl
                 : parsed.apiUrl ?? getDefaultApiUrl(parsed.type)
         };
@@ -147,7 +140,7 @@ export class ModelProviderService {
             createdAt: new Date(),
             name: "Mock Model Provider",
             apiKey: 'mock-model-provider-key',
-            type: ModelProviders.CUSTOM,
+            type: ModelProviderType.CUSTOM,
             apiUrl: 'http://localhost:8080/api/v1/chat/completions',
         };
         this.providers.set(mockProvider.id, mockProvider);

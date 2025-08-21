@@ -27,19 +27,3 @@ export interface Attachment {
     url: string;
     contentType: string;
 }
-
-// TODO(jayasurya): remove after imports are sorted
-export const enum ModelProviders {
-    OPENAI = 'openai',
-    ANTHROPIC = 'anthropic',
-    GOOGLE = 'google',
-    CUSTOM = 'custom',
-}
-
-export const PredefinedProviders = [
-    ModelProviders.OPENAI,
-    ModelProviders.ANTHROPIC,
-    ModelProviders.GOOGLE,
-] as const;
-
-export const CustomProvider = [ModelProviders.CUSTOM] as const;

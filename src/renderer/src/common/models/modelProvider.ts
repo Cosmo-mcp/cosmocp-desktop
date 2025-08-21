@@ -1,6 +1,6 @@
 import {z} from 'zod';
 
-export const enum ModelProviders {
+export const enum ModelProviderType {
     OPENAI = 'openai',
     ANTHROPIC = 'anthropic',
     GOOGLE = 'google',
@@ -8,14 +8,12 @@ export const enum ModelProviders {
 }
 
 export const PredefinedProviders = [
-    ModelProviders.OPENAI,
-    ModelProviders.ANTHROPIC,
-    ModelProviders.GOOGLE,
+    ModelProviderType.OPENAI,
+    ModelProviderType.ANTHROPIC,
+    ModelProviderType.GOOGLE,
 ] as const;
 
-export const CustomProvider = [ModelProviders.CUSTOM] as const;
-
-export type ProviderLite = Omit<ModelProvider, "apiKey">[];
+export const CustomProvider = [ModelProviderType.CUSTOM] as const;
 
 // Fields that only the service sets, never user-provided
 const ServiceOnlyFields = {

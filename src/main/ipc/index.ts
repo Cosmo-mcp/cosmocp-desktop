@@ -1,7 +1,7 @@
 import {ipcMain} from 'electron';
 import {ChatAbortArgs, chatAbortMessage, chatSendMessage, ChatSendMessageArgs} from './chat-handler';
 import {ModelProviderService} from "../services/modelProviderService";
-import {ModelProviderCreate} from "../../common/models/modelProvider";
+import {ModelProviderCreate} from "../../renderer/src/common/models/modelProvider";
 
 export function registerIpcHandlers(): void {
 

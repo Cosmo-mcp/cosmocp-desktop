@@ -9,11 +9,12 @@ import {cn} from '@/lib/utils';
 import {CheckCircleFillIcon, ChevronDownIcon} from './icons';
 import {Model} from "@/common/models/model";
 import {
+    CustomProvider,
     ModelProviderCreate,
-    ProviderLite
-} from '@commons/models/modelProvider';
-// TODO(jayasurya): also import from modelProvider
-import {ModelProviders, CustomProvider, PredefinedProviders} from "@/lib/types";
+    ModelProviderLite,
+    ModelProviderType,
+    PredefinedProviders
+} from "@/common/models/modelProvider";
 
 const LS_PROVIDER_KEY = 'selectedProviderId';
 
@@ -28,14 +29,14 @@ export function ModelSelector({
     const [open, setOpen] = useState(false);
     const [currentModelId, setCurrentModelId] = useState(selectedModelId);
     const [availableChatModels, setAvailableChatModels] = useState<Model[]>([]);
-    const [providers, setProviders] = useState<ProviderLite>([]);
+    const [providers, setProviders] = useState<ModelProviderLite[]>([]);
     const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
     const [addingProvider, setAddingProvider] = useState(false);
 
-    const [newProviderType, setNewProviderType] = useState<ModelProviders>(ModelProviders.OPENAI);
+    const [newProviderType, setNewProviderType] = useState<ModelProviderType>(ModelProviderType.OPENAI);
     const [newProviderName, setNewProviderName] = useState('');
     const [newProviderApiKey, setNewProviderApiKey] = useState('');
-    const [newProviderApiUrl, setNewProviderApiUrl] = useState('');
+    const [newProviderApiUrl, setNewProviderApiUrl] = useState<string | undefined>(undefined);
     const [submittingProvider, setSubmittingProvider] = useState(false);
     const [providerError, setProviderError] = useState<string | null>(null);
 
@@ -98,40 +99,27 @@ export function ModelSelector({
         setSubmittingProvider(true);
         setProviderError(null);
         try {
-            let providerData: ModelProviderCreate;
-            const baseName = newProviderName.trim() || newProviderType?.toString();
-            if (newProviderType === ModelProviders.CUSTOM) {
-                providerData = {
-                    name: baseName,
-                    type: newProviderType,
-                    apiKey: newProviderApiKey,
-                    apiUrl: newProviderApiUrl,
-                    comment: undefined,
-                };
-            } else {
-                providerData = {
-                    name: baseName,
-                    type: newProviderType,
-                    apiKey: newProviderApiKey,
-                    ...(newProviderApiUrl ? {apiUrl: newProviderApiUrl} : {}),
-                    comment: undefined,
-                };
-            }
-            await window.modelProviderAPI.addProvider(providerData);
-            const list = await window.modelProviderAPI.getProviders();
-            setProviders(list);
-            const added = list.find(p => p.name === providerData.name && p.type === providerData.type && (!providerData.apiUrl || p.apiUrl === providerData.apiUrl));
-            if (added) {
-                setSelectedProviderId(added.id);
+            const providerData = {
+                name: newProviderName.trim() || newProviderType?.toString(),
+                type: newProviderType,
+                apiKey: newProviderApiKey,
+                apiUrl: newProviderApiUrl,
+                comment: undefined,
+            } as ModelProviderCreate;
+            const newProvider = await window.modelProviderAPI.addProvider(providerData);
+            if (newProvider) {
+                setSelectedProviderId(newProvider.id);
+                setProviders([...providers, newProvider]);
             }
             // reset form
             setAddingProvider(false);
             setNewProviderName('');
             setNewProviderApiKey('');
             setNewProviderApiUrl('');
-            // @ts-expect-error burp
+            // @ts-expect-error Catch clause variable type annotation must be any or unknown
         } catch (err: never) {
-            setProviderError(err['message'] || 'Failed to add provider');
+            console.error('Failed to add provider:', err);
+            setProviderError(err.message || 'Failed to add provider');
         } finally {
             setSubmittingProvider(false);
         }
@@ -167,7 +155,7 @@ export function ModelSelector({
                         </div>
                     )}
                     {addingProvider && (() => {
-                        const isCustomProvider = newProviderType === ModelProviders.CUSTOM;
+                        const isCustomProvider = newProviderType === ModelProviderType.CUSTOM;
                         const apiUrlLabel = isCustomProvider ? 'API URL' : 'API URL (optional override)';
                         const apiUrlPlaceholder = isCustomProvider ? 'https://api.example.com/v1' : 'Leave blank for default';
 
@@ -176,7 +164,7 @@ export function ModelSelector({
                                 <div className="flex flex-col gap-1">
                                     <label className="text-xs font-medium">Type</label>
                                     <select className="border rounded px-2 py-1 bg-background" value={newProviderType}
-                                            onChange={e => setNewProviderType(e.target.value as ModelProviders)}>
+                                            onChange={e => setNewProviderType(e.target.value as ModelProviderType)}>
                                         {PredefinedProviders.map(t => <option key={t} value={t}>{t}</option>)}
                                         <option value={CustomProvider}>{CustomProvider}</option>
                                     </select>
