@@ -40,6 +40,43 @@ export class ModelProviderService {
         }
     }
 
+    private async loadProviders() {
+        try {
+            const data = await fs.readFile(providersFilePath, 'utf-8');
+            const storedProviders = JSON.parse(data) as ModelProvider[];
+            this.providers = storedProviders.map(p => ({
+                ...p,
+                apiKey: decryptApiKey(p.apiKey),
+            }));
+        } catch (err) {
+            if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+                this.providers = [];
+            } else {
+                console.error('Failed to load providers:', err);
+            }
+        }
+    }
+
+    private async saveProviders() {
+        try {
+            const providersToSave = this.providers.map(p => ({
+                ...p,
+                apiKey: encryptApiKey(p.apiKey), // Encrypt keys before saving.
+            }));
+            await fs.writeFile(providersFilePath, JSON.stringify(providersToSave, null, 2));
+        } catch (err) {
+            console.error('Failed to save providers:', err);
+        }
+    }
+
+    private isDuplicate(provider: ModelProviderCreate): boolean {
+        return this.providers.some(
+            p => p.type === provider.type
+                && p.apiKey === provider.apiKey
+                && p.apiUrl === provider.apiUrl
+        );
+    }
+
     public async addProvider(providerData: ModelProviderCreate): Promise<void> {
         const parsed = ModelProviderCreateSchema.parse(providerData);
         if (this.isDuplicate(providerData)) {
@@ -87,43 +124,6 @@ export class ModelProviderService {
             name: 'Gemini Pro Lite',
             description: 'Most capable model for complex reasoning.'
         }];
-    }
-
-    private async loadProviders() {
-        try {
-            const data = await fs.readFile(providersFilePath, 'utf-8');
-            const storedProviders = JSON.parse(data) as ModelProvider[];
-            this.providers = storedProviders.map(p => ({
-                ...p,
-                apiKey: decryptApiKey(p.apiKey),
-            }));
-        } catch (err) {
-            if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-                this.providers = [];
-            } else {
-                console.error('Failed to load providers:', err);
-            }
-        }
-    }
-
-    private async saveProviders() {
-        try {
-            const providersToSave = this.providers.map(p => ({
-                ...p,
-                apiKey: encryptApiKey(p.apiKey), // Encrypt keys before saving.
-            }));
-            await fs.writeFile(providersFilePath, JSON.stringify(providersToSave, null, 2));
-        } catch (err) {
-            console.error('Failed to save providers:', err);
-        }
-    }
-
-    private isDuplicate(provider: ModelProviderCreate): boolean {
-        return this.providers.some(
-            p => p.type === provider.type
-                && p.apiKey === provider.apiKey
-                && p.apiUrl === provider.apiUrl
-        );
     }
 
     // TODO (shashank): remove this method later, this is only till we don't have a UI in place
