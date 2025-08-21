@@ -7,14 +7,13 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {cn} from '@/lib/utils';
 
 import {CheckCircleFillIcon, ChevronDownIcon} from './icons';
-import {Model} from '../../../common/models/model';
+import {Model} from 'cosmo-commons/models/model';
 import {
-    CustomProvider,
     ModelProviderCreate,
-    ModelProviders,
-    PredefinedProviders,
     ProviderLite
-} from "../../../common/models/modelProvider";
+} from 'cosmo-commons/models/modelProvider';
+// TODO(jayasurya): also import from modelProvider
+import {ModelProviders, CustomProvider, PredefinedProviders} from "@/lib/types";
 
 const LS_PROVIDER_KEY = 'selectedProviderId';
 
@@ -22,11 +21,9 @@ export function ModelSelector({
                                   selectedModelId,
                                   onModelChange,
                                   className,
-                                  onProviderChange,
                               }: {
     selectedModelId: string;
     onModelChange?: (modelId: string) => void;
-    onProviderChange?: (providerId: string) => void;
 } & React.ComponentProps<typeof Button>) {
     const [open, setOpen] = useState(false);
     const [currentModelId, setCurrentModelId] = useState(selectedModelId);
@@ -35,7 +32,6 @@ export function ModelSelector({
     const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
     const [addingProvider, setAddingProvider] = useState(false);
 
-    // Add provider form state
     const [newProviderType, setNewProviderType] = useState<ModelProviders>(ModelProviders.OPENAI);
     const [newProviderName, setNewProviderName] = useState('');
     const [newProviderApiKey, setNewProviderApiKey] = useState('');
@@ -43,12 +39,12 @@ export function ModelSelector({
     const [submittingProvider, setSubmittingProvider] = useState(false);
     const [providerError, setProviderError] = useState<string | null>(null);
 
-    // Initial load: providers + selected provider from localStorage
     useEffect(() => {
         async function init() {
             try {
                 const list = await window.modelProviderAPI.getProviders();
                 setProviders(list);
+                // TODO: get from providers.json
                 const saved = localStorage.getItem(LS_PROVIDER_KEY);
                 if (saved && list.find(p => p.id === saved)) {
                     setSelectedProviderId(saved);
@@ -63,23 +59,22 @@ export function ModelSelector({
 
     // When a provider changes, fetch its models
     useEffect(() => {
-        if (!selectedProviderId) return;
-
         async function loadModels() {
+            if (!selectedProviderId) return;
             try {
-                if (!selectedProviderId) return;
                 const models = await window.modelProviderAPI.getModels(selectedProviderId);
                 setAvailableChatModels(models);
             } catch (e) {
                 console.error('Failed to load models', e);
             }
+            // TODO: save it to providers.json
+            localStorage.setItem(LS_PROVIDER_KEY, selectedProviderId);
         }
 
         loadModels();
-        localStorage.setItem(LS_PROVIDER_KEY, selectedProviderId);
-        onProviderChange?.(selectedProviderId);
-    }, [selectedProviderId, onProviderChange]);
+    }, [selectedProviderId]);
 
+    // When selectedModelId prop changes, update currentModelId
     useEffect(() => {
         setCurrentModelId(selectedModelId);
     }, [selectedModelId]);
@@ -103,11 +98,9 @@ export function ModelSelector({
         setSubmittingProvider(true);
         setProviderError(null);
         try {
-            // Build providerData in a type-safe way for the discriminated union
             let providerData: ModelProviderCreate;
             const baseName = newProviderName.trim() || newProviderType?.toString();
             if (newProviderType === ModelProviders.CUSTOM) {
-                // custom requires apiUrl
                 providerData = {
                     name: baseName,
                     type: newProviderType,
@@ -116,7 +109,6 @@ export function ModelSelector({
                     comment: undefined,
                 };
             } else {
-                // predefined: apiUrl optional override
                 providerData = {
                     name: baseName,
                     type: newProviderType,
@@ -128,7 +120,6 @@ export function ModelSelector({
             await window.modelProviderAPI.addProvider(providerData);
             const list = await window.modelProviderAPI.getProviders();
             setProviders(list);
-            // pick the newly added one: find by name & type & (apiUrl if provided)
             const added = list.find(p => p.name === providerData.name && p.type === providerData.type && (!providerData.apiUrl || p.apiUrl === providerData.apiUrl));
             if (added) {
                 setSelectedProviderId(added.id);
@@ -146,7 +137,6 @@ export function ModelSelector({
         }
     }
 
-    // If no provider selected, show provider selection UI
     if (!selectedProviderId) {
         return (
             <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -176,61 +166,60 @@ export function ModelSelector({
                                     continue.</div>}
                         </div>
                     )}
-                    {addingProvider && (
-                        <form onSubmit={handleAddProvider} className="flex flex-col gap-2 mt-1">
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium">Type</label>
-                                <select className="border rounded px-2 py-1 bg-background" value={newProviderType}
-                                        onChange={e => setNewProviderType(e.target.value as ModelProviders)}>
-                                    {PredefinedProviders.map(t => <option key={t} value={t}>{t}</option>)}
-                                    <option value={CustomProvider}>{CustomProvider}</option>
-                                </select>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium">Name</label>
-                                <input className="border rounded px-2 py-1 bg-background" value={newProviderName}
-                                       onChange={e => setNewProviderName(e.target.value)} placeholder="Display name"/>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium">API Key</label>
-                                <input required className="border rounded px-2 py-1 bg-background" type="password"
-                                       value={newProviderApiKey}
-                                       onChange={e => setNewProviderApiKey(e.target.value)} placeholder="sk-..."/>
-                            </div>
-                            {(newProviderType === ModelProviders.CUSTOM) && (
+                    {addingProvider && (() => {
+                        const isCustomProvider = newProviderType === ModelProviders.CUSTOM;
+                        const apiUrlLabel = isCustomProvider ? 'API URL' : 'API URL (optional override)';
+                        const apiUrlPlaceholder = isCustomProvider ? 'https://api.example.com/v1' : 'Leave blank for default';
+
+                        return (
+                            <form onSubmit={handleAddProvider} className="flex flex-col gap-2 mt-1">
                                 <div className="flex flex-col gap-1">
-                                    <label className="text-xs font-medium">API URL</label>
-                                    <input required className="border rounded px-2 py-1 bg-background"
-                                           value={newProviderApiUrl}
-                                           onChange={e => setNewProviderApiUrl(e.target.value)}
-                                           placeholder="https://api.example.com/v1"/>
+                                    <label className="text-xs font-medium">Type</label>
+                                    <select className="border rounded px-2 py-1 bg-background" value={newProviderType}
+                                            onChange={e => setNewProviderType(e.target.value as ModelProviders)}>
+                                        {PredefinedProviders.map(t => <option key={t} value={t}>{t}</option>)}
+                                        <option value={CustomProvider}>{CustomProvider}</option>
+                                    </select>
                                 </div>
-                            )}
-                            {(newProviderType !== ModelProviders.CUSTOM) && (
                                 <div className="flex flex-col gap-1">
-                                    <label className="text-xs font-medium">API URL (optional override)</label>
-                                    <input className="border rounded px-2 py-1 bg-background" value={newProviderApiUrl}
-                                           onChange={e => setNewProviderApiUrl(e.target.value)}
-                                           placeholder="Leave blank for default"/>
+                                    <label className="text-xs font-medium">Name</label>
+                                    <input className="border rounded px-2 py-1 bg-background" value={newProviderName}
+                                           onChange={e => setNewProviderName(e.target.value)}
+                                           placeholder="Display name"/>
                                 </div>
-                            )}
-                            {providerError && <div className="text-xs text-red-500">{providerError}</div>}
-                            <div className="flex gap-2 pt-1">
-                                <Button type="submit" size="sm"
-                                        disabled={submittingProvider || !newProviderApiKey}>{submittingProvider ? 'Saving...' : 'Save'}</Button>
-                                <Button type="button" size="sm" variant="secondary" onClick={() => {
-                                    setAddingProvider(false);
-                                    setProviderError(null);
-                                }}>Cancel</Button>
-                            </div>
-                        </form>
-                    )}
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs font-medium">API Key</label>
+                                    <input required className="border rounded px-2 py-1 bg-background" type="password"
+                                           value={newProviderApiKey}
+                                           onChange={e => setNewProviderApiKey(e.target.value)} placeholder="sk-..."/>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs font-medium">{apiUrlLabel}</label>
+                                    <input
+                                        required={isCustomProvider}
+                                        className="border rounded px-2 py-1 bg-background"
+                                        value={newProviderApiUrl}
+                                        onChange={(e) => setNewProviderApiUrl(e.target.value)}
+                                        placeholder={apiUrlPlaceholder}
+                                    />
+                                </div>
+                                {providerError && <div className="text-xs text-red-500">{providerError}</div>}
+                                <div className="flex gap-2 pt-1">
+                                    <Button type="submit" size="sm"
+                                            disabled={submittingProvider || !newProviderApiKey}>{submittingProvider ? 'Saving...' : 'Save'}</Button>
+                                    <Button type="button" size="sm" variant="secondary" onClick={() => {
+                                        setAddingProvider(false);
+                                        setProviderError(null);
+                                    }}>Cancel</Button>
+                                </div>
+                            </form>
+                        );
+                    })()}
                 </DropdownMenuContent>
             </DropdownMenu>
         );
     }
 
-    // New: show provider name and allow changing provider alongside model selector
     const selectedProvider = providers.find(p => p.id === selectedProviderId);
 
     return (
@@ -300,6 +289,7 @@ export function ModelSelector({
                     setSelectedProviderId(null);
                     setAvailableChatModels([]);
                     setCurrentModelId('');
+                    // TODO: remove from provider.json
                     localStorage.removeItem(LS_PROVIDER_KEY);
                 }}
                 title={selectedProvider ? `Current provider: ${selectedProvider.name}` : 'Change Provider'}

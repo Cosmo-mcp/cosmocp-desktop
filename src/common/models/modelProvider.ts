@@ -1,10 +1,10 @@
-import { z } from 'zod';
+import {z} from 'zod';
 
 export const enum ModelProviders {
-    OPENAI= 'openai',
-    ANTHROPIC= 'anthropic',
-    GOOGLE= 'google',
-    CUSTOM= 'custom',
+    OPENAI = 'openai',
+    ANTHROPIC = 'anthropic',
+    GOOGLE = 'google',
+    CUSTOM = 'custom',
 }
 
 export const PredefinedProviders = [
