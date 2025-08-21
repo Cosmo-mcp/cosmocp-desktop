@@ -7,11 +7,11 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {cn} from '@/lib/utils';
 
 import {CheckCircleFillIcon, ChevronDownIcon} from './icons';
-import {Model} from 'cosmo-commons/models/model';
+import {Model} from "@/common/models/model";
 import {
     ModelProviderCreate,
     ProviderLite
-} from 'cosmo-commons/models/modelProvider';
+} from '@commons/models/modelProvider';
 // TODO(jayasurya): also import from modelProvider
 import {ModelProviders, CustomProvider, PredefinedProviders} from "@/lib/types";
 

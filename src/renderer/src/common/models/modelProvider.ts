@@ -72,3 +72,5 @@ export const ModelProviderCreateSchema = z.discriminatedUnion('type', [
 // Types
 export type ModelProvider = z.infer<typeof ModelProviderSchema>;
 export type ModelProviderCreate = z.infer<typeof ModelProviderCreateSchema>;
+
+export type ModelProviderLite = Omit<ModelProvider, "apiKey">;
