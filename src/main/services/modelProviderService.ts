@@ -4,7 +4,7 @@ import path from 'path';
 import crypto from 'crypto';
 import {
     ModelProvider,
-    ModelProviderCreate, ModelProviderCreateSchema, ModelProviderSchema,
+    ModelProviderCreate, ModelProviderCreateSchema, ModelProviderLite, ModelProviderSchema,
     ModelProviderTypes
 } from '../../renderer/src/common/models/modelProvider';
 import {Model} from "../../renderer/src/common/models/model";
@@ -28,35 +28,40 @@ const decryptApiKey = (encryptedKey: string): string => {
 };
 
 export class ModelProviderService {
-    private providers: ModelProvider[] = [];
+    private providers = new Map<string, ModelProvider>();
 
     constructor() {
-        this.loadProviders();
-        if (this.providers.length === 0) {
-            this.createMockProvider(); // TODO (shashank): get rid of this method once ui is complete
-        }
+        this.loadProviders().then((providerCount) => {
+            if (providerCount === 0) {
+                // TODO (shashank): get rid of this method once ui is complete
+                this.createMockProvider().then(() => console.log("mock provider created"));
+            }
+        });
     }
 
-    private async loadProviders() {
+    private async loadProviders(): Promise<number> {
         try {
             const data = await fs.readFile(providersFilePath, 'utf-8');
             const storedProviders = JSON.parse(data) as ModelProvider[];
-            this.providers = storedProviders.map(p => ({
-                ...p,
-                apiKey: decryptApiKey(p.apiKey),
-            }));
+            storedProviders.forEach(p => {
+                this.providers.set(p.id, {
+                    ...p,
+                    apiKey: decryptApiKey(p.apiKey),
+                });
+            });
         } catch (err) {
             if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-                this.providers = [];
+                console.error("provider.json not found. Initializing empty.");
             } else {
                 console.error('Failed to load providers:', err);
             }
         }
+        return this.providers.size;
     }
 
     private async saveProviders() {
         try {
-            const providersToSave = this.providers.map(p => ({
+            const providersToSave = Array.from(this.providers.values()).map(p => ({
                 ...p,
                 apiKey: encryptApiKey(p.apiKey), // Encrypt keys before saving.
             }));
@@ -67,14 +72,14 @@ export class ModelProviderService {
     }
 
     private isDuplicate(provider: ModelProviderCreate): boolean {
-        return this.providers.some(
+        return this.providers.values().some(
             p => p.type === provider.type
                 && p.apiKey === provider.apiKey
                 && p.apiUrl === provider.apiUrl
         );
     }
 
-    public async addProvider(providerData: ModelProviderCreate): Promise<void> {
+    public async addProvider(providerData: ModelProviderCreate): Promise<ModelProvider> {
         const parsed = ModelProviderCreateSchema.parse(providerData);
         if (this.isDuplicate(providerData)) {
             throw new Error('Duplicate provider entry.');
@@ -94,17 +99,22 @@ export class ModelProviderService {
                 : parsed.apiUrl ?? getDefaultApiUrl(parsed.type)
         };
         ModelProviderSchema.parse(newProvider);
-        this.providers.push(newProvider);
+        this.providers.set(newProvider.id, newProvider);
         await this.saveProviders();
+        return newProvider;
     }
 
-    public getProviders(): Omit<ModelProvider, 'apiKey'>[] {
+    public getProviderForId(providerId: string): ModelProvider {
+        return this.providers.get(providerId);
+    }
+
+    public getProviders(): ModelProviderLite[] {
         // Only return safe, non-sensitive data to the renderer.
-        return this.providers.map(({ apiKey, ...rest }) => rest);
+        return Array.from(this.providers.values()).map(({ apiKey, ...rest }) => rest);
     }
 
     public async getModels(providerId: string): Promise<Model[]> {
-        const provider = this.providers.find(p => p.id === providerId);
+        const provider = this.providers.get(providerId);
         if (!provider) {
             throw new Error('Provider not found.');
         }
@@ -124,7 +134,7 @@ export class ModelProviderService {
     }
 
     // TODO (shashank): remove this method later, this is only till we don't have a UI in place
-    private createMockProvider() {
+    private async createMockProvider() {
         const mockProvider: ModelProvider = {
             id: 'mock-model-provider',
             createdAt: new Date(),
@@ -133,7 +143,16 @@ export class ModelProviderService {
             type: 'custom',
             apiUrl: 'http://localhost:8080/api/v1/chat/completions',
         };
-        this.providers.push(mockProvider);
-        this.saveProviders();
+        this.providers.set(mockProvider.id, mockProvider);
+        await this.saveProviders();
+    }
+
+    public async deleteProvider(providerId: string): Promise<void> {
+        const provider = this.providers.get(providerId);
+        if (!provider) {
+            throw new Error('Provider not found.');
+        }
+        this.providers.delete(provider.id);
+        await this.saveProviders();
     }
 }
