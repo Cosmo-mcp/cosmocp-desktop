@@ -6,8 +6,8 @@ import {
     ModelProvider,
     ModelProviderCreate, ModelProviderCreateSchema, ModelProviderSchema,
     ModelProviderTypes
-} from '../../common/models/modelProvider';
-import {Model} from "../../common/models/model";
+} from '../../renderer/src/common/models/modelProvider';
+import {Model} from "../../renderer/src/common/models/model";
 
 const providersFilePath = path.join(app.getPath('appData'), 'providers.json');
 
