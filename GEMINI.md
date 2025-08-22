@@ -26,7 +26,8 @@ This guide is a checklist to help you write, test, and review code *specifically
 *   **Component Structure:** Keep React components small and focused. If a component in `src/renderer/src/components` gets too large, break it down.
 *   **State Management:** For UI state, use React hooks (`useState`, `useReducer`). For shared data definitions, see `src/renderer/src/lib/types.ts`.
 *   **Styling:** Use Tailwind CSS utility classes directly in your `className` attributes. For common styles, you can use the `@apply` directive in `src/renderer/src/app/globals.css`.
-*   **Linting:** Our linting rules are defined in `.eslintrc.json` (for the Electron part) and `src/renderer/eslint.config.mjs` (for the Next.js part). Run `npm run lint` in both the root and `src/renderer` directories to catch issues early.
+*   **Linting:** we use google typescript style guide(gts) for linting, please run `npm run lint` to lint the code 
+*   **Style Fix:** we use google typescript style guide(gts) for fixing style problems, please run `npm run fix` for gts to fix style according to it's guide
 
 ### Security
 *   **IPC Security is Critical:** The `src/preload/index.ts` script is a security boundary. When you expose functions from the main process using `contextBridge`, **never** expose entire modules like `fs`. Only expose the specific, minimal functionality the renderer needs. Always validate and sanitize arguments coming from the renderer process.
