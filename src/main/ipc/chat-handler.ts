@@ -1,11 +1,9 @@
 import {convertToModelMessages, ModelMessage, smoothStream, streamText} from 'ai';
 import {createGoogleGenerativeAI} from '@ai-sdk/google';
-import {config} from 'dotenv';
+import 'dotenv/config';
 import {ChatMessage} from "../../renderer/src/lib/types";
 import WebContents = Electron.Main.WebContents;
 import IpcMainEvent = Electron.IpcMainEvent;
-
-config();
 
 const GEMINI_API_KEY = process.env['GEMINI_API_KEY'];
 const MODEL_NAME = 'gemini-2.0-flash-lite';
