@@ -23,9 +23,8 @@ const ServiceOnlyFields = {
 
 // Fields the user can set for both provider types
 const BaseUserEditableFields = {
-    name: z.string().min(1, 'Name is required'),
+    nickName: z.string().optional(),
     apiKey: z.string().min(1, 'API key is required'),
-    comment: z.string().optional(),
     metadata: z.record(z.any()).optional(), // TODO(shashank): decide later if we really need this
 };
 

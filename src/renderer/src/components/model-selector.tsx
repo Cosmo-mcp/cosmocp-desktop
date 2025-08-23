@@ -38,7 +38,7 @@ export function ModelSelector({
     const [addingProvider, setAddingProvider] = useState(false);
 
     const [newProviderType, setNewProviderType] = useState<ModelProviderType | null>(null);
-    const [newProviderName, setNewProviderName] = useState('');
+    const [newProviderNickName, setNewProviderNickName] = useState('');
     const [newProviderApiKey, setNewProviderApiKey] = useState('');
     const [newProviderApiUrl, setNewProviderApiUrl] = useState<string | undefined>(undefined);
     const [submittingProvider, setSubmittingProvider] = useState(false);
@@ -104,11 +104,10 @@ export function ModelSelector({
         setProviderError(null);
         try {
             const providerData = {
-                name: newProviderName.trim() || newProviderType?.toString(),
+                nickName: newProviderNickName.trim() || newProviderType?.toString(),
                 type: newProviderType,
                 apiKey: newProviderApiKey,
                 apiUrl: newProviderApiUrl,
-                comment: undefined,
             } as ModelProviderCreate;
             const newProvider = await window.modelProviderAPI.addProvider(providerData);
             if (newProvider) {
@@ -118,7 +117,7 @@ export function ModelSelector({
             // reset form
             setAddingProvider(false);
             setNewProviderType(null);
-            setNewProviderName('');
+            setNewProviderNickName('');
             setNewProviderApiKey('');
             setNewProviderApiUrl(undefined);
             // @ts-expect-error Catch clause variable type annotation must be any or unknown
@@ -146,7 +145,7 @@ export function ModelSelector({
                                     <button type="button" className="flex flex-row justify-between w-full items-center">
                                         <span className="flex items-center">
                                             <ProviderIcon type={p.type} theme={resolvedTheme}/>
-                                            {p.name}
+                                            {p.nickName}
                                         </span>
                                     </button>
                                 </DropdownMenuItem>
@@ -177,7 +176,7 @@ export function ModelSelector({
                                                 // stop from closing the dropdown
                                                 event.preventDefault();
                                                 setNewProviderType(providerType);
-                                                setNewProviderName(info.name);
+                                                setNewProviderNickName(info.name);
                                                 setProviderError(null);
                                             }}
                                         >
@@ -218,11 +217,11 @@ export function ModelSelector({
                                             <h3 className="font-semibold">{newProviderType === CustomProvider ? 'Custom Provider' : newProviderType}</h3>
                                         </div>
                                         <div className="flex flex-col gap-1">
-                                            <label className="text-xs font-medium">Name</label>
+                                            <label className="text-xs font-medium">Nick Name</label>
                                             <input
                                                 className="border rounded px-2 py-1 bg-background"
-                                                value={newProviderName}
-                                                onChange={e => setNewProviderName(e.target.value)}
+                                                value={newProviderNickName}
+                                                onChange={e => setNewProviderNickName(e.target.value)}
                                                 placeholder="Display name"
                                             />
                                         </div>
@@ -337,7 +336,7 @@ export function ModelSelector({
                     // TODO: remove from provider.json
                     localStorage.removeItem(LS_PROVIDER_KEY);
                 }}
-                title={selectedProvider ? `Current provider: ${selectedProvider.name}` : 'Change Provider'}
+                title={selectedProvider ? `Current provider: ${selectedProvider.nickName}` : 'Change Provider'}
             >
                 {selectedProvider && <ProviderIcon type={selectedProvider.type} theme={resolvedTheme}/>}
                 Change Provider

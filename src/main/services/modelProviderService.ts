@@ -138,7 +138,7 @@ export class ModelProviderService {
         const mockProvider: ModelProvider = {
             id: 'mock-model-provider',
             createdAt: new Date(),
-            name: "Mock Model Provider",
+            nickName: "Mock Model Provider",
             apiKey: 'mock-model-provider-key',
             type: ModelProviderType.CUSTOM,
             apiUrl: 'http://localhost:8080/api/v1/chat/completions',
