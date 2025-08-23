@@ -7,13 +7,32 @@ export const enum ModelProviderType {
     CUSTOM = 'custom',
 }
 
+export const ProviderInfo: Record<ModelProviderType, { name: string; description: string }> = {
+    [ModelProviderType.OPENAI]: {
+        name: 'OpenAI',
+        description: 'Access state-of-the-art models like GPT-4 and GPT-3.5.'
+    },
+    [ModelProviderType.ANTHROPIC]: {
+        name: 'Anthropic',
+        description: 'Utilize the Claude family of models, known for safety and performance.'
+    },
+    [ModelProviderType.GOOGLE]: {
+        name: 'Google',
+        description: 'Leverage the powerful Gemini family of models from Google AI.'
+    },
+    [ModelProviderType.CUSTOM]: {
+        name: 'Custom',
+        description: 'Connect to any OpenAI-compatible API endpoint.'
+    }
+};
+
 export const PredefinedProviders = [
     ModelProviderType.OPENAI,
     ModelProviderType.ANTHROPIC,
     ModelProviderType.GOOGLE,
 ] as const;
 
-export const CustomProvider = [ModelProviderType.CUSTOM] as const;
+export const CustomProvider = ModelProviderType.CUSTOM as const;
 
 // Fields that only the service sets, never user-provided
 const ServiceOnlyFields = {
@@ -40,7 +59,7 @@ const PredefinedModelProviderSchema = z.object({
 const CustomModelProviderSchema = z.object({
     ...ServiceOnlyFields,
     ...BaseUserEditableFields,
-    type: z.enum(CustomProvider),
+    type: z.literal(CustomProvider),
     apiUrl: z.string().url('Invalid API URL'), // user must set,
 });
 
@@ -58,7 +77,7 @@ const PredefinedModelProviderCreateSchema = z.object({
 
 const CustomModelProviderCreateSchema = z.object({
     ...BaseUserEditableFields,
-    type: z.enum(CustomProvider),
+    type: z.literal(CustomProvider),
     apiUrl: z.string().url('Invalid API URL'), // required
 });
 

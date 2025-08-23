@@ -13,8 +13,10 @@ import {
     ModelProviderCreate,
     ModelProviderLite,
     ModelProviderType,
-    PredefinedProviders
+    PredefinedProviders, ProviderInfo
 } from "@/common/models/modelProvider";
+import {useTheme} from "next-themes";
+import ProviderIcon from "@/components/ui/provider-icon";
 
 const LS_PROVIDER_KEY = 'selectedProviderId';
 
@@ -26,6 +28,7 @@ export function ModelSelector({
     selectedModelId: string;
     onModelChange?: (modelId: string) => void;
 } & React.ComponentProps<typeof Button>) {
+    const {resolvedTheme} = useTheme();
     const [open, setOpen] = useState(false);
     const [currentModelId, setCurrentModelId] = useState(selectedModelId);
     const [availableChatModels, setAvailableChatModels] = useState<Model[]>([]);
@@ -33,7 +36,7 @@ export function ModelSelector({
     const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
     const [addingProvider, setAddingProvider] = useState(false);
 
-    const [newProviderType, setNewProviderType] = useState<ModelProviderType>(ModelProviderType.OPENAI);
+    const [newProviderType, setNewProviderType] = useState<ModelProviderType | null>(null);
     const [newProviderName, setNewProviderName] = useState('');
     const [newProviderApiKey, setNewProviderApiKey] = useState('');
     const [newProviderApiUrl, setNewProviderApiUrl] = useState<string | undefined>(undefined);
@@ -113,9 +116,10 @@ export function ModelSelector({
             }
             // reset form
             setAddingProvider(false);
+            setNewProviderType(null);
             setNewProviderName('');
             setNewProviderApiKey('');
-            setNewProviderApiUrl('');
+            setNewProviderApiUrl(undefined);
             // @ts-expect-error Catch clause variable type annotation must be any or unknown
         } catch (err: never) {
             console.error('Failed to add provider:', err);
@@ -139,7 +143,10 @@ export function ModelSelector({
                             {providers.map(p => (
                                 <DropdownMenuItem key={p.id} onSelect={() => handleSelectProvider(p.id)} asChild>
                                     <button type="button" className="flex flex-row justify-between w-full items-center">
-                                        <span>{p.name}</span>
+                                        <span className="flex items-center">
+                                            <ProviderIcon type={p.type} theme={resolvedTheme}/>
+                                            {p.name}
+                                        </span>
                                     </button>
                                 </DropdownMenuItem>
                             ))}
@@ -154,55 +161,100 @@ export function ModelSelector({
                                     continue.</div>}
                         </div>
                     )}
-                    {addingProvider && (() => {
-                        const isCustomProvider = newProviderType === ModelProviderType.CUSTOM;
-                        const apiUrlLabel = isCustomProvider ? 'API URL' : 'API URL (optional override)';
-                        const apiUrlPlaceholder = isCustomProvider ? 'https://api.example.com/v1' : 'Leave blank for default';
+                    {addingProvider && (
+                        // Show all available provider options
+                        !newProviderType ? (
+                            <div className="flex flex-col gap-1">
+                                <div className="px-2 py-1.5 text-sm font-semibold">Add a provider</div>
+                                {[...PredefinedProviders, CustomProvider].map(providerType => {
+                                    const info = ProviderInfo[providerType];
 
-                        return (
-                            <form onSubmit={handleAddProvider} className="flex flex-col gap-2 mt-1">
-                                <div className="flex flex-col gap-1">
-                                    <label className="text-xs font-medium">Type</label>
-                                    <select className="border rounded px-2 py-1 bg-background" value={newProviderType}
-                                            onChange={e => setNewProviderType(e.target.value as ModelProviderType)}>
-                                        {PredefinedProviders.map(t => <option key={t} value={t}>{t}</option>)}
-                                        <option value={CustomProvider}>{CustomProvider}</option>
-                                    </select>
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                    <label className="text-xs font-medium">Name</label>
-                                    <input className="border rounded px-2 py-1 bg-background" value={newProviderName}
-                                           onChange={e => setNewProviderName(e.target.value)}
-                                           placeholder="Display name"/>
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                    <label className="text-xs font-medium">API Key</label>
-                                    <input required className="border rounded px-2 py-1 bg-background" type="password"
-                                           value={newProviderApiKey}
-                                           onChange={e => setNewProviderApiKey(e.target.value)} placeholder="sk-..."/>
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                    <label className="text-xs font-medium">{apiUrlLabel}</label>
-                                    <input
-                                        required={isCustomProvider}
-                                        className="border rounded px-2 py-1 bg-background"
-                                        value={newProviderApiUrl}
-                                        onChange={(e) => setNewProviderApiUrl(e.target.value)}
-                                        placeholder={apiUrlPlaceholder}
-                                    />
-                                </div>
-                                {providerError && <div className="text-xs text-red-500">{providerError}</div>}
-                                <div className="flex gap-2 pt-1">
-                                    <Button type="submit" size="sm"
-                                            disabled={submittingProvider || !newProviderApiKey}>{submittingProvider ? 'Saving...' : 'Save'}</Button>
-                                    <Button type="button" size="sm" variant="secondary" onClick={() => {
-                                        setAddingProvider(false);
-                                        setProviderError(null);
-                                    }}>Cancel</Button>
-                                </div>
-                            </form>
-                        );
-                    })()}
+                                    return (
+                                        <DropdownMenuItem
+                                            key={providerType}
+                                            onSelect={(event) => {
+                                                // stop from closing the dropdown
+                                                event.preventDefault();
+                                                setNewProviderType(providerType);
+                                                setNewProviderName(info.name);
+                                                setProviderError(null);
+                                            }}
+                                        >
+                                            <button type="button"
+                                                    className="flex w-full items-center gap-3 p-2 text-left">
+                                                <ProviderIcon type={providerType} theme={resolvedTheme} size={50}/>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-medium">{info.name}</span>
+                                                    <span
+                                                        className="text-xs text-muted-foreground">{info.description}</span>
+                                                </div>
+                                            </button>
+                                        </DropdownMenuItem>
+                                    );
+                                })}
+                                <div className="my-1 border-t"/>
+                                <DropdownMenuItem onSelect={() => setAddingProvider(false)}>
+                                    <button type="button" className="flex w-full justify-center text-sm py-1">
+                                        Cancel
+                                    </button>
+                                </DropdownMenuItem>
+                            </div>
+                        ) : (
+                            // Show the form for the selected provider
+                            (() => {
+                                const isCustomProvider = newProviderType === ModelProviderType.CUSTOM;
+                                const apiUrlLabel = isCustomProvider ? 'API URL' : 'API URL (optional override)';
+                                const apiUrlPlaceholder = isCustomProvider ? 'https://api.example.com/v1' : 'Leave blank for default';
+
+                                return (
+                                    <form onSubmit={handleAddProvider} className="flex flex-col gap-2 p-2">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <ProviderIcon type={newProviderType} theme={resolvedTheme}/>
+                                            <h3 className="font-semibold">{newProviderType === CustomProvider ? 'Custom Provider' : newProviderType}</h3>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <label className="text-xs font-medium">Name</label>
+                                            <input
+                                                className="border rounded px-2 py-1 bg-background"
+                                                value={newProviderName}
+                                                onChange={e => setNewProviderName(e.target.value)}
+                                                placeholder="Display name"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <label className="text-xs font-medium">API Key</label>
+                                            <input required className="border rounded px-2 py-1 bg-background"
+                                                   type="password"
+                                                   value={newProviderApiKey}
+                                                   onChange={e => setNewProviderApiKey(e.target.value)}
+                                                   placeholder="Enter your API key"/>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <label className="text-xs font-medium">{apiUrlLabel}</label>
+                                            <input
+                                                required={isCustomProvider}
+                                                className="border rounded px-2 py-1 bg-background"
+                                                value={newProviderApiUrl ?? ''}
+                                                onChange={(e) => setNewProviderApiUrl(e.target.value)}
+                                                placeholder={apiUrlPlaceholder}
+                                            />
+                                        </div>
+                                        {providerError && <div className="text-xs text-red-500">{providerError}</div>}
+                                        <div className="flex gap-2 pt-1">
+                                            <Button type="submit" size="sm"
+                                                    disabled={submittingProvider || !newProviderApiKey}>{submittingProvider ? 'Saving...' : 'Save'}</Button>
+                                            <Button type="button" size="sm" variant="secondary" onClick={() => {
+                                                setNewProviderType(null);
+                                                setProviderError(null);
+                                                setNewProviderApiKey('');
+                                                setNewProviderApiUrl(undefined);
+                                            }}>Back</Button>
+                                        </div>
+                                    </form>
+                                );
+                            })()
+                        )
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         );
@@ -272,7 +324,7 @@ export function ModelSelector({
             <Button
                 variant="secondary"
                 size="sm"
-                className="h-[34px]"
+                className="h-[34px] flex items-center"
                 onClick={() => {
                     setSelectedProviderId(null);
                     setAvailableChatModels([]);
@@ -282,6 +334,7 @@ export function ModelSelector({
                 }}
                 title={selectedProvider ? `Current provider: ${selectedProvider.name}` : 'Change Provider'}
             >
+                {selectedProvider && <ProviderIcon type={selectedProvider.type} theme={resolvedTheme}/>}
                 Change Provider
             </Button>
         </div>
