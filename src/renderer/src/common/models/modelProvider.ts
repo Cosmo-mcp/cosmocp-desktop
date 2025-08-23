@@ -7,25 +7,6 @@ export const enum ModelProviderType {
     CUSTOM = 'custom',
 }
 
-export const ProviderInfo: Record<ModelProviderType, { name: string; description: string }> = {
-    [ModelProviderType.OPENAI]: {
-        name: 'OpenAI',
-        description: 'Access state-of-the-art models like GPT-4 and GPT-3.5.'
-    },
-    [ModelProviderType.ANTHROPIC]: {
-        name: 'Anthropic',
-        description: 'Utilize the Claude family of models, known for safety and performance.'
-    },
-    [ModelProviderType.GOOGLE]: {
-        name: 'Google',
-        description: 'Leverage the powerful Gemini family of models from Google AI.'
-    },
-    [ModelProviderType.CUSTOM]: {
-        name: 'Custom',
-        description: 'Connect to any OpenAI-compatible API endpoint.'
-    }
-};
-
 export const PredefinedProviders = [
     ModelProviderType.OPENAI,
     ModelProviderType.ANTHROPIC,

@@ -13,10 +13,11 @@ import {
     ModelProviderCreate,
     ModelProviderLite,
     ModelProviderType,
-    PredefinedProviders, ProviderInfo
+    PredefinedProviders,
 } from "@/common/models/modelProvider";
 import {useTheme} from "next-themes";
 import ProviderIcon from "@/components/ui/provider-icon";
+import {ProviderInfo} from "@/lib/types";
 
 const LS_PROVIDER_KEY = 'selectedProviderId';
 
@@ -193,7 +194,11 @@ export function ModelSelector({
                                     );
                                 })}
                                 <div className="my-1 border-t"/>
-                                <DropdownMenuItem onSelect={() => setAddingProvider(false)}>
+                                <DropdownMenuItem onSelect={(event) => {
+                                    // stop from closing the dropdown
+                                    event.preventDefault();
+                                    setAddingProvider(false);
+                                }}>
                                     <button type="button" className="flex w-full justify-center text-sm py-1">
                                         Cancel
                                     </button>
