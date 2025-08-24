@@ -1,7 +1,7 @@
-import { ipcRenderer } from 'electron';
-import { UIMessageChunk } from "ai";
-import {Model} from "../common/models/model";
-import {ModelProvider, ModelProviderCreate} from "../common/models/modelProvider";
+import {ipcRenderer} from 'electron';
+import {UIMessageChunk} from "ai";
+import {ModelProvider, ModelProviderCreate, ModelProviderLite} from "../renderer/src/common/models/modelProvider";
+import {Model} from "../renderer/src/common/models/model";
 
 export interface ChatAPI {
     sendChatMessages: (data: any) => void;
@@ -13,8 +13,8 @@ export interface ChatAPI {
 }
 
 export interface ModelProviderAPI {
-    addProvider: (providerData: ModelProviderCreate) => Promise<void>;
-    getProviders: () => Promise<Omit<ModelProvider, 'apiKey'>[]>;
+    addProvider: (providerData: ModelProviderCreate) => Promise<ModelProvider>;
+    getProviders: () => Promise<ModelProviderLite[]>;
     getModels: (providerId: string) => Promise<Model[]>;
 }
 
@@ -40,7 +40,7 @@ export const chatAPI: ChatAPI = {
 };
 
 export const modelProviderAPI: ModelProviderAPI = {
-    addProvider(providerData: ModelProviderCreate): Promise<void> {
+    addProvider(providerData: ModelProviderCreate): Promise<ModelProvider> {
         return ipcRenderer.invoke('add-model-provider', providerData)
     },
     getProviders(): Promise<Omit<ModelProvider, "apiKey">[]> {

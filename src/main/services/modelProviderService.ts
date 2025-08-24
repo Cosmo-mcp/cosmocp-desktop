@@ -1,11 +1,11 @@
-import { app, safeStorage } from 'electron';
+import {app, safeStorage} from 'electron';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 import {
     ModelProvider,
     ModelProviderCreate, ModelProviderCreateSchema, ModelProviderLite, ModelProviderSchema,
-    ModelProviderTypes
+    ModelProviderType, PredefinedProviders
 } from '../../renderer/src/common/models/modelProvider';
 import {Model} from "../../renderer/src/common/models/model";
 
@@ -94,7 +94,7 @@ export class ModelProviderService {
             ...providerData,
             id: crypto.randomUUID(),
             createdAt: new Date(),
-            apiUrl: parsed.type === ModelProviderTypes.custom
+            apiUrl: parsed.type === ModelProviderType.CUSTOM
                 ? parsed.apiUrl
                 : parsed.apiUrl ?? getDefaultApiUrl(parsed.type)
         };
@@ -118,7 +118,7 @@ export class ModelProviderService {
         if (!provider) {
             throw new Error('Provider not found.');
         }
-        if (provider.type in ModelProviderTypes.predefined) {
+        if (provider.type in PredefinedProviders) {
             // TODO(shashank): add logic to fetch model for a predefined provider
         }
         // TODO (shashank): add logic to fetch models for a custom provider
@@ -138,9 +138,9 @@ export class ModelProviderService {
         const mockProvider: ModelProvider = {
             id: 'mock-model-provider',
             createdAt: new Date(),
-            name: "Mock Model Provider",
+            nickName: "Mock Model Provider",
             apiKey: 'mock-model-provider-key',
-            type: 'custom',
+            type: ModelProviderType.CUSTOM,
             apiUrl: 'http://localhost:8080/api/v1/chat/completions',
         };
         this.providers.set(mockProvider.id, mockProvider);

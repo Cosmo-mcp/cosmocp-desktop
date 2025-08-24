@@ -14,7 +14,7 @@ import {
   useState,
 } from 'react';
 import {toast} from 'sonner';
-import {useLocalStorage, useWindowSize} from 'usehooks-ts';
+import {useWindowSize} from 'usehooks-ts';
 
 import {ArrowUpIcon, PaperclipIcon, StopIcon} from './icons';
 import {PreviewAttachment} from './preview-attachment';

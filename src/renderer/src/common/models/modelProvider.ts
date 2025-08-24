@@ -1,9 +1,19 @@
-import { z } from 'zod';
+import {z} from 'zod';
 
-export const ModelProviderTypes = {
-    predefined: ['openai', 'anthropic', 'google'] as const,
-    custom: 'custom' as const,
-};
+export const enum ModelProviderType {
+    OPENAI = 'openai',
+    ANTHROPIC = 'anthropic',
+    GOOGLE = 'google',
+    CUSTOM = 'custom',
+}
+
+export const PredefinedProviders = [
+    ModelProviderType.OPENAI,
+    ModelProviderType.ANTHROPIC,
+    ModelProviderType.GOOGLE,
+] as const;
+
+export const CustomProvider = ModelProviderType.CUSTOM as const;
 
 // Fields that only the service sets, never user-provided
 const ServiceOnlyFields = {
@@ -13,9 +23,8 @@ const ServiceOnlyFields = {
 
 // Fields the user can set for both provider types
 const BaseUserEditableFields = {
-    name: z.string().min(1, 'Name is required'),
+    nickName: z.string().optional(),
     apiKey: z.string().min(1, 'API key is required'),
-    comment: z.string().optional(),
     metadata: z.record(z.any()).optional(), // TODO(shashank): decide later if we really need this
 };
 
@@ -23,15 +32,15 @@ const BaseUserEditableFields = {
 const PredefinedModelProviderSchema = z.object({
     ...ServiceOnlyFields,
     ...BaseUserEditableFields,
-    type: z.enum(ModelProviderTypes.predefined),
+    type: z.enum(PredefinedProviders),
     apiUrl: z.string().url('Invalid API URL').optional(), // service may set this
 });
 
 const CustomModelProviderSchema = z.object({
     ...ServiceOnlyFields,
     ...BaseUserEditableFields,
-    type: z.literal(ModelProviderTypes.custom),
-    apiUrl: z.string().url('Invalid API URL'), // user must set
+    type: z.literal(CustomProvider),
+    apiUrl: z.string().url('Invalid API URL'), // user must set,
 });
 
 export const ModelProviderSchema = z.discriminatedUnion('type', [
@@ -42,13 +51,13 @@ export const ModelProviderSchema = z.discriminatedUnion('type', [
 // User-facing create schema - strips out service-only fields
 const PredefinedModelProviderCreateSchema = z.object({
     ...BaseUserEditableFields,
-    type: z.enum(ModelProviderTypes.predefined),
+    type: z.enum(PredefinedProviders),
     apiUrl: z.string().url('Invalid API URL').optional(), // user may omit
 });
 
 const CustomModelProviderCreateSchema = z.object({
     ...BaseUserEditableFields,
-    type: z.literal(ModelProviderTypes.custom),
+    type: z.literal(CustomProvider),
     apiUrl: z.string().url('Invalid API URL'), // required
 });
 

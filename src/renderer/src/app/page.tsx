@@ -11,7 +11,7 @@ export default function Page(): JSX.Element {
                 key={id}
                 id={id}
                 initialMessages={[]}
-                initialChatModel='gemini-2.0-flash-lite'
+                initialChatModel=''
             />
         </>
     );
