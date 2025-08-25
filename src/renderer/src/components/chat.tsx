@@ -20,6 +20,7 @@ export function Chat({
 
     const [input, setInput] = useState<string>('');
     const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+    const [forceScrollToBottom, setForceScrollToBottom] = useState(false);
 
     const {
         messages,
@@ -37,11 +38,14 @@ export function Chat({
         },
         onFinish: () => {
             console.log("onFinish");
+            setForceScrollToBottom(true);
         },
         onError: (error) => {
             console.error(error);
         },
     });
+
+    const showSuggestedActions = messages.length === 0 && attachments.length === 0;
 
     return (
         <>
@@ -49,6 +53,11 @@ export function Chat({
                 <ChatHeader
                     chatId={id}
                     selectedModelId={initialChatModel}
+                    onNewChat={() => {
+                        stop();
+                        // TODO: improve when save chat is implemented
+                        setMessages([]);
+                    }}
                 />
                 <Messages
                     chatId={id}
@@ -72,6 +81,9 @@ export function Chat({
                         messages={messages}
                         setMessages={setMessages}
                         sendMessage={sendMessage}
+                        showSuggestedActions={showSuggestedActions}
+                        forceScrollToBottom={forceScrollToBottom}
+                        setForceScrollToBottom={setForceScrollToBottom}
                     />
                 </form>
             </div>

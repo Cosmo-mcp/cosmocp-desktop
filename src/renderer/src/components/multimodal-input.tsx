@@ -3,16 +3,7 @@
 import type {UIMessage} from 'ai';
 import cx from 'classnames';
 import type React from 'react';
-import {
-  type ChangeEvent,
-  type Dispatch,
-  memo,
-  type SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import {type ChangeEvent, type Dispatch, memo, SetStateAction, useCallback, useEffect, useRef, useState,} from 'react';
 import {toast} from 'sonner';
 import {useWindowSize} from 'usehooks-ts';
 
@@ -40,18 +31,24 @@ function PureMultimodalInput({
                                  setMessages,
                                  sendMessage,
                                  className,
+                                 showSuggestedActions,
+                                 forceScrollToBottom,
+                                 setForceScrollToBottom
                              }: {
-    chatId: string;
-    input: string;
-    setInput: Dispatch<SetStateAction<string>>;
-    status: UseChatHelpers<ChatMessage>['status'];
-    stop: () => void;
-    attachments: Array<Attachment>;
-    setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
-    messages: Array<UIMessage>;
-    setMessages: UseChatHelpers<ChatMessage>['setMessages'];
-    sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
-    className?: string;
+    chatId: string,
+    input: string,
+    setInput: Dispatch<SetStateAction<string>>,
+    status: UseChatHelpers<ChatMessage>['status'],
+    stop: () => void,
+    attachments: Array<Attachment>,
+    setAttachments: Dispatch<SetStateAction<Array<Attachment>>>,
+    messages: Array<UIMessage>,
+    setMessages: UseChatHelpers<ChatMessage>['setMessages'],
+    sendMessage: UseChatHelpers<ChatMessage>['sendMessage'],
+    className?: string,
+    showSuggestedActions?: boolean,
+    forceScrollToBottom?: boolean,
+    setForceScrollToBottom?: Dispatch<SetStateAction<boolean>>
 }) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const {width} = useWindowSize();
@@ -78,7 +75,7 @@ function PureMultimodalInput({
                     text: input,
                 },
             ],
-        }).then(r => {
+        }).then(() => {
             console.log("in then")
         }).catch(() => {
             console.log("in catch")
@@ -89,18 +86,15 @@ function PureMultimodalInput({
         setAttachments([]);
         setInput('');
 
+        // reset scroll on form submit
+        if (setForceScrollToBottom) {
+            setForceScrollToBottom(false);
+        }
+
         if (width && width > 768) {
             textareaRef.current?.focus();
         }
-    }, [
-        input,
-        setInput,
-        attachments,
-        sendMessage,
-        setAttachments,
-        width,
-        chatId,
-    ]);
+    }, [sendMessage, attachments, input, setAttachments, setInput, setForceScrollToBottom, width]);
 
     const uploadFile = async (file: File) => {
         const formData = new FormData();
@@ -125,7 +119,7 @@ function PureMultimodalInput({
             const {error} = await response.json();
             toast.error(error);
         } catch (error) {
-            toast.error('Failed to upload file, please try again!');
+            toast.error('Failed to upload file, please try again! ' + error);
         }
     };
 
@@ -156,12 +150,45 @@ function PureMultimodalInput({
     );
 
     const {isAtBottom, scrollToBottom} = useScrollToBottom();
+    const [stillAnswering, setStillAnswering] = useState(status === 'submitted' || status === 'streaming');
+    const THROTTLE_DELAY_MS = 200;
+    const throttleTimeout = useRef<NodeJS.Timeout | null>(null);
+    const isThrottled = useRef(false);
 
-    useEffect(() => {
-        if (status === 'submitted') {
-            scrollToBottom();
+    const throttledScrollToBottom = useCallback(() => {
+        if (isThrottled.current) {
+            return;
         }
-    }, [status, scrollToBottom]);
+
+        scrollToBottom();
+        isThrottled.current = true;
+
+        throttleTimeout.current = setTimeout(() => {
+            isThrottled.current = false;
+        }, THROTTLE_DELAY_MS);
+
+    }, [scrollToBottom]);
+
+
+    // Scroll on streaming or when messages change
+    useEffect(() => {
+        if (status === 'ready' || status === 'error') {
+            setStillAnswering(false);
+        } else if (messages.length > 0 && status === 'submitted' || status === 'streaming') {
+            setStillAnswering(true);
+            throttledScrollToBottom();
+        }
+    }, [status, messages, throttledScrollToBottom]);
+
+    // Scroll to bottom when forceScrollToBottom is set to true
+    useEffect(() => {
+        if (forceScrollToBottom) {
+            scrollToBottom();
+            if (setForceScrollToBottom) {
+                setForceScrollToBottom(false);
+            }
+        }
+    }, [forceScrollToBottom, scrollToBottom, setForceScrollToBottom]);
 
     return (
         <div className="relative w-full flex flex-col gap-4">
@@ -190,8 +217,7 @@ function PureMultimodalInput({
                 )}
             </AnimatePresence>
 
-            {messages.length === 0 &&
-                attachments.length === 0 &&
+            {showSuggestedActions &&
                 uploadQueue.length === 0 && (
                     <SuggestedActions
                         sendMessage={sendMessage}
@@ -265,7 +291,7 @@ function PureMultimodalInput({
             </div>
 
             <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">
-                {status === 'submitted' ? (
+                {stillAnswering ? (
                     <StopButton stop={stop} setMessages={setMessages}/>
                 ) : (
                     <SendButton
@@ -283,10 +309,11 @@ export const MultimodalInput = memo(
     PureMultimodalInput,
     (prevProps, nextProps) => {
         if (prevProps.input !== nextProps.input) return false;
+        // Allow re-rendering when entering 'streaming' or 'error' status
+        if (nextProps.status === 'streaming' || nextProps.status === 'error') return false;
         if (prevProps.status !== nextProps.status) return false;
-        if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-
-        return true;
+        if (prevProps.showSuggestedActions !== nextProps.showSuggestedActions) return false;
+        return equal(prevProps.attachments, nextProps.attachments);
     },
 );
 
@@ -366,6 +393,5 @@ function PureSendButton({
 const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
     if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length)
         return false;
-    if (prevProps.input !== nextProps.input) return false;
-    return true;
+    return prevProps.input === nextProps.input;
 });
