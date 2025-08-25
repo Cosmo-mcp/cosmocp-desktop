@@ -1,9 +1,8 @@
 'use client';
 
-import type {UIMessage} from 'ai';
 import cx from 'classnames';
 import type React from 'react';
-import {type ChangeEvent, type Dispatch, memo, SetStateAction, useCallback, useEffect, useRef, useState,} from 'react';
+import {type ChangeEvent, type Dispatch, memo, SetStateAction, useCallback, useRef, useState,} from 'react';
 import {toast} from 'sonner';
 import {useWindowSize} from 'usehooks-ts';
 
@@ -27,12 +26,11 @@ function PureMultimodalInput({
                                  stop,
                                  attachments,
                                  setAttachments,
-                                 messages,
                                  setMessages,
                                  sendMessage,
                                  className,
                                  showSuggestedActions,
-                                 forceScrollToBottom,
+                                 stillAnswering,
                                  setForceScrollToBottom
                              }: {
     chatId: string,
@@ -42,12 +40,11 @@ function PureMultimodalInput({
     stop: () => void,
     attachments: Array<Attachment>,
     setAttachments: Dispatch<SetStateAction<Array<Attachment>>>,
-    messages: Array<UIMessage>,
     setMessages: UseChatHelpers<ChatMessage>['setMessages'],
     sendMessage: UseChatHelpers<ChatMessage>['sendMessage'],
     className?: string,
     showSuggestedActions?: boolean,
-    forceScrollToBottom?: boolean,
+    stillAnswering?: boolean,
     setForceScrollToBottom?: Dispatch<SetStateAction<boolean>>
 }) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -150,45 +147,6 @@ function PureMultimodalInput({
     );
 
     const {isAtBottom, scrollToBottom} = useScrollToBottom();
-    const [stillAnswering, setStillAnswering] = useState(status === 'submitted' || status === 'streaming');
-    const THROTTLE_DELAY_MS = 200;
-    const throttleTimeout = useRef<NodeJS.Timeout | null>(null);
-    const isThrottled = useRef(false);
-
-    const throttledScrollToBottom = useCallback(() => {
-        if (isThrottled.current) {
-            return;
-        }
-
-        scrollToBottom();
-        isThrottled.current = true;
-
-        throttleTimeout.current = setTimeout(() => {
-            isThrottled.current = false;
-        }, THROTTLE_DELAY_MS);
-
-    }, [scrollToBottom]);
-
-
-    // Scroll on streaming or when messages change
-    useEffect(() => {
-        if (status === 'ready' || status === 'error') {
-            setStillAnswering(false);
-        } else if (messages.length > 0 && status === 'submitted' || status === 'streaming') {
-            setStillAnswering(true);
-            throttledScrollToBottom();
-        }
-    }, [status, messages, throttledScrollToBottom]);
-
-    // Scroll to bottom when forceScrollToBottom is set to true
-    useEffect(() => {
-        if (forceScrollToBottom) {
-            scrollToBottom();
-            if (setForceScrollToBottom) {
-                setForceScrollToBottom(false);
-            }
-        }
-    }, [forceScrollToBottom, scrollToBottom, setForceScrollToBottom]);
 
     return (
         <div className="relative w-full flex flex-col gap-4">
@@ -277,7 +235,7 @@ function PureMultimodalInput({
                     ) {
                         event.preventDefault();
 
-                        if (status !== 'ready') {
+                        if (stillAnswering) {
                             toast.error('Please wait for the model to finish its response!');
                         } else {
                             submitForm();
@@ -309,8 +267,7 @@ export const MultimodalInput = memo(
     PureMultimodalInput,
     (prevProps, nextProps) => {
         if (prevProps.input !== nextProps.input) return false;
-        // Allow re-rendering when entering 'streaming' or 'error' status
-        if (nextProps.status === 'streaming' || nextProps.status === 'error') return false;
+        if (prevProps.stillAnswering !== nextProps.stillAnswering) return false;
         if (prevProps.status !== nextProps.status) return false;
         if (prevProps.showSuggestedActions !== nextProps.showSuggestedActions) return false;
         return equal(prevProps.attachments, nextProps.attachments);
