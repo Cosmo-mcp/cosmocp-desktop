@@ -37,7 +37,6 @@ export function Chat({
             console.log(dataPart);
         },
         onFinish: () => {
-            console.log("onFinish");
             setForceScrollToBottom(true);
         },
         onError: (error) => {
@@ -47,7 +46,6 @@ export function Chat({
 
     // Track if the model is still answering based on the status
     useEffect(() => {
-        console.log("status in chat useEffect:", status);
         if (status === 'ready' || status === 'error') {
             setStillAnswering(false);
         } else if (status === 'submitted' || status === 'streaming') {

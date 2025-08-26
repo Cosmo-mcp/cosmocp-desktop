@@ -73,11 +73,11 @@ function PureMultimodalInput({
                 },
             ],
         }).then(() => {
-            console.log("in then")
+            // TODO: use if reqd
         }).catch(() => {
-            console.log("in catch")
+            // TODO: use if reqd
         }).finally(() => {
-            console.log("in finally")
+            // TODO: use if reqd
         })
 
         setAttachments([]);
