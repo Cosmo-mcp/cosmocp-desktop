@@ -6,7 +6,7 @@ import {Messages} from "@/components/messages";
 import {useChat} from "@ai-sdk/react";
 import {IpcChatTransport} from "@/chat-transport";
 import {MultimodalInput} from "@/components/multimodal-input";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 export function Chat({
                          id,
@@ -20,7 +20,8 @@ export function Chat({
 
     const [input, setInput] = useState<string>('');
     const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-
+    const [forceScrollToBottom, setForceScrollToBottom] = useState(false);
+    const [stillAnswering, setStillAnswering] = useState(false);
     const {
         messages,
         setMessages,
@@ -36,12 +37,24 @@ export function Chat({
             console.log(dataPart);
         },
         onFinish: () => {
-            console.log("onFinish");
+            setForceScrollToBottom(true);
         },
         onError: (error) => {
             console.error(error);
         },
     });
+
+    // Track if the model is still answering based on the status
+    useEffect(() => {
+        if (status === 'ready' || status === 'error') {
+            setStillAnswering(false);
+        } else if (status === 'submitted' || status === 'streaming') {
+            setStillAnswering(true);
+        }
+    }, [status]);
+
+
+    const showSuggestedActions = messages.length === 0 && attachments.length === 0;
 
     return (
         <>
@@ -49,6 +62,11 @@ export function Chat({
                 <ChatHeader
                     chatId={id}
                     selectedModelId={initialChatModel}
+                    onNewChat={() => {
+                        stop();
+                        // TODO: improve when save chat is implemented
+                        setMessages([]);
+                    }}
                 />
                 <Messages
                     chatId={id}
@@ -58,6 +76,9 @@ export function Chat({
                     regenerate={regenerate}
                     isReadonly={false}
                     isArtifactVisible={false}
+                    stillAnswering={stillAnswering}
+                    forceScrollToBottom={forceScrollToBottom}
+                    setForceScrollToBottom={setForceScrollToBottom}
                 />
 
                 <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
@@ -69,9 +90,11 @@ export function Chat({
                         stop={stop}
                         attachments={attachments}
                         setAttachments={setAttachments}
-                        messages={messages}
                         setMessages={setMessages}
                         sendMessage={sendMessage}
+                        showSuggestedActions={showSuggestedActions}
+                        stillAnswering={stillAnswering}
+                        setForceScrollToBottom={setForceScrollToBottom}
                     />
                 </form>
             </div>

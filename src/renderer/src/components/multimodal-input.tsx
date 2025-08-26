@@ -1,18 +1,8 @@
 'use client';
 
-import type {UIMessage} from 'ai';
 import cx from 'classnames';
 import type React from 'react';
-import {
-  type ChangeEvent,
-  type Dispatch,
-  memo,
-  type SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import {type ChangeEvent, type Dispatch, memo, SetStateAction, useCallback, useRef, useState,} from 'react';
 import {toast} from 'sonner';
 import {useWindowSize} from 'usehooks-ts';
 
@@ -36,22 +26,26 @@ function PureMultimodalInput({
                                  stop,
                                  attachments,
                                  setAttachments,
-                                 messages,
                                  setMessages,
                                  sendMessage,
                                  className,
+                                 showSuggestedActions,
+                                 stillAnswering,
+                                 setForceScrollToBottom
                              }: {
-    chatId: string;
-    input: string;
-    setInput: Dispatch<SetStateAction<string>>;
-    status: UseChatHelpers<ChatMessage>['status'];
-    stop: () => void;
-    attachments: Array<Attachment>;
-    setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
-    messages: Array<UIMessage>;
-    setMessages: UseChatHelpers<ChatMessage>['setMessages'];
-    sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
-    className?: string;
+    chatId: string,
+    input: string,
+    setInput: Dispatch<SetStateAction<string>>,
+    status: UseChatHelpers<ChatMessage>['status'],
+    stop: () => void,
+    attachments: Array<Attachment>,
+    setAttachments: Dispatch<SetStateAction<Array<Attachment>>>,
+    setMessages: UseChatHelpers<ChatMessage>['setMessages'],
+    sendMessage: UseChatHelpers<ChatMessage>['sendMessage'],
+    className?: string,
+    showSuggestedActions?: boolean,
+    stillAnswering?: boolean,
+    setForceScrollToBottom?: Dispatch<SetStateAction<boolean>>
 }) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const {width} = useWindowSize();
@@ -78,29 +72,26 @@ function PureMultimodalInput({
                     text: input,
                 },
             ],
-        }).then(r => {
-            console.log("in then")
+        }).then(() => {
+            // TODO: use if reqd
         }).catch(() => {
-            console.log("in catch")
+            // TODO: use if reqd
         }).finally(() => {
-            console.log("in finally")
+            // TODO: use if reqd
         })
 
         setAttachments([]);
         setInput('');
 
+        // reset scroll on form submit
+        if (setForceScrollToBottom) {
+            setForceScrollToBottom(false);
+        }
+
         if (width && width > 768) {
             textareaRef.current?.focus();
         }
-    }, [
-        input,
-        setInput,
-        attachments,
-        sendMessage,
-        setAttachments,
-        width,
-        chatId,
-    ]);
+    }, [sendMessage, attachments, input, setAttachments, setInput, setForceScrollToBottom, width]);
 
     const uploadFile = async (file: File) => {
         const formData = new FormData();
@@ -125,7 +116,7 @@ function PureMultimodalInput({
             const {error} = await response.json();
             toast.error(error);
         } catch (error) {
-            toast.error('Failed to upload file, please try again!');
+            toast.error('Failed to upload file, please try again! ' + error);
         }
     };
 
@@ -157,12 +148,6 @@ function PureMultimodalInput({
 
     const {isAtBottom, scrollToBottom} = useScrollToBottom();
 
-    useEffect(() => {
-        if (status === 'submitted') {
-            scrollToBottom();
-        }
-    }, [status, scrollToBottom]);
-
     return (
         <div className="relative w-full flex flex-col gap-4">
             <AnimatePresence>
@@ -190,8 +175,7 @@ function PureMultimodalInput({
                 )}
             </AnimatePresence>
 
-            {messages.length === 0 &&
-                attachments.length === 0 &&
+            {showSuggestedActions &&
                 uploadQueue.length === 0 && (
                     <SuggestedActions
                         sendMessage={sendMessage}
@@ -251,7 +235,7 @@ function PureMultimodalInput({
                     ) {
                         event.preventDefault();
 
-                        if (status !== 'ready') {
+                        if (stillAnswering) {
                             toast.error('Please wait for the model to finish its response!');
                         } else {
                             submitForm();
@@ -265,7 +249,7 @@ function PureMultimodalInput({
             </div>
 
             <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">
-                {status === 'submitted' ? (
+                {stillAnswering ? (
                     <StopButton stop={stop} setMessages={setMessages}/>
                 ) : (
                     <SendButton
@@ -283,10 +267,10 @@ export const MultimodalInput = memo(
     PureMultimodalInput,
     (prevProps, nextProps) => {
         if (prevProps.input !== nextProps.input) return false;
+        if (prevProps.stillAnswering !== nextProps.stillAnswering) return false;
         if (prevProps.status !== nextProps.status) return false;
-        if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-
-        return true;
+        if (prevProps.showSuggestedActions !== nextProps.showSuggestedActions) return false;
+        return equal(prevProps.attachments, nextProps.attachments);
     },
 );
 
@@ -366,6 +350,5 @@ function PureSendButton({
 const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
     if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length)
         return false;
-    if (prevProps.input !== nextProps.input) return false;
-    return true;
+    return prevProps.input === nextProps.input;
 });
