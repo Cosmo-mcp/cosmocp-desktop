@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "make": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge make",
     "publish": "electron-forge publish",
     "lint": "gts lint",
     "fix": "gts fix"

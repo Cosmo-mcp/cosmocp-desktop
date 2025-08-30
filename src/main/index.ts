@@ -5,12 +5,11 @@ import {registerIpcHandlers} from './ipc';
 
 // These global constants ARE provided by Electron Forge's Vite plugin.
 // Even if we're "ignoring Vite", these are essential for the template's runtime behavior.
-declare const MAIN_WINDOW_VITE_DEV_SERVER_URL = 'http://localhost:3000';
 //declare const MAIN_WINDOW_VITE_NAME: string;
 
 let mainWindow: BrowserWindow | null;
-//const isDev = process.env.NODE_ENV === 'development';
-const isDev = true;
+const isDev = process.env.NODE_ENV === 'development';
+const MAIN_WINDOW_VITE_DEV_SERVER_URL = isDev ? 'http://localhost:3000' : undefined;
 
 async function createWindow(): Promise<void> {
     mainWindow = new BrowserWindow({

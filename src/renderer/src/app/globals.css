@@ -1,14 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import 'geist/dist';
 
 @tailwind utilities;
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-    --font-geist-sans: 'Geist Sans', sans-serif;
-    --font-geist-mono: 'Geist Mono', monospace;
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -124,6 +121,5 @@
     }
     body {
         @apply bg-background text-foreground;
-        font-family: var(--font-geist-sans);
     }
 }
