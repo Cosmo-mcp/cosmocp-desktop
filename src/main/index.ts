@@ -5,12 +5,12 @@ import {registerIpcHandlers} from './ipc';
 
 // These global constants ARE provided by Electron Forge's Vite plugin.
 // Even if we're "ignoring Vite", these are essential for the template's runtime behavior.
-//declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL = 'http://localhost:3000';
 //declare const MAIN_WINDOW_VITE_NAME: string;
 
 let mainWindow: BrowserWindow | null;
 //const isDev = process.env.NODE_ENV === 'development';
-const isDev = false;
+const isDev = true;
 
 async function createWindow(): Promise<void> {
     mainWindow = new BrowserWindow({
@@ -28,20 +28,11 @@ async function createWindow(): Promise<void> {
 
     mainWindow.setMenuBarVisibility(false);
 
-   /* if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-        // In development, load from Vite's dev server
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+        // In development, load from Next dev server
         mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     } else {
-        // In production, load the built HTML file from the Vite output directory.
-        // From .vite/build/, we need to go up one level, then into renderer/, then into the named directory.
-        mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
-    }*/
-
-    if (isDev) {
-        //react local url
-        mainWindow.loadURL('http://localhost:3000');
-    } else {
-        // In production, load the built HTML file from the Vite output directory.
+        // In production, load the built HTML file from the Next out directory.
         // From .vite/build/, we need to go up one level, then into renderer/, then into the named directory.
         mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
     }
