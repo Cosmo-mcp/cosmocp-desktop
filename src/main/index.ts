@@ -33,7 +33,7 @@ async function createWindow(): Promise<void> {
     } else {
         // In production, load the built HTML file from the Next out directory.
         // From .vite/build/, we need to go up one level, then into renderer/, then into the named directory.
-        mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+        mainWindow.loadFile(path.join(__dirname, `../renderer/main_window/index.html`));
     }
     mainWindow.webContents.openDevTools();
     mainWindow.maximize();
