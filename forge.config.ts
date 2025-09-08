@@ -6,7 +6,7 @@ import {MakerRpm} from '@electron-forge/maker-rpm';
 import {VitePlugin} from '@electron-forge/plugin-vite';
 import {FusesPlugin} from '@electron-forge/plugin-fuses';
 import {FuseV1Options, FuseVersion} from '@electron/fuses';
-import NextRendererPlugin from "./src/NextRendererPlugin";
+import NextPlugin from "./src/NextPlugin";
 
 const config: ForgeConfig = {
         packagerConfig: {
@@ -37,7 +37,10 @@ const config: ForgeConfig = {
             }),
             //this plugin copies files already build next.js frontend app
             //next.js frontend app is build part of `make/package` script
-            new NextRendererPlugin(),
+            new NextPlugin({
+                outDir: '../.vite/renderer/main_window',
+                sourceDir: './renderer/out'
+            }),
             // Fuses are used to enable/disable various Electron functionality
             // at package time, before code signing the application
             new FusesPlugin({
