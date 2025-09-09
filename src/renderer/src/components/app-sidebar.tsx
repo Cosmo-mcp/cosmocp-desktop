@@ -26,7 +26,7 @@ export function AppSidebar() {
                     <Button
                         variant="ghost"
                         type="button"
-                        className="p-2 h-fit"
+                        className="p-2 m-2 h-fit border-2 border-solid"
                         onClick={() => {
                             router.push('/');
                         }}>
@@ -42,7 +42,7 @@ export function AppSidebar() {
                 <Button
                     variant="ghost"
                     type="button"
-                    className="p-2"
+                    className="p-2 m-2 h-fit border-2 border-solid"
                     onClick={() => {
                         router.push('/settings');
                     }}>
