@@ -1,4 +1,4 @@
-name: Build
+name: Build Pipeline
 
 on:
   push:
@@ -20,8 +20,11 @@ jobs:
         with:
           node-version: '22.19.0'
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: npm install
+
+      - name: Install renderer dependencies
+        run: npm install --prefix src/renderer
 
       - name: Build application
         run: npm run make
