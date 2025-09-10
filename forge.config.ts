@@ -10,7 +10,7 @@ import NextPlugin from "./src/NextPlugin";
 
 const config: ForgeConfig = {
         packagerConfig: {
-            name: "Cosmo MCP",
+            name: "CosmoMCP",
             asar: true,
         },
         rebuildConfig: {},
