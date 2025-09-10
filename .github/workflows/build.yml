@@ -1,14 +1,13 @@
-name: Build Pipeline
+name: Build
 
 on:
   push:
     branches:
-      - COSMO-33
+      - main
 
 jobs:
   build:
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -21,10 +20,30 @@ jobs:
         with:
           node-version: '22.19.0'
 
+      - name: Cache root dependencies
+        id: cache-root-dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install root dependencies
+        if: steps.cache-root-dependencies.outputs.cache-hit != 'true'
         run: npm install
 
+      - name: Cache renderer dependencies
+        id: cache-renderer-dependencies
+        uses: actions/cache@v4
+        with:
+          path: src/renderer/node_modules
+          key: ${{ runner.os }}-renderer-node-${{ hashFiles('src/renderer/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-renderer-node-
+
       - name: Install renderer dependencies
+        if: steps.cache-renderer-dependencies.outputs.cache-hit != 'true'
         run: npm install --prefix src/renderer
 
       - name: Build application
