@@ -11,6 +11,7 @@ import NextPlugin from "./src/NextPlugin";
 const config: ForgeConfig = {
         packagerConfig: {
             name: "CosmoMCP",
+            executableName: "CosmoMCP", //Needed for linux
             asar: true,
         },
         rebuildConfig: {},
