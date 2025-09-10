@@ -5,9 +5,9 @@
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
+    "start": "NODE_ENV=development electron-forge start",
+    "package": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge package",
+    "make": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge make",
     "publish": "electron-forge publish",
     "lint": "gts lint",
     "fix": "gts fix"
