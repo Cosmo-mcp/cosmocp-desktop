@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - COSMO-33
+      - main
 
 jobs:
   build:
