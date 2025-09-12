@@ -57,7 +57,7 @@ const config: ForgeConfig = {
         publishers: [{
             name: '@electron-forge/publisher-github',
             config: {
-                authToken: "${{ secrets.GITHUB_TOKEN }}",
+                authToken: process.env.GITHUB_TOKEN,
                 repository: {
                     owner: 'Cosmo-mcp',
                     name: 'cosmocp-desktop'
