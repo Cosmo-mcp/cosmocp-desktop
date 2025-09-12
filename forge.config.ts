@@ -54,6 +54,19 @@ const config: ForgeConfig = {
                 [FuseV1Options.OnlyLoadAppFromAsar]: true,
             }),
         ],
+        publishers: [{
+            name: '@electron-forge/publisher-github',
+            config: {
+                authToken: "${{ secrets.GITHUB_TOKEN }}",
+                repository: {
+                    owner: 'Cosmo-mcp',
+                    name: 'cosmocp-desktop'
+                },
+                draft: true,
+                force: true,
+                generateReleaseNotes: false,
+            }
+        }]
     }
 ;
 
