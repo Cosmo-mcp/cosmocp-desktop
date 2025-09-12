@@ -1,6 +1,6 @@
 {
-  "name": "cosmocp-desktop",
-  "productName": "cosmocp-desktop",
+  "name": "CosmoMCP",
+  "productName": "CosmoMCP",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",

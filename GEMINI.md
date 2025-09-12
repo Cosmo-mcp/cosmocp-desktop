@@ -1,4 +1,4 @@
-# A Software Engineer's Guide to the `cosmocp-desktop` Project
+# A Software Engineer's Guide to the `Cosmo MCP` Project
 
 This guide is a checklist to help you write, test, and review code *specifically for this Electron/Next.js project*. It builds on our exact tech stack and file structure.
 

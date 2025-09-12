@@ -25,7 +25,6 @@ const ServiceOnlyFields = {
 const BaseUserEditableFields = {
     nickName: z.string().optional(),
     apiKey: z.string().min(1, 'API key is required'),
-    metadata: z.record(z.any()).optional(), // TODO(shashank): decide later if we really need this
 };
 
 // Schema for service-level objects (full model with service-generated fields)
