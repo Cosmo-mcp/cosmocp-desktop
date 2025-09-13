@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     branches:
-      - COSMO-33
+      - COSMO-34
     tags:
       - 'v*.*.*'
 
@@ -47,7 +47,10 @@ jobs:
         with:
           path: artifacts
 
+      - name: List downloaded artifacts
+        run: ls -R artifacts
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/*/*
+          files: artifacts/**/*
