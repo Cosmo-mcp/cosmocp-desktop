@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     branches:
-      - COSMO-34
+      - main
     tags:
       - 'v*.*.*'
 
@@ -25,8 +25,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci
-          npm ci --prefix src/renderer
+          npm install
+          npm install --prefix src/renderer
 
       - name: Build application
         run: npm run make
@@ -52,7 +52,7 @@ jobs:
         with:
           node-version: '22.19.0'
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
