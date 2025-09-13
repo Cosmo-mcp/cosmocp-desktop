@@ -7,10 +7,6 @@ on:
     tags:
       - 'v*.*.*'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build:
     name: Build on ${{ matrix.os }}
@@ -22,12 +18,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js and cache dependencies
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.19.0'
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
 
       - name: Install dependencies
         run: |
@@ -53,22 +47,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up Node.js and cache dependencies
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.19.0'
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-
       - name: Install dependencies
         run: npm ci
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-
       - name: Prepare artifacts
         run: |
           mkdir -p out/make
