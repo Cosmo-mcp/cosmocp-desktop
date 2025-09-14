@@ -23,9 +23,9 @@ jobs:
         run: npm install
       - name: Install Renderer dependencies
         run: npm install --prefix src/renderer
-      - name: Build application
-        run: npm run make
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #publish internally calls `make` command that builds distributable
         run: npm run publish
+

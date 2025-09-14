@@ -8,7 +8,7 @@
     "start": "NODE_ENV=development electron-forge start",
     "package": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge package",
     "make": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge make",
-    "publish": "electron-forge publish",
+    "publish": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge publish",
     "lint": "gts lint",
     "fix": "gts fix"
   },
