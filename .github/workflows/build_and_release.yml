@@ -27,6 +27,7 @@ jobs:
       - name: Install Renderer dependencies
         run: npm install --prefix src/renderer
       - name: Extract version from tag
+        shell: bash
         run: |
             # Get the full tag name (e.g., refs/tags/v1.2.3)
             FULL_TAG_REF="${{ github.ref }}"
@@ -41,4 +42,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         #publish internally calls `make` command that builds distributable
         run: npm run publish
-
