@@ -26,6 +26,16 @@ jobs:
         run: npm install
       - name: Install Renderer dependencies
         run: npm install --prefix src/renderer
+      - name: Extract version from tag
+        run: |
+            # Get the full tag name (e.g., refs/tags/v1.2.3)
+            FULL_TAG_REF="${{ github.ref }}"
+            # Extract the tag name (e.g., v1.2.3)
+            TAG_NAME="${FULL_TAG_REF#refs/tags/}"
+            # Remove a leading 'v' if present (e.g., 1.2.3)
+            VERSION_NUMBER="${TAG_NAME#v}"
+            # Update version in package.json from tag(don't commit)
+            npm version --no-git-tag-version $VERSION_NUMBER
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
