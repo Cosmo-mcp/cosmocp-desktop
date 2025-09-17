@@ -453,7 +453,12 @@ export const PromptInputBody = ({
   <div className={cn(className, "flex flex-col")} {...props} />
 );
 
-export type PromptInputTextareaProps = ComponentProps<typeof Textarea>;
+export type PromptInputTextareaProps = ComponentProps<typeof Textarea> & {
+    minHeight?: number;
+    maxHeight?: number;
+    disableAutoResize?: boolean;
+    resizeOnNewLinesOnly?: boolean;
+};
 
 export const PromptInputTextarea = ({
   onChange,

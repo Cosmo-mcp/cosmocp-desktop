@@ -12,7 +12,6 @@ interface SuggestedActionsProps {
 }
 
 function PureSuggestedActions({
-                                  chatId,
                                   sendMessage,
                               }: SuggestedActionsProps) {
     const suggestedActions = [
@@ -76,8 +75,8 @@ function PureSuggestedActions({
 export const SuggestedActions = memo(
     PureSuggestedActions,
     (prevProps, nextProps) => {
-        if (prevProps.chatId !== nextProps.chatId) return false;
+        return prevProps.chatId === nextProps.chatId;
 
-        return true;
+
     },
 );
