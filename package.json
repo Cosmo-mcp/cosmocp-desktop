@@ -8,7 +8,7 @@
     "start": "NODE_ENV=development electron-forge start",
     "package": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge package",
     "make": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge make",
-    "publish": "electron-forge publish",
+    "publish": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge publish",
     "lint": "gts lint",
     "fix": "gts fix"
   },
@@ -28,6 +28,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
     "@electron-forge/plugin-fuses": "^7.8.1",
     "@electron-forge/plugin-vite": "^7.8.1",
+    "@electron-forge/publisher-github": "^7.9.0",
     "@electron/fuses": "^1.8.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",

@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: Build on ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -20,11 +21,10 @@ jobs:
         with:
           node-version: '22.19.0'
 
-      - name: Install root dependencies
-        run: npm install
-
-      - name: Install renderer dependencies
-        run: npm install --prefix src/renderer
+      - name: Install dependencies
+        run: |
+          npm install
+          npm install --prefix src/renderer
 
       - name: Build application
         run: npm run make
