@@ -1,22 +1,17 @@
 'use client';
-import cx from 'classnames';
-import {AnimatePresence, motion} from 'framer-motion';
+import {motion} from 'framer-motion';
 import {memo, useState} from 'react';
-import {PencilEditIcon, SparklesIcon} from './icons';
+import {SparklesIcon} from './icons';
+import {Response} from './ai-elements/response';
+import {MessageContent} from './ai-elements/message';
 import {MessageActions} from './message-actions';
 import {PreviewAttachment} from './preview-attachment';
 import equal from 'fast-deep-equal';
 import {cn, sanitizeText} from '@/lib/utils';
-import {Button} from './ui/button';
-import {Tooltip, TooltipContent, TooltipTrigger} from './ui/tooltip';
+import {MessageEditor} from './message-editor';
 import {MessageReasoning} from './message-reasoning';
 import type {UseChatHelpers} from '@ai-sdk/react';
 import type {ChatMessage} from '@/lib/types';
-import {useDataStream} from './data-stream-provider';
-import {Markdown} from "@/components/markdown";
-
-// Type narrowing is handled by TypeScript's control flow analysis
-// The AI SDK provides proper discriminated unions for tool calls
 
 const PurePreviewMessage = ({
                                 chatId,
@@ -34,6 +29,7 @@ const PurePreviewMessage = ({
     regenerate: UseChatHelpers<ChatMessage>['regenerate'];
     isReadonly: boolean;
     requiresScrollPadding: boolean;
+    isArtifactVisible: boolean;
 }) => {
     const [mode, setMode] = useState<'view' | 'edit'>('view');
 
@@ -44,118 +40,133 @@ const PurePreviewMessage = ({
     //useDataStream();
 
     return (
-        <AnimatePresence>
-            <motion.div
-                data-testid={`message-${message.role}`}
-                className="w-full mx-auto max-w-3xl px-4 group/message"
-                initial={{y: 5, opacity: 0}}
-                animate={{y: 0, opacity: 1}}
-                data-role={message.role}
+        <motion.div
+            data-testid={`message-${message.role}`}
+            className="group/message w-full"
+            initial={{opacity: 0}}
+            animate={{opacity: 1}}
+            data-role={message.role}
+        >
+            <div
+                className={cn('flex w-full items-start gap-2 md:gap-3', {
+                    'justify-end': message.role === 'user' && mode !== 'edit',
+                    'justify-start': message.role === 'assistant',
+                })}
             >
+                {message.role === 'assistant' && (
+                    <div
+                        className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+                        <SparklesIcon size={14}/>
+                    </div>
+                )}
+
                 <div
-                    className={cn(
-                        'flex gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl',
-                        {
-                            'w-full': mode === 'edit',
-                            'group-data-[role=user]/message:w-fit': mode !== 'edit',
-                        },
-                    )}
+                    className={cn('flex flex-col', {
+                        'gap-2 md:gap-4': message.parts?.some(
+                            (p) => p.type === 'text' && p.text?.trim(),
+                        ),
+                        'min-h-96': message.role === 'assistant' && requiresScrollPadding,
+                        'w-full':
+                            (message.role === 'assistant' &&
+                                message.parts?.some(
+                                    (p) => p.type === 'text' && p.text?.trim(),
+                                )) ||
+                            mode === 'edit',
+                        'max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]':
+                            message.role === 'user' && mode !== 'edit',
+                    })}
                 >
-                    {message.role === 'assistant' && (
+                    {attachmentsFromMessage.length > 0 && (
                         <div
-                            className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border bg-background">
-                            <div className="translate-y-px">
-                                <SparklesIcon size={14}/>
-                            </div>
+                            data-testid={`message-attachments`}
+                            className="flex flex-row justify-end gap-2"
+                        >
+                            {attachmentsFromMessage.map((attachment) => (
+                                <PreviewAttachment
+                                    key={attachment.url}
+                                    attachment={{
+                                        name: attachment.filename ?? 'file',
+                                        contentType: attachment.mediaType,
+                                        url: attachment.url,
+                                    }}
+                                />
+                            ))}
                         </div>
                     )}
 
-                    <div
-                        className={cn('flex flex-col gap-4 w-full', {
-                            'min-h-96': message.role === 'assistant' && requiresScrollPadding,
-                        })}
-                    >
-                        {attachmentsFromMessage.length > 0 && (
-                            <div
-                                data-testid={`message-attachments`}
-                                className="flex flex-row justify-end gap-2"
-                            >
-                                {attachmentsFromMessage.map((attachment) => (
-                                    <PreviewAttachment
-                                        key={attachment.url}
-                                        attachment={{
-                                            name: attachment.filename ?? 'file',
-                                            contentType: attachment.mediaType,
-                                            url: attachment.url,
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                    {message.parts?.map((part, index) => {
+                        const {type} = part;
+                        const key = `message-${message.id}-part-${index}`;
 
-                        {message.parts?.map((part, index) => {
-                            const {type} = part;
-                            const key = `message-${message.id}-part-${index}`;
+                        if (type === 'reasoning' && part.text?.trim().length > 0) {
+                            return (
+                                <MessageReasoning
+                                    key={key}
+                                    isLoading={isLoading}
+                                    reasoning={part.text}
+                                />
+                            );
+                        }
 
-                            if (type === 'reasoning' && part.text?.trim().length > 0) {
+                        if (type === 'text') {
+                            if (mode === 'view') {
                                 return (
-                                    <MessageReasoning
-                                        key={key}
-                                        isLoading={isLoading}
-                                        reasoning={part.text}
-                                    />
+                                    <div key={key}>
+                                        <MessageContent
+                                            data-testid="message-content"
+                                            className={cn(
+                                                'inline-block break-words whitespace-pre-wrap px-3 py-2 text-right',
+                                                'max-w-[80vw] min-w-[2.5rem]',
+                                                {
+                                                    // Only apply background for user
+                                                    'bg-[#1d1d1d]': message.role === 'user',
+                                                    'text-white': message.role === 'user',
+                                                    'foreground': message.role === 'assistant',
+                                                    'text-left bg-transparent px-0 py-0': message.role === 'assistant',
+                                                    'rounded-2xl': message.role === 'user'
+                                                },
+                                            )}
+                                        >
+                                            <Response>{sanitizeText(part.text)}</Response>
+                                        </MessageContent>
+                                    </div>
                                 );
                             }
 
-                            if (type === 'text') {
-                                if (mode === 'view') {
-                                    return (
-                                        <div key={key} className="flex flex-row gap-2 items-start">
-                                            {message.role === 'user' && !isReadonly && (
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            data-testid="message-edit-button"
-                                                            variant="ghost"
-                                                            className="px-2 h-fit rounded-full text-muted-foreground opacity-0 group-hover/message:opacity-100"
-                                                            onClick={() => {
-                                                                setMode('edit');
-                                                            }}
-                                                        >
-                                                            <PencilEditIcon/>
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Edit message</TooltipContent>
-                                                </Tooltip>
-                                            )}
-
-                                            <div
-                                                data-testid="message-content"
-                                                className={cn('flex flex-col gap-4', {
-                                                    'bg-primary text-primary-foreground px-3 py-2 rounded-xl':
-                                                        message.role === 'user',
-                                                })}
-                                            >
-                                                <Markdown>{sanitizeText(part.text)}</Markdown>
-                                            </div>
+                            if (mode === 'edit') {
+                                return (
+                                    <div
+                                        key={key}
+                                        className="flex w-full flex-row items-start gap-3"
+                                    >
+                                        <div className="size-8"/>
+                                        <div className="min-w-0 flex-1">
+                                            <MessageEditor
+                                                key={message.id}
+                                                message={message}
+                                                setMode={setMode}
+                                                setMessages={setMessages}
+                                                regenerate={regenerate}
+                                            />
                                         </div>
-                                    );
-                                }
+                                    </div>
+                                );
                             }
-                        })}
+                        }
+                    })}
 
-                        {!isReadonly && (
-                            <MessageActions
-                                key={`action-${message.id}`}
-                                chatId={chatId}
-                                message={message}
-                                isLoading={isLoading}
-                            />
-                        )}
-                    </div>
+                    {!isReadonly && (
+                        <MessageActions
+                            key={`action-${message.id}`}
+                            chatId={chatId}
+                            message={message}
+                            isLoading={isLoading}
+                            setMode={setMode}
+                        />
+                    )}
                 </div>
-            </motion.div>
-        </AnimatePresence>
+            </div>
+        </motion.div>
     );
 };
 
@@ -178,29 +189,46 @@ export const ThinkingMessage = () => {
     return (
         <motion.div
             data-testid="message-assistant-loading"
-            className="w-full mx-auto max-w-3xl px-4 group/message min-h-96"
-            initial={{y: 5, opacity: 0}}
-            animate={{y: 0, opacity: 1, transition: {delay: 1}}}
+            className="group/message w-full"
+            initial={{opacity: 0}}
+            animate={{opacity: 1}}
             data-role={role}
         >
-            <div
-                className={cx(
-                    'flex gap-4 group-data-[role=user]/message:px-3 w-full group-data-[role=user]/message:w-fit group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:py-2 rounded-xl',
-                    {
-                        'group-data-[role=user]/message:bg-muted': true,
-                    },
-                )}
-            >
-                <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
+            <div className="flex items-start justify-start gap-3">
+                <div
+                    className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
                     <SparklesIcon size={14}/>
                 </div>
 
-                <div className="flex flex-col gap-2 w-full">
-                    <div className="flex flex-col gap-4 text-muted-foreground">
-                        Hmm...
+                <div className="flex w-full flex-col gap-2 md:gap-4">
+                    <div className="p-0 text-muted-foreground text-sm">
+                        <LoadingText>Thinking...</LoadingText>
                     </div>
                 </div>
             </div>
+        </motion.div>
+    );
+};
+
+const LoadingText = ({children}: { children: React.ReactNode }) => {
+    return (
+        <motion.div
+            animate={{backgroundPosition: ['100% 50%', '-100% 50%']}}
+            transition={{
+                duration: 1.5,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: 'linear',
+            }}
+            style={{
+                background:
+                    'linear-gradient(90deg, hsl(var(--muted-foreground)) 0%, hsl(var(--muted-foreground)) 35%, hsl(var(--foreground)) 50%, hsl(var(--muted-foreground)) 65%, hsl(var(--muted-foreground)) 100%)',
+                backgroundSize: '200% 100%',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+            }}
+            className="flex items-center text-transparent"
+        >
+            {children}
         </motion.div>
     );
 };
