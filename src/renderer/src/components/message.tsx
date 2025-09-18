@@ -115,20 +115,17 @@ const PurePreviewMessage = ({
                                         <MessageContent
                                             data-testid="message-content"
                                             className={cn(
-                                                'inline-block break-words whitespace-pre-wrap rounded-2xl px-3 py-2 text-right text-white',
+                                                'inline-block break-words whitespace-pre-wrap px-3 py-2 text-right',
                                                 'max-w-[80vw] min-w-[2.5rem]',
                                                 {
                                                     // Only apply background for user
-                                                    'bg-[#006cff]': message.role === 'user',
+                                                    'bg-[#1d1d1d]': message.role === 'user',
                                                     'text-white': message.role === 'user',
+                                                    'foreground': message.role === 'assistant',
                                                     'text-left bg-transparent px-0 py-0': message.role === 'assistant',
+                                                    'rounded-2xl': message.role === 'user'
                                                 },
                                             )}
-                                            style={
-                                                message.role === 'user'
-                                                    ? undefined
-                                                    : undefined
-                                            }
                                         >
                                             <Response>{sanitizeText(part.text)}</Response>
                                         </MessageContent>
