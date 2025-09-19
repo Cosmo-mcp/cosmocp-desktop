@@ -52,7 +52,6 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
     });
 
     for await (const chunk of result.toUIMessageStream()) {
-        console.log('Received chunk', chunk);
         webContents.send(`${args.streamChannel}-data`, chunk);
     }
 }
