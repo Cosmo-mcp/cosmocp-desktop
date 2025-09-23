@@ -144,3 +144,4 @@ package-lock.json
 src/renderer/package-lock.json
 /.idea
 .DS_Store
+/database
