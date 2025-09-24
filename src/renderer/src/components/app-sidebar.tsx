@@ -10,7 +10,7 @@ import Link from 'next/link';
 export function AppSidebar() {
     const router = useRouter();
     return (
-        <Sidebar className="group-data-[side=left]:border-r-0">
+        <Sidebar className="group-data-[side=left]:border-r-0" collapsible="icon">
             <SidebarHeader>
                 <SidebarMenu>
                     <div className="flex flex-row justify-between items-center">
