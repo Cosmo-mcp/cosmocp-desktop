@@ -13,7 +13,7 @@ import {
     SidebarMenu, SidebarMenuButton, SidebarMenuItem
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import {Home} from "lucide-react";
+import {Home, SettingsIcon} from "lucide-react";
 
 export function AppSidebar() {
     const router = useRouter();
@@ -21,7 +21,7 @@ export function AppSidebar() {
     const menuItems = [
         {
             title: "Chat",
-            url: "#",
+            url: "/",
             icon: Home,
         },
     ]
@@ -48,10 +48,10 @@ export function AppSidebar() {
                             {menuItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild>
-                                        <a href={item.url}>
+                                        <Link href={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>
-                                        </a>
+                                        </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}
@@ -60,16 +60,16 @@ export function AppSidebar() {
                 </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
-                <Button
-                    variant="ghost"
-                    type="button"
-                    className="p-2 m-2 h-fit border-2 border-solid"
-                    onClick={() => {
-                        router.push('/settings');
-                    }}>
-                    <MoreIcon/>
-                    Settings
-                </Button>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                            <Link href="/settings">
+                                <SettingsIcon />
+                                <span>Settings</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
             </SidebarFooter>
         </Sidebar>
     );
