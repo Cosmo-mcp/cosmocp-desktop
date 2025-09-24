@@ -4,11 +4,27 @@ import {useRouter} from 'next/navigation';
 
 import {MoreIcon, PlusIcon} from '@/components/icons';
 import {Button} from '@/components/ui/button';
-import {Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu} from '@/components/ui/sidebar';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter, SidebarGroup,
+    SidebarGroupContent, SidebarGroupLabel,
+    SidebarHeader,
+    SidebarMenu, SidebarMenuButton, SidebarMenuItem
+} from '@/components/ui/sidebar';
 import Link from 'next/link';
+import {Home} from "lucide-react";
 
 export function AppSidebar() {
     const router = useRouter();
+
+    const menuItems = [
+        {
+            title: "Chat",
+            url: "#",
+            icon: Home,
+        },
+    ]
     return (
         <Sidebar className="group-data-[side=left]:border-r-0" collapsible="icon">
             <SidebarHeader>
@@ -23,20 +39,25 @@ export function AppSidebar() {
                           </span>
                         </Link>
                     </div>
-                    <Button
-                        variant="ghost"
-                        type="button"
-                        className="p-2 m-2 h-fit border-2 border-solid"
-                        onClick={() => {
-                            router.push('/');
-                        }}>
-                        <PlusIcon/>
-                        New Chat
-                    </Button>
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                {/*<SidebarHistory user={user} />*/}
+                <SidebarGroup>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {menuItems.map((item) => (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild>
+                                        <a href={item.url}>
+                                            <item.icon />
+                                            <span>{item.title}</span>
+                                        </a>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
                 <Button
