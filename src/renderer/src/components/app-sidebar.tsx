@@ -1,23 +1,23 @@
 'use client';
 
 import {useRouter} from 'next/navigation';
-
-import {MoreIcon, PlusIcon} from '@/components/icons';
-import {Button} from '@/components/ui/button';
 import {
     Sidebar,
     SidebarContent,
-    SidebarFooter, SidebarGroup,
-    SidebarGroupContent, SidebarGroupLabel,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupContent,
     SidebarHeader,
-    SidebarMenu, SidebarMenuButton, SidebarMenuItem
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem, useSidebar
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import {Home, SettingsIcon} from "lucide-react";
 
 export function AppSidebar() {
-    const router = useRouter();
-
+    const context = useSidebar();
+    useRouter();
     const menuItems = [
         {
             title: "Chat",
@@ -27,20 +27,22 @@ export function AppSidebar() {
     ]
     return (
         <Sidebar className="group-data-[side=left]:border-r-0" collapsible="icon">
-            <SidebarHeader>
-                <SidebarMenu>
-                    <div className="flex flex-row justify-between items-center">
-                        <Link
-                            href="/"
-                            className="flex flex-row gap-3 items-center"
-                            onClick={e => e.preventDefault()}>
+            {context.open && (
+                <SidebarHeader>
+                    <SidebarMenu>
+                        <div className="flex flex-row justify-between items-center">
+                            <Link
+                                href="/"
+                                className="flex flex-row gap-3 items-center"
+                                onClick={e => e.preventDefault()}>
                           <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
                             Cosmo
                           </span>
-                        </Link>
-                    </div>
-                </SidebarMenu>
-            </SidebarHeader>
+                            </Link>
+                        </div>
+                    </SidebarMenu>
+                </SidebarHeader>
+            )}
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupContent>
@@ -49,7 +51,7 @@ export function AppSidebar() {
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild>
                                         <Link href={item.url}>
-                                            <item.icon />
+                                            <item.icon/>
                                             <span>{item.title}</span>
                                         </Link>
                                     </SidebarMenuButton>
@@ -64,7 +66,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
                             <Link href="/settings">
-                                <SettingsIcon />
+                                <SettingsIcon/>
                                 <span>Settings</span>
                             </Link>
                         </SidebarMenuButton>

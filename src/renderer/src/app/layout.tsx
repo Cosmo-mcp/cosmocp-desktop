@@ -1,9 +1,6 @@
-import {Toaster} from 'sonner';
-import {ThemeProvider} from '@/components/theme-provider';
-
+import ClientLayout from "@/app/client-layout";
+import React from "react";
 import "./globals.css";
-import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar";
-import {AppSidebar} from "@/components/app-sidebar";
 
 export default async function RootLayout({
                                              children,
@@ -13,18 +10,7 @@ export default async function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
         <body className={`antialiased`}>
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-        >
-            <SidebarProvider defaultOpen={true}>
-                <AppSidebar/>
-                <SidebarInset>{children}</SidebarInset>
-            </SidebarProvider>
-            <Toaster position="top-center"/>
-        </ThemeProvider>
+        <ClientLayout>{children}</ClientLayout>
         </body>
         </html>
     );

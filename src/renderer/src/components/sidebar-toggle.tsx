@@ -14,7 +14,7 @@ export function SidebarToggle() {
                     data-testid="sidebar-toggle-button"
                     onClick={toggleSidebar}
                     variant="outline"
-                    className="md:px-2 md:h-fit"
+                    className="m-2 md:px-2 md:h-fit"
                 >
                     <SidebarLeftIcon size={16}/>
                 </Button>
