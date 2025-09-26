@@ -1,54 +1,77 @@
 'use client';
 
 import {useRouter} from 'next/navigation';
-
-import {MoreIcon, PlusIcon} from '@/components/icons';
-import {Button} from '@/components/ui/button';
-import {Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu} from '@/components/ui/sidebar';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem, useSidebar
+} from '@/components/ui/sidebar';
 import Link from 'next/link';
+import {Home, SettingsIcon} from "lucide-react";
 
 export function AppSidebar() {
-    const router = useRouter();
+    const context = useSidebar();
+    useRouter();
+    const menuItems = [
+        {
+            title: "Chat",
+            url: "/",
+            icon: Home,
+        },
+    ]
     return (
-        <Sidebar className="group-data-[side=left]:border-r-0">
-            <SidebarHeader>
-                <SidebarMenu>
-                    <div className="flex flex-row justify-between items-center">
-                        <Link
-                            href="/"
-                            className="flex flex-row gap-3 items-center"
-                            onClick={e => e.preventDefault()}>
+        <Sidebar className="group-data-[side=left]:border-r-0" collapsible="icon">
+            {context.open && (
+                <SidebarHeader>
+                    <SidebarMenu>
+                        <div className="flex flex-row justify-between items-center">
+                            <Link
+                                href="/"
+                                className="flex flex-row gap-3 items-center"
+                                onClick={e => e.preventDefault()}>
                           <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
                             Cosmo
                           </span>
-                        </Link>
-                    </div>
-                    <Button
-                        variant="ghost"
-                        type="button"
-                        className="p-2 m-2 h-fit border-2 border-solid"
-                        onClick={() => {
-                            router.push('/');
-                        }}>
-                        <PlusIcon/>
-                        New Chat
-                    </Button>
-                </SidebarMenu>
-            </SidebarHeader>
+                            </Link>
+                        </div>
+                    </SidebarMenu>
+                </SidebarHeader>
+            )}
             <SidebarContent>
-                {/*<SidebarHistory user={user} />*/}
+                <SidebarGroup>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {menuItems.map((item) => (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild>
+                                        <Link href={item.url}>
+                                            <item.icon/>
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
-                <Button
-                    variant="ghost"
-                    type="button"
-                    className="p-2 m-2 h-fit border-2 border-solid"
-                    onClick={() => {
-                        router.push('/settings');
-                    }}>
-                    <MoreIcon/>
-                    Settings
-                </Button>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                            <Link href="/settings">
+                                <SettingsIcon/>
+                                <span>Settings</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
             </SidebarFooter>
         </Sidebar>
     );
