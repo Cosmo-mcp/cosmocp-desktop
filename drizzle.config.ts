@@ -6,7 +6,7 @@ export default defineConfig({
     driver: "pglite",
     dbCredentials: {
         //database folder
-        url: "./database/"
+        url: "./cosmodb/"
     },
     out: './migrations',
 });

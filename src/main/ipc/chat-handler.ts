@@ -26,7 +26,6 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
     const webContents = event.sender as WebContents;
     const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
 
-    console.log(`Model messages for channel ${args.streamChannel}:`);
     modelMessages.forEach(msg => console.log(msg));
 
     const controller = new AbortController();
@@ -38,7 +37,6 @@ export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessage
         abortSignal: controller.signal,
         experimental_transform: smoothStream(),
         onFinish: async () => {
-            console.log('Finished receiving chunk');
             activeStreams.delete(args.streamChannel);
             webContents.send(`${args.streamChannel}-end`);
         },

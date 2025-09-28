@@ -2,6 +2,8 @@ import {ipcMain} from 'electron';
 import {ChatAbortArgs, chatAbortMessage, chatSendMessage, ChatSendMessageArgs} from './chat-handler';
 import {ModelProviderService} from "../services/modelProviderService";
 import {ModelProviderCreate} from "../../renderer/src/common/models/modelProvider";
+import {Chat} from "../db/schema";
+import {saveChatAPI} from "./chat-controller";
 
 export function registerIpcHandlers(): void {
 
@@ -12,4 +14,6 @@ export function registerIpcHandlers(): void {
     ipcMain.handle('add-model-provider', (_event, providerData: ModelProviderCreate) => modelProviderService.addProvider(providerData));
     ipcMain.handle('get-model-providers', () => modelProviderService.getProviders());
     ipcMain.handle('get-models-for-provider-id', (_event, providerId) => modelProviderService.getModels(providerId));
+
+    ipcMain.on('save-chat', (_event, data: Chat) => saveChatAPI(data.title));
 }

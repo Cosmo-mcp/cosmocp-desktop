@@ -145,3 +145,6 @@ src/renderer/package-lock.json
 /.idea
 .DS_Store
 /database
+/cosmo
+/cosmodb
+/migrations
