@@ -35,11 +35,9 @@ export async function initDatabaseClient(absoluteDbPath: string) {
     console.log(`[DB INIT] Attempting to connect PGlite to absolute path: ${absoluteDbPath}`);
 
     try {
-        const connection = new PGlite(absoluteDbPath);
-
+        const connection = await PGlite.create(absoluteDbPath);
         pgliteConnectionInstance = connection;
         dbInstance = drizzle(connection, { schema });
-
         console.log('[DB INIT] Drizzle client successfully initialized.');
     } catch (error) {
         console.error('[DB INIT] Failed to initialize database client:', error);

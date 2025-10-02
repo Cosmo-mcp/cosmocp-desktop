@@ -14,8 +14,7 @@ export async function runElectronMigrations() {
         const db = getDb();
         const start = Date.now();
 
-        const userDataPath = app.getPath('userData');
-        const fileUrlMigrationsFolder = path.join(userDataPath, 'migrations');
+        const fileUrlMigrationsFolder = path.join(__dirname, '../../migrations');
 
         console.log(`[Migrations] Using folder (file:// URL): ${fileUrlMigrationsFolder}`); // Debug line
 
