@@ -46,6 +46,10 @@ export default defineConfig({
         exclude: ['@electric-sql/pglite']
     },
     build: {
+        // If needed, mark PGlite as external so Vite does not bundle it
+        rollupOptions: {
+            external: ['@electric-sql/pglite']
+        },
         outDir: path.resolve(__dirname, '.vite/build'),
         lib: {
             entry: './src/main/index.ts',
