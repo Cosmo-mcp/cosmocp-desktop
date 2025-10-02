@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import path, { resolve } from 'path';
+import path from 'path';
 import fs from 'fs';
 
 
@@ -34,9 +34,9 @@ const copyMigrationsPlugin = () => ({
 
         try {
             copyFolderRecursive(sourceDir, targetDir);
-            console.log('✅ Migrations folder copied successfully.');
+            console.log('Migrations folder copied successfully.');
         } catch (e) {
-            console.error('❌ Failed to copy migrations folder:', e);
+            console.error('Failed to copy migrations folder:', e);
         }
     }
 });

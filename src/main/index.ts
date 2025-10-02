@@ -1,7 +1,6 @@
 import {app, BrowserWindow} from 'electron';
 import path from 'path';
 import {registerIpcHandlers} from './ipc';
-import {readTestItems} from "./db/operations";
 import {initDatabaseClient} from "./db/db";
 import {runElectronMigrations} from "./db/migrator";
 
@@ -68,15 +67,6 @@ app.whenReady().then(async () => {
         console.error('FATAL ERROR: Failed to apply database migrations. Application will exit.', error);
         app.quit();
         return;
-    }
-
-    // --- 3. Run Test Data Read ---
-    console.log("TRY TO READ FROM DB...");
-    try {
-        const items = await readTestItems();
-        console.log('✅ Database items read successfully in main process:', items);
-    } catch (error) {
-        console.error('Error during initial DB read test:', error);
     }
 
     registerIpcHandlers();
