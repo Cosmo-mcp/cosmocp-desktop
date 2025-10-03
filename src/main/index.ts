@@ -1,6 +1,8 @@
 import {app, BrowserWindow} from 'electron';
 import path from 'path';
 import {registerIpcHandlers} from './ipc';
+import {initDatabaseClient} from "./db/db";
+import {runElectronMigrations} from "./db/migrator";
 
 
 // These global constants ARE provided by Electron Forge's Vite plugin.
@@ -39,9 +41,36 @@ async function createWindow(): Promise<void> {
     mainWindow.maximize();
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+    const dbFolderName = process.env.DATABASE_NAME;
+    if (!dbFolderName) {
+        console.error('FATAL ERROR: DATABASE_NAME environment variable is not set. Cannot initialize database.');
+        app.quit();
+        return;
+    }
+
+    // --- 1. Initialize Connection ---
+    try {
+        const userDataPath = app.getPath('userData');
+        const absoluteDbPath = path.join(userDataPath, dbFolderName);
+        await initDatabaseClient(absoluteDbPath);
+    } catch (error) {
+        console.error('FATAL ERROR: Failed to initialize database connection.', error);
+        app.quit(); // Stop execution if we cannot connect
+        return;
+    }
+
+    // --- 2. Run Migrations ---
+    try {
+        await runElectronMigrations();
+    } catch (error) {
+        console.error('FATAL ERROR: Failed to apply database migrations. Application will exit.', error);
+        app.quit();
+        return;
+    }
+
     registerIpcHandlers();
-    createWindow();
+    await createWindow();
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
