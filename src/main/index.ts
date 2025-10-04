@@ -1,8 +1,8 @@
 import {app, BrowserWindow} from 'electron';
 import path from 'path';
 import {registerIpcHandlers} from './ipc';
-import {initDatabaseClient} from "./db/db";
-import {runElectronMigrations} from "./db/migrator";
+import {initDatabaseClient} from "@database/db";
+import {runElectronMigrations} from "@database/migrator";
 
 
 // These global constants ARE provided by Electron Forge's Vite plugin.

@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite';
+import {defineConfig} from 'vite';
 import path from 'path';
 import fs from 'fs';
+import tsconfigPaths from "vite-tsconfig-paths";
 
 
 const copyFolderRecursive = (source: string, target: string) => {
@@ -61,6 +62,7 @@ export default defineConfig({
     },
     // Add the custom plugin to the plugins array
     plugins: [
+        tsconfigPaths(),
         copyMigrationsPlugin()
     ],
     // You might have other Vite specific configurations here, like define, resolve, etc.

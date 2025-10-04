@@ -2,7 +2,7 @@ import {defineConfig} from "drizzle-kit";
 
 export default defineConfig({
     dialect: "postgresql",
-    schema: "./src/main/db/schema.ts",
+    schema: "./src/core/database/schema.ts",
     driver: "pglite",
     dbCredentials: {
         //database folder
