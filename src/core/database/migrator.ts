@@ -1,5 +1,6 @@
 import {getDb} from "./db";
 import { migrate } from "drizzle-orm/pglite/migrator";
+import path from "path";
 
 /**
  * Executes pending database migrations against the initialized PGlite client.
@@ -11,8 +12,8 @@ export async function runElectronMigrations() {
     try {
         const db = getDb();
         const start = Date.now();
-
-        await migrate(db, { migrationsFolder: 'migrations' });
+        const migrationDir = path.resolve(__dirname, "./migrations");
+        await migrate(db, { migrationsFolder: migrationDir });
 
         const end = Date.now();
         console.log(`Migrations checked/applied successfully in ${end - start} ms.`);
