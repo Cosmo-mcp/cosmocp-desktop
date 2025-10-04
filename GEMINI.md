@@ -31,6 +31,7 @@ This guide is a checklist to help you write, test, and review code *specifically
 ### Code Readability & Best Practices
 *   **Component Structure:** Keep React components small and focused. If a component in `src/renderer/src/components` gets too large, break it down.
 *   **State Management:** For UI state, use React hooks (`useState`, `useReducer`). For shared data definitions, see `src/renderer/src/lib/types.ts`.
+*   **Path Aliases:** To keep our import paths clean and manageable, we use TypeScript path aliases. When importing from the `src/core` directory, please use the available aliases. For example, instead of `import { db } from '../core/database/index'` you should use `import { db } from '@database/index'`. Refer to the `paths` section in the root `tsconfig.json` for a complete list of aliases.
 *   **Data Validation:** We use `zod` for robust data validation. When creating or updating data, define a `zod` schema to ensure type safety.
 *   **Styling:** Use Tailwind CSS utility classes directly in your `className` attributes. For common styles, you can use the `@apply` directive in `src/renderer/src/app/globals.css`.
 *   **Linting:** we use google typescript style guide(gts) for linting, please run `npm run lint` to lint the code
