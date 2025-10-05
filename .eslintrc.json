@@ -16,7 +16,7 @@
   "settings": {
     "import/resolver": {
       "typescript": {
-        "project": "src/renderer/tsconfig.json"
+        "project": ["src/renderer/tsconfig.json", "./tsconfig.json"]
       }
     }
   }
