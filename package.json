@@ -55,6 +55,8 @@
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.5",
     "electron-squirrel-startup": "^1.0.1",
+    "inversify": "^7.10.2",
+    "reflect-metadata": "^0.2.2",
     "zod": "^4.1.11"
   }
 }
