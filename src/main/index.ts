@@ -1,8 +1,8 @@
 import {app, BrowserWindow} from 'electron';
 import path from 'path';
 import {registerIpcHandlers} from './ipc';
-import {initDatabaseClient} from "@database/db";
-import {runElectronMigrations} from "@database/migrator";
+import {DatabaseManager} from "../core/database/DatabaseManager";
+import 'reflect-metadata';
 
 
 // These global constants ARE provided by Electron Forge's Vite plugin.
@@ -49,23 +49,13 @@ app.whenReady().then(async () => {
         return;
     }
 
-    // --- 1. Initialize Connection ---
     try {
         const userDataPath = app.getPath('userData');
         const absoluteDbPath = path.join(userDataPath, dbFolderName);
-        await initDatabaseClient(absoluteDbPath);
+        await DatabaseManager.initialize(absoluteDbPath);
     } catch (error) {
         console.error('FATAL ERROR: Failed to initialize database connection.', error);
         app.quit(); // Stop execution if we cannot connect
-        return;
-    }
-
-    // --- 2. Run Migrations ---
-    try {
-        await runElectronMigrations();
-    } catch (error) {
-        console.error('FATAL ERROR: Failed to apply database migrations. Application will exit.', error);
-        app.quit();
         return;
     }
 
