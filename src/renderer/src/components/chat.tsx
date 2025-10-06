@@ -38,7 +38,6 @@ export function Chat({
         },
         onFinish: () => {
             setForceScrollToBottom(true);
-            window.chatAPI.saveChat({id: "1", title: "abc", createdAt: new Date()})
         },
         onError: (error) => {
             console.error(error);
