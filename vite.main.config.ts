@@ -47,7 +47,7 @@ export default defineConfig({
         exclude: ['@electric-sql/pglite']
     },
     build: {
-        // If needed, mark PGlite as external so Vite does not bundle it
+        // Mark PGlite as external so Vite does not bundle it
         rollupOptions: {
             external: ['@electric-sql/pglite']
         },

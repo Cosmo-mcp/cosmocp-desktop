@@ -42,7 +42,7 @@ async function createWindow(): Promise<void> {
 }
 
 app.whenReady().then(async () => {
-    const dbFolderName = process.env.DATABASE_NAME;
+    const dbFolderName = isDev ? process.env.DATABASE_NAME : "database";
     if (!dbFolderName) {
         console.error('FATAL ERROR: DATABASE_NAME environment variable is not set. Cannot initialize database.');
         app.quit();
