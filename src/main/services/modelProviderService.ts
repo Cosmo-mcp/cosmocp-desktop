@@ -8,6 +8,7 @@ import {
     ModelProviderType, PredefinedProviders
 } from '../../renderer/src/common/models/modelProvider';
 import {Model} from "../../renderer/src/common/models/model";
+import {injectable} from "inversify";
 
 const providersFilePath = path.join(app.getPath('appData'), 'providers.json');
 
@@ -27,6 +28,7 @@ const decryptApiKey = (encryptedKey: string): string => {
     return safeStorage.decryptString(buffer);
 };
 
+@injectable()
 export class ModelProviderService {
     private providers = new Map<string, ModelProvider>();
 
@@ -72,7 +74,7 @@ export class ModelProviderService {
     }
 
     private isDuplicate(provider: ModelProviderCreate): boolean {
-        return this.providers.values().some(
+        return Array.from(this.providers.values()).some(
             p => p.type === provider.type
                 && p.apiKey === provider.apiKey
                 && p.apiUrl === provider.apiUrl
@@ -104,7 +106,7 @@ export class ModelProviderService {
         return newProvider;
     }
 
-    public getProviderForId(providerId: string): ModelProvider {
+    public getProviderForId(providerId: string): ModelProvider | undefined {
         return this.providers.get(providerId);
     }
 

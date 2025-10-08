@@ -63,9 +63,7 @@ export function Chat({
                     chatId={id}
                     selectedModelId={initialChatModel}
                     onNewChat={() => {
-                        stop();
-                        // TODO: improve when save chat is implemented
-                        setMessages([]);
+                        window.chatAPI.saveChat()
                     }}
                 />
                 <Messages

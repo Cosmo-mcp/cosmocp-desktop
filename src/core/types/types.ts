@@ -1,4 +1,4 @@
-const TYPES = {
+const CORETYPES = {
     DatabaseManager: Symbol.for("DatabaseManager"),
     ChatRepository: Symbol.for("ChatRepository"),
     MessageRepository: Symbol.for("MessageRepository"),
@@ -8,4 +8,4 @@ const TYPES = {
     MessageController: Symbol.for("MessageController"),
 };
 
-export { TYPES };
+export { CORETYPES };

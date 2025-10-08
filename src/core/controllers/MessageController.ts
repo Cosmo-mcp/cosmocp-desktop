@@ -1,18 +1,20 @@
-import { injectable, inject } from "inversify";
-import { TYPES } from "../types/types";
-import { MessageService } from "../services/MessageService";
-import { NewMessage } from "../repositories/MessageRepository";
+import {inject, injectable} from "inversify";
+import {CORETYPES} from "../types/types";
+import {MessageService} from "../services/MessageService";
+import {NewMessage} from "../repositories/MessageRepository";
+import {Chat} from "@database/schema";
 
 @injectable()
 export class MessageController {
-    constructor(@inject(TYPES.MessageService) private messageService: MessageService) {}
+    constructor(@inject(CORETYPES.MessageService) private messageService: MessageService) {
+    }
 
     public async getMessagesByChatId(chatId: string) {
         return this.messageService.getMessagesByChatId(chatId);
     }
 
-    public async createMessage(newMessage: NewMessage) {
-        return this.messageService.createMessage(newMessage);
+    public async createMessage(newMessage: NewMessage, chat: Chat) {
+        return this.messageService.createMessage(newMessage, chat);
     }
 
     public async updateMessage(id: string, updates: Partial<NewMessage>) {

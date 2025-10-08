@@ -1,11 +1,12 @@
-import { injectable, inject } from "inversify";
-import { TYPES } from "../types/types";
-import { ChatService } from "../services/ChatService";
-import { NewChat } from "../repositories/ChatRepository";
+import {inject, injectable} from "inversify";
+import {CORETYPES} from "../types/types";
+import {ChatService} from "../services/ChatService";
+import {NewChat} from "../repositories/ChatRepository";
 
 @injectable()
 export class ChatController {
-    constructor(@inject(TYPES.ChatService) private chatService: ChatService) {}
+    constructor(@inject(CORETYPES.ChatService) private chatService: ChatService) {
+    }
 
     public async getAllChats() {
         return this.chatService.getAllChats();

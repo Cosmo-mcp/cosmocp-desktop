@@ -1,16 +1,11 @@
 import {convertToModelMessages, ModelMessage, smoothStream, streamText} from 'ai';
-import {createGoogleGenerativeAI} from '@ai-sdk/google';
+import {createGoogleGenerativeAI, GoogleGenerativeAIProvider} from '@ai-sdk/google';
 import {config} from 'dotenv';
 import {ChatMessage} from "../../renderer/src/lib/types";
-import WebContents = Electron.Main.WebContents;
-import IpcMainEvent = Electron.IpcMainEvent;
+import {IpcMainEvent, WebContents} from "electron";
+import {injectable} from "inversify";
 
 config();
-
-const GEMINI_API_KEY = process.env['GEMINI_API_KEY'];
-const MODEL_NAME = 'gemini-2.0-flash-lite';
-const activeStreams = new Map<string, AbortController>();
-const google = createGoogleGenerativeAI({apiKey: GEMINI_API_KEY})
 
 export interface ChatSendMessageArgs {
     chatId: string;
@@ -22,42 +17,80 @@ export interface ChatAbortArgs {
     streamChannel: string;
 }
 
-export async function chatSendMessage(event: IpcMainEvent, args: ChatSendMessageArgs) {
-    const webContents = event.sender as WebContents;
-    const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
+@injectable()
+export class ChatHandler {
+    private readonly activeStreams = new Map<string, AbortController>();
+    private readonly google: GoogleGenerativeAIProvider | null = null;
+    private readonly modelName = 'gemini-2.0-flash-lite';
 
-    modelMessages.forEach(msg => console.log(msg));
-
-    const controller = new AbortController();
-    activeStreams.set(args.streamChannel, controller);
-
-    const result = streamText({
-        model: google(MODEL_NAME),
-        messages: modelMessages,
-        abortSignal: controller.signal,
-        experimental_transform: smoothStream(),
-        onFinish: async () => {
-            activeStreams.delete(args.streamChannel);
-            webContents.send(`${args.streamChannel}-end`);
-        },
-        onAbort: async () => {
-            activeStreams.delete(args.streamChannel);
-        },
-        onError: async (error) => {
-            activeStreams.delete(args.streamChannel);
-            webContents.send(`${args.streamChannel}-error`, error);
+    constructor() {
+        const geminiApiKey = process.env['GEMINI_API_KEY'];
+        if (!geminiApiKey) {
+            console.error("GEMINI_API_KEY is not set in the environment variables. Chat functionality will be disabled.");
+        } else {
+            this.google = createGoogleGenerativeAI({apiKey: geminiApiKey});
         }
-    });
-
-    for await (const chunk of result.toUIMessageStream()) {
-        webContents.send(`${args.streamChannel}-data`, chunk);
     }
-}
 
-export async function chatAbortMessage(_event: IpcMainEvent, args: ChatAbortArgs) {
-    const controller = activeStreams.get(args.streamChannel);
-    if (controller) {
-        activeStreams.delete(args.streamChannel);
-        controller.abort();
+    public async sendMessage(event: IpcMainEvent, args: ChatSendMessageArgs) {
+        if (!this.google) {
+            console.error("Google AI client is not initialized. Cannot send message.");
+            return;
+        }
+
+        const webContents = event.sender as WebContents;
+        const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
+
+        const controller = new AbortController();
+        this.activeStreams.set(args.streamChannel, controller);
+
+        try {
+            const result = streamText({
+                model: this.google(this.modelName),
+                messages: modelMessages,
+                abortSignal: controller.signal,
+                experimental_transform: smoothStream(),
+                onFinish: () => {
+                    this.activeStreams.delete(args.streamChannel);
+                    if (!webContents.isDestroyed()) {
+                        webContents.send(`${args.streamChannel}-end`);
+                    }
+                },
+                onAbort: () => {
+                    this.activeStreams.delete(args.streamChannel);
+                },
+                onError: (error) => {
+                    console.error("Stream error:", error);
+                    this.activeStreams.delete(args.streamChannel);
+                    if (!webContents.isDestroyed()) {
+                        webContents.send(`${args.streamChannel}-error`, error);
+                    }
+                }
+            });
+
+            for await (const chunk of result.toUIMessageStream()) {
+                if (webContents.isDestroyed()) {
+                    console.log("WebContents destroyed, stopping stream.");
+                    controller.abort();
+                    break;
+                }
+                webContents.send(`${args.streamChannel}-data`, chunk);
+            }
+        } catch (error) {
+            console.error("Failed to start streamText:", error);
+            this.activeStreams.delete(args.streamChannel);
+            if (!webContents.isDestroyed()) {
+                webContents.send(`${args.streamChannel}-error`, error);
+            }
+        }
+    }
+
+    public abortMessage(_event: IpcMainEvent, args: ChatAbortArgs) {
+        const controller = this.activeStreams.get(args.streamChannel);
+        if (controller) {
+            controller.abort();
+            this.activeStreams.delete(args.streamChannel);
+            console.log(`Aborted stream for channel: ${args.streamChannel}`);
+        }
     }
 }

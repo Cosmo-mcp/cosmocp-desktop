@@ -1,8 +1,8 @@
-import { injectable, inject } from "inversify";
-import { eq } from "drizzle-orm";
-import { TYPES } from "../types/types";
-import { DatabaseManager } from "../database/DatabaseManager";
-import { chat, Chat } from "../database/schema";
+import {inject, injectable} from "inversify";
+import {eq} from "drizzle-orm";
+import {CORETYPES} from "../types/types";
+import {DatabaseManager} from "../database/DatabaseManager";
+import {chat, Chat} from "../database/schema";
 
 export type NewChat = Omit<Chat, "id" | "createdAt">;
 
@@ -10,7 +10,7 @@ export type NewChat = Omit<Chat, "id" | "createdAt">;
 export class ChatRepository {
     private db;
 
-    constructor(@inject(TYPES.DatabaseManager) databaseManager: DatabaseManager) {
+    constructor(@inject(CORETYPES.DatabaseManager) databaseManager: DatabaseManager) {
         this.db = databaseManager.getInstance();
     }
 

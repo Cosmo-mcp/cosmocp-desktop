@@ -1,6 +1,6 @@
 import {inject, injectable} from "inversify";
 import {eq} from "drizzle-orm";
-import {TYPES} from "../types/types";
+import {CORETYPES} from "../types/types";
 import {DatabaseManager} from "../database/DatabaseManager";
 import {Chat, message, Message} from "../database/schema";
 
@@ -10,7 +10,7 @@ export type NewMessage = Omit<Message, "id" | "createdAt">;
 export class MessageRepository {
     private db;
 
-    constructor(@inject(TYPES.DatabaseManager) databaseManager: DatabaseManager) {
+    constructor(@inject(CORETYPES.DatabaseManager) databaseManager: DatabaseManager) {
         this.db = databaseManager.getInstance();
     }
 
