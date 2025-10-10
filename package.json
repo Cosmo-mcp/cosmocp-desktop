@@ -13,7 +13,7 @@
     "fix": "gts fix",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "npx drizzle-kit studio",
+    "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
@@ -56,6 +56,8 @@
     "dotenv": "17.2.3",
     "drizzle-orm": "0.44.6",
     "electron-squirrel-startup": "1.0.1",
+    "inversify": "7.10.2",
+    "reflect-metadata": "0.2.2",
     "zod": "4.1.12"
   }
 }
