@@ -7,6 +7,8 @@ import {VitePlugin} from '@electron-forge/plugin-vite';
 import {FusesPlugin} from '@electron-forge/plugin-fuses';
 import {FuseV1Options, FuseVersion} from '@electron/fuses';
 import NextPlugin from "./src/NextPlugin";
+import path from "path";
+import fs from "fs";
 
 const config: ForgeConfig = {
         packagerConfig: {
@@ -66,7 +68,30 @@ const config: ForgeConfig = {
                 force: true,
                 generateReleaseNotes: false,
             }
-        }]
+        }],
+        // we asked vite not to bundle PGLite because it was not bundled properly
+        // now we copy PGlite package directly into electron asar bundle
+        hooks: {
+            async packageAfterCopy(_forgeConfig, buildPath) {
+                const requiredNativePackages = ["@electric-sql"];
+
+                // __dirname isn't accessible from here
+                const dirnamePath: string = ".";
+                const sourceNodeModulesPath = path.resolve(dirnamePath, "node_modules");
+                const destNodeModulesPath = path.resolve(buildPath, "node_modules");
+
+                // Copy all asked packages in /node_modules directory inside the asar archive
+                await Promise.all(
+                    requiredNativePackages.map(async (packageName) => {
+                        const sourcePath = path.join(sourceNodeModulesPath, packageName);
+                        const destPath = path.join(destNodeModulesPath, packageName);
+
+                        fs.mkdirSync(destPath, {recursive: true});
+                        fs.cpSync(sourcePath, destPath, {recursive: true,});
+                    })
+                );
+            }
+        }
     }
 ;
 
