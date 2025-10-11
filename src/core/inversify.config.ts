@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import {Container} from "inversify";
 import {CORETYPES} from "./types/types";
-import {DatabaseManager} from "./database/DatabaseManager";
+import {DatabaseManager} from "@database/DatabaseManager";
 import {ChatRepository} from "./repositories/ChatRepository";
 import {MessageRepository} from "./repositories/MessageRepository";
 import {ChatService} from "./services/ChatService";
