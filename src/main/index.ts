@@ -8,7 +8,7 @@ import {TYPES} from "./types";
 
 export class Main {
     private mainWindow: BrowserWindow | null = null;
-    private readonly isDev = true;
+    private readonly isDev = process.env.NODE_ENV !== 'production';
     private readonly MAIN_WINDOW_VITE_DEV_SERVER_URL = this.isDev ? 'http://localhost:3000' : undefined;
 
     constructor() {
