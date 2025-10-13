@@ -1,8 +1,8 @@
 import {inject, injectable} from "inversify";
 import {eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
-import {DatabaseManager} from "../database/DatabaseManager";
-import {chat, Chat} from "../database/schema";
+import {DatabaseManager} from "@database/DatabaseManager";
+import {chat, Chat} from "@database/schema";
 
 export type NewChat = Omit<Chat, "id" | "createdAt">;
 
