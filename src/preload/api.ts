@@ -2,7 +2,7 @@ import {ipcRenderer} from 'electron';
 import {UIMessageChunk} from "ai";
 import {ModelProvider, ModelProviderCreate, ModelProviderLite} from "../renderer/src/common/models/modelProvider";
 import {Model} from "../renderer/src/common/models/model";
-import {NewChat} from "../core/repositories/ChatRepository";
+import {Chat} from "@database/schema";
 
 export interface ChatAPI {
     sendChatMessages: (data: any) => void;
@@ -11,6 +11,7 @@ export interface ChatAPI {
     onceChatEnd: (channel: string, callback: () => void) => void;
     onceChatError: (channel: string, callback: (error: any) => void) => void;
     removeChatListener: (channel: string) => void;
+    getChatHistory: () => Promise<Chat[]>;
     saveChat: () => void;
 }
 
@@ -39,8 +40,12 @@ export const chatAPI: ChatAPI = {
     removeChatListener: (channel) => {
         ipcRenderer.removeAllListeners(channel)
     },
+
+    getChatHistory: () => {
+        return ipcRenderer.invoke('chat-history');
+    },
     saveChat: () => {
-        return ipcRenderer.invoke('save-chat');
+        ipcRenderer.invoke('save-chat');
     }
 };
 

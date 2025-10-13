@@ -1,18 +1,22 @@
 'use client'
-import {JSX} from "react";
-import {generateUUID} from "@/lib/utils";
+import {JSX, useState} from "react";
+import {ChatHistory} from "@/components/chat-history";
 import {Chat} from "@/components/chat";
 
 export default function Page(): JSX.Element {
-    const id = generateUUID();
+    const [selectedChatId, setSelectedChatId] = useState<string | undefined>(undefined);
     return (
         <>
-            <Chat
-                key={id}
-                id={id}
-                initialMessages={[]}
-                initialChatModel=''
-            />
+            <ChatHistory></ChatHistory>
+            {
+                selectedChatId !== undefined ? (
+                    <Chat
+                        id={selectedChatId as string}
+                        initialMessages={[]}
+                        initialChatModel=''
+                    />) : (
+                    <div>No chat selected</div>
+                )}
         </>
     );
 }

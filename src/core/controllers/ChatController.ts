@@ -9,7 +9,7 @@ export class ChatController {
     }
 
     public async getAllChats() {
-        return this.chatService.getAllChats();
+        return await this.chatService.getAllChats();
     }
 
     public async getChatById(id: string) {

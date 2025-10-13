@@ -8,7 +8,7 @@ import {TYPES} from "./types";
 
 export class Main {
     private mainWindow: BrowserWindow | null = null;
-    private readonly isDev = process.env.NODE_ENV === 'development';
+    private readonly isDev = true;
     private readonly MAIN_WINDOW_VITE_DEV_SERVER_URL = this.isDev ? 'http://localhost:3000' : undefined;
 
     constructor() {
@@ -50,6 +50,7 @@ export class Main {
                 preload: path.join(__dirname, '../preload/index.js'),
             },
         });
+        this.mainWindow.webContents.reloadIgnoringCache();
 
         this.mainWindow.setMenuBarVisibility(false);
 

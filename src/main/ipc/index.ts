@@ -29,5 +29,8 @@ export class IpcHandlerRegistry {
                 title: "New Chat" + new Date()
             })
         });
+        ipcMain.handle("chat-history", () => {
+            return this.chatController.getAllChats();
+        })
     }
 }
