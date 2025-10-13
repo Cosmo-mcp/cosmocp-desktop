@@ -1,17 +1,12 @@
 'use client';
 
-import {ModelSelector} from '@/components/model-selector';
 import {memo} from 'react';
 import {ModeToggle} from "@/components/ModeToggle";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {Button} from "@/components/ui/button";
 import {PlusIcon} from "@/components/icons";
-import {SidebarToggle} from "@/components/sidebar-toggle";
-import {useWindowSize} from "usehooks-ts";
-import {useSidebar} from "@/components/ui/sidebar";
 
 function PureChatHeader({
-                            selectedModelId,
                             onNewChat
                         }: {
     chatId: string;
@@ -36,16 +31,9 @@ function PureChatHeader({
                 </TooltipTrigger>
                 <TooltipContent>New Chat</TooltipContent>
             </Tooltip>
-
-            <ModelSelector
-                selectedModelId={selectedModelId}
-                className="order-1 md:order-2"
-            />
             <ModeToggle/>
         </header>
     );
 }
 
-export const ChatHeader = memo(PureChatHeader, (prevProps, nextProps) => {
-    return prevProps.selectedModelId === nextProps.selectedModelId;
-});
+export const ChatHeader = memo(PureChatHeader);

@@ -143,7 +143,7 @@ export function ModelSelector({
                             {providers.map(p => (
                                 <DropdownMenuItem key={p.id} onSelect={() => handleSelectProvider(p.id)} asChild>
                                     <button type="button" className="flex flex-row justify-between w-full items-center">
-                                        <span className="flex items-center">
+                                        <span className="flex">
                                             <ProviderIcon type={p.type} theme={resolvedTheme}/>
                                             {p.nickName}
                                         </span>
@@ -267,7 +267,7 @@ export function ModelSelector({
     const selectedProvider = providers.find(p => p.id === selectedProviderId);
 
     return (
-        <div className={cn('flex items-center gap-2', className)}>
+        <div className={cn('flex gap-2', className)}>
             <DropdownMenu open={open} onOpenChange={setOpen}>
                 <DropdownMenuTrigger
                     asChild
