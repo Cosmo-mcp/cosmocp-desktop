@@ -274,9 +274,9 @@ function PureMultimodalInput({
                         placeholder="Send a message..."
                         value={input}
                         onChange={handleInput}
-                        minHeight={44}
-                        maxHeight={200}
-                        disableAutoResize={true}
+                        minheight={44}
+                        maxheight={200}
+                        disableautoresize={true}
                         className="grow resize-none border-0! p-2 border-none! bg-transparent text-sm outline-none ring-0 [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-scrollbar]:hidden"
                         rows={1}
                         autoFocus
