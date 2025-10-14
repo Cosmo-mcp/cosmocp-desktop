@@ -1,36 +1,55 @@
+
 import {ipcMain} from 'electron';
-import {ModelProviderService} from "../services/modelProviderService";
-import {ModelProviderCreate} from "../../renderer/src/common/models/modelProvider";
-import {inject, injectable} from "inversify";
-import {ChatAbortArgs, ChatHandler, ChatSendMessageArgs} from "./chat-handler";
+import {injectable, multiInject} from "inversify";
+import {
+    IPC_CONTROLLER_METADATA_KEY,
+    IPC_HANDLER_METADATA_KEY,
+} from "./decorators";
 import {TYPES} from "../types";
-import {CORETYPES} from "../../core/types/types";
-import {ChatController} from "../../core/controllers/ChatController";
+import {Controller} from "../../core/controllers/Controller";
 
 @injectable()
 export class IpcHandlerRegistry {
 
-    constructor(
-        @inject(TYPES.ModelProviderService) private readonly modelProviderService: ModelProviderService,
-        @inject(TYPES.ChatHandler) private readonly chatHandler: ChatHandler,
-        @inject(CORETYPES.ChatController) private readonly chatController: ChatController
-    ) {
+    constructor(@multiInject(TYPES.Controller) private readonly controllers: Controller[]) {
     }
 
     registerIpcHandlers(): void {
-        ipcMain.on('chat-send-messages', (event, args: ChatSendMessageArgs) => this.chatHandler.sendMessage(event, args));
-        ipcMain.on('chat-abort', (event, args: ChatAbortArgs) => this.chatHandler.abortMessage(event, args));
-        ipcMain.handle('add-model-provider', (_event, providerData: ModelProviderCreate) => this.modelProviderService.addProvider(providerData));
-        ipcMain.handle('get-model-providers', () => this.modelProviderService.getProviders());
-        ipcMain.handle('get-models-for-provider-id', (_event, providerId) => this.modelProviderService.getModels(providerId));
-        ipcMain.handle('save-chat', () => {
-            console.log("here I am")
-            this.chatController.createChat({
-                title: "New Chat" + new Date()
-            })
+        this.controllers.forEach(controller => {
+            const controllerPrefix = Reflect.getMetadata(IPC_CONTROLLER_METADATA_KEY, controller.constructor);
+            if (controllerPrefix === undefined) return;
+
+            // Register @IpcHandle decorators
+            const handleHandlers = Reflect.getMetadata(IPC_HANDLER_METADATA_KEY, controller.constructor);
+            if (handleHandlers) {
+                this.registerHandlers(controller, controllerPrefix, handleHandlers, (channel, listener) => ipcMain.handle(channel, listener));
+            }
+
+        /*    // Register @IpcOn decorators
+            const onHandlers = Reflect.getMetadata(IPC_ON_METADATA_KEY, controller.constructor);
+            if (onHandlers) {
+                this.registerHandlers(controller, controllerPrefix, onHandlers, (channel, listener) => ipcMain.on(channel, listener));
+            }*/
         });
-        ipcMain.handle("chat-history", () => {
-            return this.chatController.getAllChats();
-        })
+    }
+
+    private registerHandlers(
+        controller: any,
+        prefix: string,
+        handlers: { [methodName: string]: string },
+        registerFn: (channel: string, listener: (event: Electron.IpcMainEvent, ...args: any[]) => any) => void
+    ) {
+        for (const methodName in handlers) {
+            if (Object.prototype.hasOwnProperty.call(handlers, methodName)) {
+                const handlerName = handlers[methodName];
+                const channel = `${prefix}:${handlerName}`;
+
+                registerFn(channel, async (event, ...args) => {
+                    // eslint-disable-next-line @typescript-eslint/ban-types
+                    const method = controller[methodName] as Function;
+                    return method.apply(controller, [...args]);
+                });
+            }
+        }
     }
 }

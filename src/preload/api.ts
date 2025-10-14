@@ -3,6 +3,7 @@ import {UIMessageChunk} from "ai";
 import {ModelProvider, ModelProviderCreate, ModelProviderLite} from "../renderer/src/common/models/modelProvider";
 import {Model} from "../renderer/src/common/models/model";
 import {Chat} from "@database/schema";
+import {NewChat} from "../core/repositories/ChatRepository";
 
 export interface ChatAPI {
     sendChatMessages: (data: any) => void;
@@ -12,7 +13,7 @@ export interface ChatAPI {
     onceChatError: (channel: string, callback: (error: any) => void) => void;
     removeChatListener: (channel: string) => void;
     getChatHistory: () => Promise<Chat[]>;
-    saveChat: () => void;
+    saveChat: (chat: NewChat) => void;
 }
 
 export interface ModelProviderAPI {
@@ -42,10 +43,10 @@ export const chatAPI: ChatAPI = {
     },
 
     getChatHistory: () => {
-        return ipcRenderer.invoke('chat-history');
+        return ipcRenderer.invoke('chat:getAllChats');
     },
-    saveChat: () => {
-        ipcRenderer.invoke('save-chat');
+    saveChat: (chat: NewChat) => {
+        ipcRenderer.invoke('chat:createChat', chat);
     }
 };
 
