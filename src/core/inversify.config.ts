@@ -6,8 +6,6 @@ import {ChatRepository} from "./repositories/ChatRepository";
 import {MessageRepository} from "./repositories/MessageRepository";
 import {ChatService} from "./services/ChatService";
 import {MessageService} from "./services/MessageService";
-import {ChatController} from "./controllers/ChatController";
-import {MessageController} from "./controllers/MessageController";
 
 const coreContainer = new Container();
 
@@ -21,9 +19,5 @@ coreContainer.bind<MessageRepository>(CORETYPES.MessageRepository).to(MessageRep
 // Services
 coreContainer.bind<ChatService>(CORETYPES.ChatService).to(ChatService).inSingletonScope();
 coreContainer.bind<MessageService>(CORETYPES.MessageService).to(MessageService).inSingletonScope();
-
-// Controllers
-coreContainer.bind<ChatController>(CORETYPES.ChatController).to(ChatController).inSingletonScope();
-coreContainer.bind<MessageController>(CORETYPES.MessageController).to(MessageController).inSingletonScope();
 
 export {coreContainer};

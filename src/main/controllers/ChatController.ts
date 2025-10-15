@@ -1,14 +1,13 @@
-
 import {inject, injectable} from "inversify";
-import {CORETYPES} from "../types/types";
-import {ChatService} from "../services/ChatService";
-import {NewChat} from "../repositories/ChatRepository";
-import {IpcController, IpcHandler} from "../../main/ipc/decorators";
+import {CORETYPES} from "../../core/types/types";
+import {ChatService} from "../../core/services/ChatService";
+import {NewChat} from "../../core/repositories/ChatRepository";
+import {IpcController, IpcHandler} from "../ipc/Decorators";
 import {Controller} from "./Controller";
 
 @injectable()
 @IpcController("chat")
-export class ChatController implements Controller{
+export class ChatController implements Controller {
     constructor(@inject(CORETYPES.ChatService) private chatService: ChatService) {
     }
 

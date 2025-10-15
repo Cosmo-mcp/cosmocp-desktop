@@ -4,8 +4,7 @@ import {config} from 'dotenv';
 import {ChatMessage} from "../../renderer/src/lib/types";
 import {IpcMainEvent, WebContents} from "electron";
 import {injectable} from "inversify";
-
-config();
+import {IpcOn} from "../ipc/Decorators";
 
 export interface ChatSendMessageArgs {
     chatId: string;
@@ -18,12 +17,13 @@ export interface ChatAbortArgs {
 }
 
 @injectable()
-export class ChatHandler {
+export class StreamingChatController {
     private readonly activeStreams = new Map<string, AbortController>();
     private readonly google: GoogleGenerativeAIProvider | null = null;
     private readonly modelName = 'gemini-2.0-flash-lite';
 
     constructor() {
+        config();
         const geminiApiKey = process.env['GEMINI_API_KEY'];
         if (!geminiApiKey) {
             console.error("GEMINI_API_KEY is not set in the environment variables. Chat functionality will be disabled.");
@@ -32,7 +32,8 @@ export class ChatHandler {
         }
     }
 
-    public async sendMessage(event: IpcMainEvent, args: ChatSendMessageArgs) {
+    @IpcOn("sendMessage")
+    public async sendMessage(args: ChatSendMessageArgs, event: IpcMainEvent) {
         if (!this.google) {
             console.error("Google AI client is not initialized. Cannot send message.");
             return;
@@ -85,7 +86,8 @@ export class ChatHandler {
         }
     }
 
-    public abortMessage(_event: IpcMainEvent, args: ChatAbortArgs) {
+    @IpcOn("abortMessage")
+    public abortMessage(args: ChatAbortArgs) {
         const controller = this.activeStreams.get(args.streamChannel);
         if (controller) {
             controller.abort();

@@ -1,3 +1,4 @@
+
 import {app, safeStorage} from 'electron';
 import fs from 'fs/promises';
 import path from 'path';
@@ -9,6 +10,7 @@ import {
 } from '../../renderer/src/common/models/modelProvider';
 import {Model} from "../../renderer/src/common/models/model";
 import {injectable} from "inversify";
+import {IpcController, IpcHandler} from "../ipc/Decorators";
 
 const providersFilePath = path.join(app.getPath('appData'), 'providers.json');
 
@@ -29,7 +31,8 @@ const decryptApiKey = (encryptedKey: string): string => {
 };
 
 @injectable()
-export class ModelProviderService {
+@IpcController("modelProvider")
+export class ModelProviderController {
     private providers = new Map<string, ModelProvider>();
 
     constructor() {
@@ -81,6 +84,7 @@ export class ModelProviderService {
         );
     }
 
+    @IpcHandler("addProvider")
     public async addProvider(providerData: ModelProviderCreate): Promise<ModelProvider> {
         const parsed = ModelProviderCreateSchema.parse(providerData);
         if (this.isDuplicate(providerData)) {
@@ -106,15 +110,18 @@ export class ModelProviderService {
         return newProvider;
     }
 
+    @IpcHandler("getProviderForId")
     public getProviderForId(providerId: string): ModelProvider | undefined {
         return this.providers.get(providerId);
     }
 
+    @IpcHandler("getProviders")
     public getProviders(): ModelProviderLite[] {
         // Only return safe, non-sensitive data to the renderer.
         return Array.from(this.providers.values()).map(({ apiKey, ...rest }) => rest);
     }
 
+    @IpcHandler("getModels")
     public async getModels(providerId: string): Promise<Model[]> {
         const provider = this.providers.get(providerId);
         if (!provider) {
@@ -149,6 +156,7 @@ export class ModelProviderService {
         await this.saveProviders();
     }
 
+    @IpcHandler("deleteProvider")
     public async deleteProvider(providerId: string): Promise<void> {
         const provider = this.providers.get(providerId);
         if (!provider) {
