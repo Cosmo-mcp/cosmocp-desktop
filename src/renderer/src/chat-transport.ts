@@ -29,14 +29,14 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
                 }
 
                 const cleanup = () => {
-                    window.chatAPI.removeChatListener(`${streamChannel}-data`);
-                    window.chatAPI.removeChatListener(`${streamChannel}-end`);
-                    window.chatAPI.removeChatListener(`${streamChannel}-error`);
+                    //window.chatAPI.removeChatListener(`${streamChannel}-data`);
+                    //window.chatAPI.removeChatListener(`${streamChannel}-end`);
+                    //window.chatAPI.removeChatListener(`${streamChannel}-error`);
                 };
 
-                window.chatAPI.onChatData(`${streamChannel}-data`, onData);
-                window.chatAPI.onceChatEnd(`${streamChannel}-end`, onEnd);
-                window.chatAPI.onceChatError(`${streamChannel}-error`, onError);
+                window.api.streaming.onData(`${streamChannel}-data`, onData);
+                window.api.streaming.onEnd(`${streamChannel}-end`, onEnd);
+                window.api.streaming.onError(`${streamChannel}-error`, onError);
 
             }
         });
