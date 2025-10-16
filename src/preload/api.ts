@@ -1,63 +1,76 @@
-import {ipcRenderer} from 'electron';
-import {UIMessageChunk} from "ai";
-import {ModelProvider, ModelProviderCreate, ModelProviderLite} from "../renderer/src/common/models/modelProvider";
-import {Model} from "../renderer/src/common/models/model";
-import {Chat} from "@database/schema";
-import {NewChat} from "../core/repositories/ChatRepository";
+import { ipcRenderer } from 'electron';
+import {
+    NewChat,
+    ModelProvider,
+    ModelProviderCreate,
+    ModelProviderLite,
+    ChatAbortArgs,
+    ChatSendMessageArgs,
+    Model,
+    Chat
+} from '../../src/core/dto';
 
-export interface ChatAPI {
-    sendChatMessages: (data: any) => void;
-    abortChat: (data: any) => void;
-    onChatData: (channel: string, callback: (chunk: UIMessageChunk) => void) => void;
-    onceChatEnd: (channel: string, callback: () => void) => void;
-    onceChatError: (channel: string, callback: (error: any) => void) => void;
-    removeChatListener: (channel: string) => void;
-    getChatHistory: () => Promise<Chat[]>;
-    saveChat: (chat: NewChat) => void;
+export interface ChatApi {
+    getAllChats(): Promise<Chat[]>;
+    getChatById(id: string): Promise<Chat | undefined>;
+    createChat(newChat: NewChat): Promise<Chat>;
+    updateChat(id: string, updates: Partial<NewChat>): Promise<Chat>;
+    deleteChat(id: string): Promise<void>;
 }
 
-export interface ModelProviderAPI {
-    addProvider: (providerData: ModelProviderCreate) => Promise<ModelProvider>;
-    getProviders: () => Promise<ModelProviderLite[]>;
-    getModels: (providerId: string) => Promise<Model[]>;
+export interface ModelProviderApi {
+    addProvider(providerData: ModelProviderCreate): Promise<ModelProvider>;
+    getProviderForId(providerId: string): Promise<ModelProvider | undefined>;
+    getProviders(): Promise<ModelProviderLite[]>;
+    getModels(providerId: string): Promise<Model[]>;
+    deleteProvider(providerId: string): Promise<void>;
 }
 
-export const chatAPI: ChatAPI = {
-    sendChatMessages: (data) => {
-        ipcRenderer.send('chat-send-messages', data)
-    },
-    abortChat: (data) => {
-        ipcRenderer.send('chat-abort', data)
-    },
-    onChatData: (channel, callback) => {
-        ipcRenderer.on(channel, (_e, chunk) => callback(chunk))
-    },
-    onceChatEnd: (channel, callback) => {
-        ipcRenderer.once(channel, () => callback())
-    },
-    onceChatError: (channel, callback) => {
-        ipcRenderer.once(channel, (_e, error) => callback(error))
-    },
-    removeChatListener: (channel) => {
-        ipcRenderer.removeAllListeners(channel)
-    },
+export interface StreamingApi {
+    sendMessage(args: ChatSendMessageArgs): void;
+    abortMessage(args: ChatAbortArgs): void;
+    onData: (channel: string, listener: (data: any) => void) => () => void;
+    onEnd: (channel: string, listener: () => void) => () => void;
+    onError: (channel: string, listener: (error: any) => void) => () => void;
+}
 
-    getChatHistory: () => {
-        return ipcRenderer.invoke('chat:getAllChats');
-    },
-    saveChat: (chat: NewChat) => {
-        ipcRenderer.invoke('chat:createChat', chat);
-    }
-};
+export interface Api {
+  chat: ChatApi;
+  modelProvider: ModelProviderApi;
+  streaming: StreamingApi;
+}
 
-export const modelProviderAPI: ModelProviderAPI = {
-    addProvider(providerData: ModelProviderCreate): Promise<ModelProvider> {
-        return ipcRenderer.invoke('add-model-provider', providerData)
+export const api: Api = {
+  chat: {
+    getAllChats: () => ipcRenderer.invoke('chat:getAllChats'),
+    getChatById: (id: string) => ipcRenderer.invoke('chat:getChatById', id),
+    createChat: (newChat: NewChat) => ipcRenderer.invoke('chat:createChat', newChat),
+    updateChat: (id: string, updates: Partial<NewChat>) => ipcRenderer.invoke('chat:updateChat', id, updates),
+    deleteChat: (id: string) => ipcRenderer.invoke('chat:deleteChat', id)
+  },
+  modelProvider: {
+    addProvider: (providerData: ModelProviderCreate) => ipcRenderer.invoke('modelProvider:addProvider', providerData),
+    getProviderForId: (providerId: string) => ipcRenderer.invoke('modelProvider:getProviderForId', providerId),
+    getProviders: () => ipcRenderer.invoke('modelProvider:getProviders'),
+    getModels: (providerId: string) => ipcRenderer.invoke('modelProvider:getModels', providerId),
+    deleteProvider: (providerId: string) => ipcRenderer.invoke('modelProvider:deleteProvider', providerId)
+  },
+  streaming: {
+    sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('sendMessage', args),
+    abortMessage: (args: ChatAbortArgs) => ipcRenderer.send('abortMessage', args),
+    onData: (channel: string, listener: (data: any) => void) => {
+      const subscription = (_event: any, data: any) => listener(data);
+      ipcRenderer.on(`${channel}-data`, subscription);
+      return () => ipcRenderer.removeListener(`${channel}-data`, subscription);
     },
-    getProviders(): Promise<Omit<ModelProvider, "apiKey">[]> {
-        return ipcRenderer.invoke('get-model-providers')
+    onEnd: (channel: string, listener: () => void) => {
+      ipcRenderer.on(`${channel}-end`, listener);
+      return () => ipcRenderer.removeAllListeners(`${channel}-end`);
     },
-    getModels: (providerId: string) => {
-        return ipcRenderer.invoke('get-models-for-provider-id', providerId)
+    onError: (channel: string, listener: (error: any) => void) => {
+      const subscription = (_event: any, error: any) => listener(error);
+      ipcRenderer.on(`${channel}-error`, subscription);
+      return () => ipcRenderer.removeListener(`${channel}-error`, subscription);
     },
+  },
 };

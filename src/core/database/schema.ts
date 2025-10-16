@@ -1,4 +1,3 @@
-import type {InferSelectModel} from "drizzle-orm";
 import {pgTable, text, timestamp, uuid,} from "drizzle-orm/pg-core";
 
 export const chat = pgTable("Chat", {
@@ -6,7 +5,6 @@ export const chat = pgTable("Chat", {
     createdAt: timestamp("createdAt").notNull(),
     title: text("title").notNull(),
 });
-export type Chat = InferSelectModel<typeof chat>;
 
 export const message = pgTable("Message", {
     id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -16,5 +14,3 @@ export const message = pgTable("Message", {
     text: text("title").notNull(),
     createdAt: timestamp("createdAt").notNull(),
 });
-
-export type Message = InferSelectModel<typeof message>;

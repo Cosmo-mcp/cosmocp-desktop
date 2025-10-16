@@ -5,6 +5,7 @@
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
   "scripts": {
+    "generate:api": "ts-node scripts/generate-api.ts",
     "start": "NODE_ENV=development electron-forge start",
     "package": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge package",
     "make": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge make",

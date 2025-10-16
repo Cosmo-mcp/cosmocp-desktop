@@ -1,16 +1,16 @@
 'use client'
 import {Table, TableBody, TableCaption, TableCell, TableRow} from "@/components/ui/table";
 import {Button} from "@/components/ui/button";
-import {Chat} from "../../../core/database/schema";
 import {useEffect, useState} from "react";
+import {Chat} from "../../../core/dto";
 
 export function ChatHistory() {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
     const startNewChat = () => {
-        window.chatAPI.saveChat({title: "New Chat_" + new Date()});
+        window.api.chat.createChat({title: "New Chat_" + new Date()});
     };
     useEffect(() => {
-        window.chatAPI.getChatHistory()
+        window.api.chat.getAllChats()
             .then((chats) => setChatHistory(chats))
             .catch((error) => console.log(error));
     }, []);

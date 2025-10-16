@@ -12,7 +12,7 @@ import {Model} from "../../renderer/src/common/models/model";
 import {injectable} from "inversify";
 import {IpcController, IpcHandler} from "../ipc/Decorators";
 
-const providersFilePath = path.join(app.getPath('appData'), 'providers.json');
+const providersFilePath = path.join(__dirname, 'providers.json');
 
 const encryptApiKey = (apiKey: string): string => {
     if (!safeStorage.isEncryptionAvailable()) {
