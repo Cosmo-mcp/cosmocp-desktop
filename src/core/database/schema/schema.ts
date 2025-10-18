@@ -1,11 +1,10 @@
-import * as modelProvider from './modelProviderSchema';
-import * as chat from './chatSchema';
-import * as message from './messageSchema';
+import { modelProvider, providerTypeEnum } from './modelProviderSchemaNew';
+import { chat } from './chatSchema';
+import { message } from './messageSchema';
 
-// Re-export all schemas merged into a single object
 export const schema = {
-    ...modelProvider,
-    ...chat,
-    ...message,
-    // Add any other table schema exports here
+    modelProvider,
+    providerTypeEnum, // IMPORTANT: Must also export enums!
+    chat,
+    message,
 };

@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {ModelProviderService} from "../services/modelProviderService";
+import {ModelProviderService} from "../../core/services/ModelProviderService";
 import {ModelProviderCreate} from "../../renderer/src/common/models/modelProvider";
 import {inject, injectable} from "inversify";
 import {ChatAbortArgs, ChatHandler, ChatSendMessageArgs} from "./chat-handler";

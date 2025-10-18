@@ -1,23 +1,17 @@
 import {inject, injectable} from "inversify";
 import {
     ModelProvider,
-    modelProvider,
     ModelProviderInsert,
-    ModelProviderCreateInput,
-    ModelProviderSelect
+    ModelProviderCreateInput
 } from "@database/schema/modelProviderSchema"; // Use Drizzle-derived types
 import {eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {safeStorage} from 'electron';
+import {DatabaseManager} from "@database/DatabaseManager";
+import {modelProvider} from "@database/schema/schemaNew";
 
-// --- Placeholder/Mock Dependencies ---
-interface DatabaseManager {
-    getDrizzle: () => Drizzle;
-}
-type Drizzle = any; // Placeholder for your Drizzle client instance
-// ------------------------------------
 
-// --- safeStorage Utilities (Scoped to Repository) ---
+// TODO(shashank): remove these duplicate methods by moving them to a separate util file
 const encryptApiKey = (apiKey: string): string => {
     if (!safeStorage.isEncryptionAvailable()) {
         throw new Error('Encryption is not available.');
@@ -33,21 +27,18 @@ const decryptApiKey = (encryptedKey: string): string => {
     const buffer = Buffer.from(encryptedKey, 'base64');
     return safeStorage.decryptString(buffer);
 };
-// ---------------------------------------------------
 
 
 @injectable()
 export class ModelProviderRepository {
-    private db: Drizzle;
+    private db;
 
-    constructor(
-        @inject(CORETYPES.DatabaseManager) dbManager: DatabaseManager
-    ) {
-        this.db = dbManager.getDrizzle();
+    constructor(@inject(CORETYPES.DatabaseManager) databaseManager: DatabaseManager) {
+        this.db = databaseManager.getInstance();
     }
 
     /** Maps a DB record (encrypted key) to the application model (decrypted key). */
-    private mapToModelProvider(dbRecord: ModelProviderSelect): ModelProvider {
+    private mapToModelProvider(dbRecord: ModelProvider): ModelProvider {
         // Note: You must handle the timestamp conversion here if needed,
         // as we dropped Zod's automatic date coercion.
         return {

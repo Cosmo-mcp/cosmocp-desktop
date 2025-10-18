@@ -17,6 +17,30 @@ export class ModelProviderService {
         @inject(CORETYPES.ModelProviderRepository) repository: ModelProviderRepository
     ) {
         this.repository = repository;
+
+        (async () => {
+            try {
+                const providers = await this.repository.findAll();
+                if (providers.length === 0) {
+                    await this.createMockProvider();
+                    console.log("Mock provider created.");
+                }
+            } catch (error) {
+                // Log any errors that occur during initial check or mock creation
+                console.error("Error during initial provider check:", error);
+            }
+        })();
+    }
+
+    private async createMockProvider(): Promise<void> {
+        const mockProviderInput: ModelProviderCreateInput = {
+            nickName: "Mock Model Provider",
+            apiKey: 'mock-model-provider-key',
+            type: ModelProviderTypeEnum.CUSTOM,
+            apiUrl: 'http://localhost:8080/api/v1/chat/completions',
+        };
+
+        await this.addProvider(mockProviderInput);
     }
 
     private async isDuplicate(provider: ModelProviderCreateInput): Promise<boolean> {

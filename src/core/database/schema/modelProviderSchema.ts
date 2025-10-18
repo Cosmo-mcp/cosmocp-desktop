@@ -1,5 +1,5 @@
-import {pgTable, text, timestamp, uuid, pgEnum} from "drizzle-orm/pg-core";
-import {InferSelectModel, InferInsertModel} from "drizzle-orm";
+import {InferInsertModel, InferSelectModel} from "drizzle-orm";
+import {modelProvider} from "@database/schema/schemaNew";
 
 // --- ENUM and Base Fields ---
 export const ModelProviderTypeEnum = {
@@ -16,33 +16,6 @@ export const PredefinedProviders = [
 ] as const;
 
 export const CustomProvider = ModelProviderTypeEnum.CUSTOM;
-
-// Define the ModelProviderType enum for PostgreSQL
-export const providerTypeEnum = pgEnum('provider_type', [
-    ModelProviderTypeEnum.OPENAI,
-    ModelProviderTypeEnum.ANTHROPIC,
-    ModelProviderTypeEnum.GOOGLE,
-    ModelProviderTypeEnum.CUSTOM,
-]);
-
-// --- Drizzle Table Definition ---
-export const modelProvider = pgTable("ModelProvider", {
-    // Service-set fields
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-    createdAt: timestamp("createdAt").notNull().defaultNow(),
-    updatedAt: timestamp("updatedAt"),
-
-    // Discriminator
-    type: providerTypeEnum("type").notNull(),
-
-    // User-editable fields
-    nickName: text("nickName"),
-    // API Key will be stored *encrypted*
-    apiKey: text("apiKey").notNull(),
-
-    // Optional for Predefined, required for Custom in Zod logic (now just nullable text)
-    apiUrl: text("apiUrl"),
-});
 
 // --- Drizzle Types ---
 // The full model, retrieved from the database with a decrypted apiKey.

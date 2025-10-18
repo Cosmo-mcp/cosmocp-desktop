@@ -7,7 +7,7 @@ const CORETYPES = {
     // services
     ChatService: Symbol.for("ChatService"),
     MessageService: Symbol.for("MessageService"),
-    ModelProvider: Symbol.for("ModelProviderService"),
+    ModelProviderService: Symbol.for("ModelProviderService"),
     // controllers
     ChatController: Symbol.for("ChatController"),
     MessageController: Symbol.for("MessageController"),
