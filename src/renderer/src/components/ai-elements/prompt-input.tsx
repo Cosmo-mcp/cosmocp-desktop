@@ -454,9 +454,9 @@ export const PromptInputBody = ({
 );
 
 export type PromptInputTextareaProps = ComponentProps<typeof Textarea> & {
-    minHeight?: number;
-    maxHeight?: number;
-    disableAutoResize?: boolean;
+    minheight?: number;
+    maxheight?: number;
+    disableautoresize?: boolean;
     resizeOnNewLinesOnly?: boolean;
 };
 
