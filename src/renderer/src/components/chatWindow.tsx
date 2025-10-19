@@ -7,7 +7,7 @@ import {IpcChatTransport} from "@/chat-transport";
 import {MultimodalInput} from "@/components/multimodal-input";
 import {useEffect, useState} from "react";
 
-export function Chat({
+export function ChatWindow({
                          id,
                          initialMessages,
                          initialChatModel,

@@ -1,22 +1,28 @@
 'use client'
 import {JSX, useState} from "react";
 import {ChatHistory} from "@/components/chat-history";
-import {Chat} from "@/components/chat";
+import {ChatWindow} from "@/components/chatWindow";
+import {Chat} from "../../../core/dto";
 
 export default function Page(): JSX.Element {
-    const [selectedChatId, setSelectedChatId] = useState<string | undefined>(undefined);
+    const [selectedChat, setSelectedChat] = useState<Chat | undefined>(undefined);
     return (
         <>
-            <ChatHistory></ChatHistory>
+            <ChatHistory
+                onChangeSelectedChat={(chat) => {
+                    setSelectedChat(chat)
+                }}
+            ></ChatHistory>
             {
-                selectedChatId !== undefined ? (
-                    <Chat
-                        id={selectedChatId as string}
+                selectedChat !== undefined ? (
+                    <ChatWindow
+                        id={selectedChat.id}
                         initialMessages={[]}
                         initialChatModel=''
                     />) : (
                     <div>No chat selected</div>
-                )}
+                )
+            }
         </>
     );
 }
