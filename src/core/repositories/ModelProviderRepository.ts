@@ -8,7 +8,7 @@ import {eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {safeStorage} from 'electron';
 import {DatabaseManager} from "@database/DatabaseManager";
-import {modelProvider} from "@database/schema/schemaNew";
+import {modelProvider} from "@database/schema/schema";
 
 
 // TODO(shashank): remove these duplicate methods by moving them to a separate util file

@@ -1,5 +1,5 @@
 import {InferInsertModel, InferSelectModel} from "drizzle-orm";
-import {modelProvider} from "@database/schema/schemaNew";
+import {modelProvider} from "@database/schema/schema";
 
 // --- ENUM and Base Fields ---
 export const ModelProviderTypeEnum = {
