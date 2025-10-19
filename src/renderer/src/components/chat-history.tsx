@@ -4,7 +4,7 @@ import {Button} from "@/components/ui/button";
 import {useEffect, useState} from "react";
 import {Chat} from "../../../core/dto";
 
-export function ChatHistory() {
+export function     ChatHistory() {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
     const startNewChat = () => {
         window.api.chat.createChat({title: "New Chat_" + new Date()});

@@ -1,6 +1,5 @@
 'use client';
 
-import {ChatHeader} from '@/components/chat-header';
 import type {Attachment, ChatMessage} from '@/lib/types';
 import {Messages} from "@/components/messages";
 import {useChat} from "@ai-sdk/react";
@@ -59,10 +58,6 @@ export function Chat({
     return (
         <>
             <div className="flex flex-col min-w-0 h-dvh bg-background">
-                <ChatHeader
-                    chatId={id}
-                    selectedModelId={initialChatModel}
-                />
                 <Messages
                     chatId={id}
                     status={status}
@@ -77,7 +72,8 @@ export function Chat({
                     selectedModelId={initialChatModel}
                 />
 
-                <div className="sticky bottom-0 flex gap-2 px-4 pb-4 mx-auto w-full bg-background md:pb-6 md:max-w-3xl z-[1] border-t-0">
+                <div
+                    className="sticky bottom-0 flex gap-2 px-4 pb-4 mx-auto w-full bg-background md:pb-6 md:max-w-3xl z-[1] border-t-0">
                     <MultimodalInput
                         chatId={id}
                         input={input}
