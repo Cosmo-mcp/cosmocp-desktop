@@ -1,8 +1,7 @@
 import {ipcRenderer} from 'electron';
 import {UIMessageChunk} from "ai";
 import {ModelProvider, ModelProviderCreate, ModelProviderLite} from "../renderer/src/common/models/modelProvider";
-import {Model} from "../renderer/src/common/models/model";
-import {NewChat} from "../core/repositories/ChatRepository";
+import {Model} from "@database/schema/modelProviderSchema";
 
 export interface ChatAPI {
     sendChatMessages: (data: any) => void;
