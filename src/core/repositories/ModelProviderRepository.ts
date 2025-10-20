@@ -1,5 +1,6 @@
 import {inject, injectable} from "inversify";
 import {
+    modelProvider,
     ModelProvider,
     ModelProviderInsert,
     ModelProviderCreateInput
@@ -8,25 +9,6 @@ import {eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {safeStorage} from 'electron';
 import {DatabaseManager} from "@database/DatabaseManager";
-import {modelProvider} from "@database/schema/schema";
-
-
-// TODO(shashank): remove these duplicate methods by moving them to a separate util file
-const encryptApiKey = (apiKey: string): string => {
-    if (!safeStorage.isEncryptionAvailable()) {
-        throw new Error('Encryption is not available.');
-    }
-    const buffer = safeStorage.encryptString(apiKey);
-    return buffer.toString('base64');
-};
-
-const decryptApiKey = (encryptedKey: string): string => {
-    if (!safeStorage.isEncryptionAvailable()) {
-        throw new Error('Encryption is not available.');
-    }
-    const buffer = Buffer.from(encryptedKey, 'base64');
-    return safeStorage.decryptString(buffer);
-};
 
 
 @injectable()
@@ -37,17 +19,33 @@ export class ModelProviderRepository {
         this.db = databaseManager.getInstance();
     }
 
+    private encryptApiKey = (apiKey: string): string => {
+        if (!safeStorage.isEncryptionAvailable()) {
+            throw new Error('Encryption is not available.');
+        }
+        const buffer = safeStorage.encryptString(apiKey);
+        return buffer.toString('base64');
+    };
+
+    private decryptApiKey = (encryptedKey: string): string => {
+        if (!safeStorage.isEncryptionAvailable()) {
+            throw new Error('Encryption is not available.');
+        }
+        const buffer = Buffer.from(encryptedKey, 'base64');
+        return safeStorage.decryptString(buffer);
+    };
+
     /** Maps a DB record (encrypted key) to the application model (decrypted key). */
-    private mapToModelProvider(dbRecord: ModelProvider): ModelProvider {
+    private mapToModelProvider = (dbRecord: ModelProvider): ModelProvider => {
         // Note: You must handle the timestamp conversion here if needed,
         // as we dropped Zod's automatic date coercion.
         return {
             ...dbRecord,
-            apiKey: decryptApiKey(dbRecord.apiKey),
+            apiKey: this.decryptApiKey(dbRecord.apiKey),
             createdAt: new Date(dbRecord.createdAt),
             updatedAt: dbRecord.updatedAt ? new Date(dbRecord.updatedAt) : undefined,
         } as ModelProvider;
-    }
+    };
 
     public async findAll(): Promise<ModelProvider[]> {
         const providers = await this.db.select().from(modelProvider);
@@ -68,7 +66,7 @@ export class ModelProviderRepository {
         // Encrypt the key before hitting the database
         const encryptedData: ModelProviderInsert = {
             ...data,
-            apiKey: encryptApiKey(data.apiKey),
+            apiKey: this.encryptApiKey(data.apiKey),
         };
 
         const [newProvider] = await this.db.insert(modelProvider)
