@@ -1,7 +1,7 @@
-import { migrate } from "drizzle-orm/pglite/migrator";
+import {migrate} from "drizzle-orm/pglite/migrator";
 import path from "path";
-import { PgliteDatabase } from "drizzle-orm/pglite";
-import * as schema from './schema';
+import {PgliteDatabase} from "drizzle-orm/pglite";
+import * as schema from './schema/schema';
 
 /**
  * Executes pending database migrations against the initialized PGlite client.
@@ -14,7 +14,7 @@ export async function runMigrations(db: PgliteDatabase<typeof schema>) {
         const start = Date.now();
         // This assumes your migrations folder is in the same directory as your compiled migrator.js
         const migrationDir = path.resolve(__dirname, "./migrations");
-        await migrate(db, { migrationsFolder: migrationDir });
+        await migrate(db, {migrationsFolder: migrationDir});
 
         const end = Date.now();
         console.log(`Migrations checked/applied successfully in ${end - start} ms.`);

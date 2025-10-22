@@ -13,4 +13,4 @@ const CORETYPES = {
     MessageController: Symbol.for("MessageController"),
 };
 
-export { CORETYPES };
+export {CORETYPES};
