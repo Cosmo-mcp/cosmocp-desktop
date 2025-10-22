@@ -1,7 +1,7 @@
 import {injectable} from 'inversify';
 import {IpcController, IpcHandler} from '../ipc/Decorators';
 import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite,} from '../../core/dto';
-import {inject} from 'inversify/lib/esm';
+import {inject} from 'inversify';
 import {CORETYPES} from '../../core/types/types';
 import {ModelProviderService} from '../../core/services/ModelProviderService';
 
