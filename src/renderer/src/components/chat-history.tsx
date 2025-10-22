@@ -24,13 +24,13 @@ export function ChatHistory({
     }, [updateCounter]);
 
     return (
-        <div className="flex flex-col h-full w-30 border-r">
-            <ScrollArea className="h-72 w-48 rounded-md border">
+        <div className="flex flex-col h-full">
+            <ScrollArea className="flex-grow w-full">
                 <div className="p-4">
                     <h4 className="mb-4 text-sm leading-none font-medium">Chat History</h4>
                     {chatHistory.map((chat) => (
                         <Fragment key={chat.id}>
-                            <div className="text-sm"
+                            <div className="text-sm text-ellipsis"
                                  onClick={() => onChangeSelectedChat(chat)}>{chat.title}</div>
                             <Separator className="my-2"/>
                         </Fragment>
