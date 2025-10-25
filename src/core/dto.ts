@@ -1,5 +1,6 @@
 import {InferInsertModel, InferSelectModel} from "drizzle-orm";
 import {chat, message, modelProvider} from "@database/schema/schema";
+import {ChatMessage} from "../renderer/src/lib/types";
 
 //full entity based dto
 export type Message = InferSelectModel<typeof message>;
@@ -25,4 +26,14 @@ export interface Model {
     id: string;
     name: string;
     description: string;
+}
+
+export interface ChatSendMessageArgs {
+    chatId: string;
+    messages: ChatMessage[];
+    streamChannel: string;
+}
+
+export interface ChatAbortArgs {
+    streamChannel: string;
 }

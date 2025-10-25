@@ -5,6 +5,7 @@ import {TYPES} from "./types";
 import {ChatController} from "./controllers/ChatController";
 import {ModelProviderController} from "./controllers/ModelProviderController";
 import {Controller} from "./controllers/Controller";
+import {StreamingChatController} from "./controllers/StreamingChatController";
 
 const container = new Container({parent: coreContainer});
 
@@ -13,5 +14,6 @@ container.bind<IpcHandlerRegistry>(TYPES.IpcHandlerRegistry).to(IpcHandlerRegist
 // Bind controllers
 container.bind<Controller>(TYPES.Controller).to(ChatController).inSingletonScope();
 container.bind<Controller>(TYPES.Controller).to(ModelProviderController).inSingletonScope();
+container.bind<Controller>(TYPES.Controller).to(StreamingChatController).inSingletonScope();
 
 export default container;

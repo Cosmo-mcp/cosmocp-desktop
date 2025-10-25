@@ -5,10 +5,10 @@ import {
     ChatSendMessageArgs,
     Model,
     ModelProvider,
-    ModelProviderCreate,
+    ModelProviderCreateInput,
     ModelProviderLite,
     NewChat
-} from '../../src/core/dto';
+} from '../core/dto';
 
 export interface ChatApi {
     getAllChats(): Promise<Chat[]>;
@@ -23,7 +23,7 @@ export interface ChatApi {
 }
 
 export interface ModelProviderApi {
-    addProvider(providerData: ModelProviderCreate): Promise<ModelProvider>;
+    addProvider(providerData: ModelProviderCreateInput): Promise<ModelProvider>;
 
     getProviderForId(providerId: string): Promise<ModelProvider | undefined>;
 
@@ -59,7 +59,7 @@ export const api: Api = {
         deleteChat: (id: string) => ipcRenderer.invoke('chat:deleteChat', id)
     },
     modelProvider: {
-        addProvider: (providerData: ModelProviderCreate) => ipcRenderer.invoke('modelProvider:addProvider', providerData),
+        addProvider: (providerData: ModelProviderCreateInput) => ipcRenderer.invoke('modelProvider:addProvider', providerData),
         getProviderForId: (providerId: string) => ipcRenderer.invoke('modelProvider:getProviderForId', providerId),
         getProviders: () => ipcRenderer.invoke('modelProvider:getProviders'),
         getModels: (providerId: string) => ipcRenderer.invoke('modelProvider:getModels', providerId),

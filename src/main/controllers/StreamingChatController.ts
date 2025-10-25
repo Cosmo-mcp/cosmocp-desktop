@@ -1,22 +1,13 @@
 import {convertToModelMessages, ModelMessage, smoothStream, streamText} from 'ai';
 import {createGoogleGenerativeAI, GoogleGenerativeAIProvider} from '@ai-sdk/google';
 import {config} from 'dotenv';
-import {ChatMessage} from "../../renderer/src/lib/types";
 import {IpcMainEvent, WebContents} from "electron";
 import {injectable} from "inversify";
-import {IpcOn} from "../ipc/Decorators";
-
-export interface ChatSendMessageArgs {
-    chatId: string;
-    messages: ChatMessage[];
-    streamChannel: string;
-}
-
-export interface ChatAbortArgs {
-    streamChannel: string;
-}
+import {IpcController, IpcOn} from "../ipc/Decorators";
+import {ChatAbortArgs, ChatSendMessageArgs} from "../../core/dto";
 
 @injectable()
+@IpcController("streamingChat")
 export class StreamingChatController {
     private readonly activeStreams = new Map<string, AbortController>();
     private readonly google: GoogleGenerativeAIProvider | null = null;
