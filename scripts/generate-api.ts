@@ -88,9 +88,10 @@ for (const controller of controllers) {
     const onMetadata = Reflect.getMetadata(IPC_ON_METADATA_KEY, controller) || {};
     for (const methodName in onMetadata) {
         const handlerName = onMetadata[methodName];
+        const channel = controllerPrefix !== undefined ? `${controllerPrefix}:${handlerName}` : handlerName;
         const { params, args } = getMethodSignature(controllerContent, methodName);
         const methodArgs = args ? `, ${args}` : '';
-        onHandlers.push(`    ${methodName}: (${params}) => ipcRenderer.send('${handlerName}'${methodArgs})`);
+        onHandlers.push(`    ${methodName}: (${params}) => ipcRenderer.send('${channel}'${methodArgs})`);
         onHandlerInterfaceMembers.push(`    ${methodName}(${params}): void;`);
     }
 }
