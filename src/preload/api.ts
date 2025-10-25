@@ -39,7 +39,7 @@ export interface StreamingApi {
 
     abortMessage(args: ChatAbortArgs): void;
 
-    onData: (channel: string, listener: (data: any) => void) => () => void;
+    onData: (channel: string, listener: (data: any) => void) => void;
     onEnd: (channel: string, listener: () => void) => () => void;
     onError: (channel: string, listener: (error: any) => void) => () => void;
 }
@@ -69,9 +69,7 @@ export const api: Api = {
         sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('sendMessage', args),
         abortMessage: (args: ChatAbortArgs) => ipcRenderer.send('abortMessage', args),
         onData: (channel: string, listener: (data: any) => void) => {
-            const subscription = (_event: any, data: any) => listener(data);
-            ipcRenderer.on(`${channel}-data`, subscription);
-            return () => ipcRenderer.removeListener(`${channel}-data`, subscription);
+            ipcRenderer.on(`${channel}-data`, listener);
         },
         onEnd: (channel: string, listener: () => void) => {
             ipcRenderer.on(`${channel}-end`, listener);
