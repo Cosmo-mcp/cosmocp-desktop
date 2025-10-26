@@ -1,11 +1,11 @@
 import {ipcRenderer} from 'electron';
 import {UIMessageChunk} from "ai";
 import {ModelProvider, ModelProviderCreate, ModelProviderLite} from "../renderer/src/common/models/modelProvider";
-import {Model} from "../renderer/src/common/models/model";
+import {Model} from "@database/schema/modelProviderSchema";
 
 export interface ChatAPI {
-    sendChatMessages: (data: never) => void;
-    abortChat: (data: never) => void;
+    sendChatMessages: (data: any) => void;
+    abortChat: (data: any) => void;
     onChatData: (channel: string, callback: (chunk: UIMessageChunk) => void) => void;
     onceChatEnd: (channel: string, callback: () => void) => void;
     onceChatError: (channel: string, callback: (error: any) => void) => void;

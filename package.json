@@ -55,6 +55,7 @@
     "ai": "5.0.60",
     "dotenv": "17.2.3",
     "drizzle-orm": "0.44.6",
+    "drizzle-zod": "^0.8.3",
     "electron-squirrel-startup": "1.0.1",
     "inversify": "7.10.2",
     "reflect-metadata": "0.2.2",
