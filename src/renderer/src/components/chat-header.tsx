@@ -1,7 +1,7 @@
 'use client';
 
 import {memo} from 'react';
-import {ModeToggle} from "@/components/ModeToggle";
+import {ModeToggle} from "@/components/mode-toggle";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {Button} from "@/components/ui/button";
 import {PlusIcon} from "@/components/icons";

@@ -137,7 +137,7 @@ export function ModelSelector({
                         Select Provider <ChevronDownIcon/>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[340px] p-2">
+                <DropdownMenuContent align="start" className="min-w-[260px] sm:min-w-[300px] max-w-[92vw] p-2">
                     {providers.length > 0 && !addingProvider && (
                         <div className="flex flex-col gap-1 mb-2">
                             {providers.map(p => (
@@ -284,7 +284,7 @@ export function ModelSelector({
                         <ChevronDownIcon/>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[300px]">
+                <DropdownMenuContent align="start" className="min-w-[260px] sm:min-w-[300px] max-w-[92vw]">
                     {availableChatModels.map((chatModel) => {
                         const {id} = chatModel;
 
