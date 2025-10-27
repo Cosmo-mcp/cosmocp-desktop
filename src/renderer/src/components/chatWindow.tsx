@@ -58,7 +58,6 @@ export function ChatWindow({
 
     return (
         <>
-            <div>{chat.id}</div>
             <div className="flex flex-col min-w-0 h-dvh bg-background">
                 <Messages
                     chatId={chat.id}

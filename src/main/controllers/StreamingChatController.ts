@@ -3,7 +3,7 @@ import {createGoogleGenerativeAI, GoogleGenerativeAIProvider} from '@ai-sdk/goog
 import {config} from 'dotenv';
 import {IpcMainEvent, WebContents} from "electron";
 import {injectable} from "inversify";
-import {IpcController, IpcOn} from "../ipc/Decorators";
+import {IpcController, IpcOn, IpcRendererOn} from "../ipc/Decorators";
 import {ChatAbortArgs, ChatSendMessageArgs} from "../../core/dto";
 
 @injectable()
@@ -67,6 +67,7 @@ export class StreamingChatController {
                     break;
                 }
                 webContents.send(`${args.streamChannel}-data`, chunk);
+
             }
         } catch (error) {
             console.error("Failed to start streamText:", error);
@@ -86,4 +87,16 @@ export class StreamingChatController {
             console.log(`Aborted stream for channel: ${args.streamChannel}`);
         }
     }
+
+    @IpcRendererOn("data")
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public onData(channel: string, listener: (data: any) => void): () => void { return () => {}; }
+
+    @IpcRendererOn("end")
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public onEnd(channel: string, listener: () => void): () => void { return () => {}; }
+
+    @IpcRendererOn("error")
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public onError(channel: string, listener: (error: any) => void): () => void { return () => {}; }
 }

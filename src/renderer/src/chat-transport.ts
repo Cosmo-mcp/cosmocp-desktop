@@ -29,14 +29,12 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
                 }
 
                 const cleanup = () => {
-                    //window.chatAPI.removeChatListener(`${streamChannel}-data`);
-                    //window.chatAPI.removeChatListener(`${streamChannel}-end`);
-                    //window.chatAPI.removeChatListener(`${streamChannel}-error`);
+                    window.api.streaming.removeListeners(streamChannel);
                 };
 
-                window.api.streaming.onData(`${streamChannel}-data`, onData);
-                window.api.streaming.onEnd(`${streamChannel}-end`, onEnd);
-                window.api.streaming.onError(`${streamChannel}-error`, onError);
+                window.api.streaming.onData(`${streamChannel}`, onData);
+                window.api.streaming.onEnd(`${streamChannel}`, onEnd);
+                window.api.streaming.onError(`${streamChannel}`, onError);
 
             }
         });
@@ -71,14 +69,12 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
                 }
 
                 const cleanup = () => {
-                    //window.chatAPI.removeChatListener(`${streamChannel}-data`);
-                    //window.chatAPI.removeChatListener(`${streamChannel}-end`);
-                    //window.chatAPI.removeChatListener(`${streamChannel}-error`);
+                    window.api.streaming.removeListeners(streamChannel);
                 };
 
-                window.api.streaming.onData(`${streamChannel}-data`, onData);
-                window.api.streaming.onEnd(`${streamChannel}-end`, onEnd);
-                window.api.streaming.onError(`${streamChannel}-error`, onError);
+                window.api.streaming.onData(`${streamChannel}`, onData);
+                window.api.streaming.onEnd(`${streamChannel}`, onEnd);
+                window.api.streaming.onError(`${streamChannel}`, onError);
 
                 // Send to main process
                 const messages = options.messages;

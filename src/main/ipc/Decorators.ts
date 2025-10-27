@@ -4,6 +4,7 @@ import 'reflect-metadata';
 export const IPC_CONTROLLER_METADATA_KEY = 'ipc-controller';
 export const IPC_HANDLE_METADATA_KEY = 'ipc-handle';
 export const IPC_ON_METADATA_KEY = 'ipc-on';
+export const IPC_RENDERER_ON_METADATA_KEY = 'ipc-renderer-on';
 
 export function IpcController(prefix = ''): ClassDecorator {
     return (target) => {
@@ -23,3 +24,4 @@ function createHandlerDecorator(metadataKey: string) {
 
 export const IpcHandler = createHandlerDecorator(IPC_HANDLE_METADATA_KEY);
 export const IpcOn = createHandlerDecorator(IPC_ON_METADATA_KEY);
+export const IpcRendererOn = createHandlerDecorator(IPC_RENDERER_ON_METADATA_KEY);
