@@ -1,7 +1,6 @@
-import { contextBridge } from 'electron';
-import {chatAPI, modelProviderAPI} from './api';
+import {contextBridge} from 'electron';
+import {api} from './api';
 
-contextBridge.exposeInMainWorld('chatAPI', chatAPI);
-contextBridge.exposeInMainWorld('modelProviderAPI', modelProviderAPI);
+contextBridge.exposeInMainWorld('api', api);
 
 console.log('Preload script loaded and API exposed!');

@@ -2,10 +2,8 @@ import {inject, injectable} from "inversify";
 import {eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {DatabaseManager} from "@database/DatabaseManager";
-import {Chat} from "@database/schema/chatSchema";
-import {message, Message} from "@database/schema/messageSchema";
-
-export type NewMessage = Omit<Message, "id" | "createdAt">;
+import {Chat, Message, NewMessage} from "../dto";
+import {message} from "@database/schema/messageSchema";
 
 @injectable()
 export class MessageRepository {

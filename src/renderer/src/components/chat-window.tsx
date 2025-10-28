@@ -1,21 +1,21 @@
 'use client';
 
-import {ChatHeader} from '@/components/chat-header';
 import type {Attachment, ChatMessage} from '@/lib/types';
 import {Messages} from "@/components/messages";
 import {useChat} from "@ai-sdk/react";
 import {IpcChatTransport} from "@/chat-transport";
 import {MultimodalInput} from "@/components/multimodal-input";
 import {useEffect, useState} from "react";
+import {Chat} from "../../../core/dto";
 
-export function Chat({
-                         id,
+export function ChatWindow({
+                         chat,
                          initialMessages,
                          initialChatModel,
                      }: {
-    id: string;
     initialMessages: ChatMessage[];
     initialChatModel: string;
+    chat: Chat;
 }) {
 
     const [input, setInput] = useState<string>('');
@@ -30,7 +30,7 @@ export function Chat({
         stop,
         regenerate,
     } = useChat<ChatMessage>({
-        id,
+        id: chat.id,
         messages: initialMessages,
         transport: new IpcChatTransport(),
         onData: (dataPart) => {
@@ -59,15 +59,8 @@ export function Chat({
     return (
         <>
             <div className="flex flex-col min-w-0 h-dvh bg-background">
-                <ChatHeader
-                    chatId={id}
-                    selectedModelId={initialChatModel}
-                    onNewChat={() => {
-                        window.chatAPI.saveChat()
-                    }}
-                />
                 <Messages
-                    chatId={id}
+                    chatId={chat.id}
                     status={status}
                     messages={messages}
                     setMessages={setMessages}
@@ -80,9 +73,10 @@ export function Chat({
                     selectedModelId={initialChatModel}
                 />
 
-                <div className="sticky bottom-0 flex gap-2 px-4 pb-4 mx-auto w-full bg-background md:pb-6 md:max-w-3xl z-[1] border-t-0">
+                <div
+                    className="sticky bottom-0 flex gap-2 px-4 pb-4 mx-auto w-full bg-background md:pb-6 md:max-w-3xl z-[1] border-t-0">
                     <MultimodalInput
-                        chatId={id}
+                        chatId={chat.id}
                         input={input}
                         setInput={setInput}
                         status={status}

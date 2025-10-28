@@ -1,7 +1,7 @@
 import {inject, injectable} from "inversify";
 import {CORETYPES} from "../types/types";
-import {ChatRepository, NewChat} from "../repositories/ChatRepository";
-import {Chat} from "@database/schema/chatSchema";
+import {ChatRepository} from "../repositories/ChatRepository";
+import {Chat, NewChat} from "../dto";
 
 @injectable()
 export class ChatService {

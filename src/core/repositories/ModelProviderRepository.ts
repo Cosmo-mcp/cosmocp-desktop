@@ -1,14 +1,10 @@
 import {inject, injectable} from "inversify";
-import {
-    modelProvider,
-    ModelProvider,
-    ModelProviderInsert,
-    ModelProviderCreateInput
-} from "@database/schema/modelProviderSchema"; // Use Drizzle-derived types
+import {modelProvider,} from "@database/schema/modelProviderSchema"; // Use Drizzle-derived types
 import {eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {safeStorage} from 'electron';
 import {DatabaseManager} from "@database/DatabaseManager";
+import {ModelProvider, ModelProviderCreateInput, ModelProviderInsert} from "../dto";
 
 
 @injectable()
