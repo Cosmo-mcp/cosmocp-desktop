@@ -137,13 +137,13 @@ export function ModelSelector({
                         Select Provider <ChevronDownIcon/>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[340px] p-2">
+                <DropdownMenuContent align="start" className="min-w-[260px] sm:min-w-[300px] max-w-[92vw] p-2">
                     {providers.length > 0 && !addingProvider && (
                         <div className="flex flex-col gap-1 mb-2">
                             {providers.map(p => (
                                 <DropdownMenuItem key={p.id} onSelect={() => handleSelectProvider(p.id)} asChild>
                                     <button type="button" className="flex flex-row justify-between w-full items-center">
-                                        <span className="flex items-center">
+                                        <span className="flex">
                                             <ProviderIcon type={p.type} theme={resolvedTheme}/>
                                             {p.nickName}
                                         </span>
@@ -267,7 +267,7 @@ export function ModelSelector({
     const selectedProvider = providers.find(p => p.id === selectedProviderId);
 
     return (
-        <div className={cn('flex items-center gap-2', className)}>
+        <div className={cn('flex gap-2', className)}>
             <DropdownMenu open={open} onOpenChange={setOpen}>
                 <DropdownMenuTrigger
                     asChild
@@ -284,7 +284,7 @@ export function ModelSelector({
                         <ChevronDownIcon/>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[300px]">
+                <DropdownMenuContent align="start" className="min-w-[260px] sm:min-w-[300px] max-w-[92vw]">
                     {availableChatModels.map((chatModel) => {
                         const {id} = chatModel;
 
