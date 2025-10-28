@@ -1,8 +1,8 @@
-import { PGlite } from '@electric-sql/pglite';
-import { drizzle, PgliteDatabase } from 'drizzle-orm/pglite';
+import {PGlite} from '@electric-sql/pglite';
+import {drizzle, PgliteDatabase} from 'drizzle-orm/pglite';
 import * as schema from '@database/schema/schema';
-import { injectable } from 'inversify';
-import { runMigrations } from './migrator';
+import {injectable} from 'inversify';
+import {runMigrations} from './migrator';
 
 @injectable()
 export class DatabaseManager {
@@ -10,7 +10,7 @@ export class DatabaseManager {
     private static initPromise: Promise<void> | null = null;
 
     /**
-     * Initializes the database connection and runs migrations. 
+     * Initializes the database connection and runs migrations.
      * This must be called once at application startup.
      * @param absoluteDbPath The absolute path to the database file.
      */
@@ -25,7 +25,7 @@ export class DatabaseManager {
         try {
             console.log(`[DB INIT] Attempting to connect PGlite to absolute path: ${absoluteDbPath}`);
             const connection = await PGlite.create(absoluteDbPath);
-            this.instance = drizzle(connection, { schema });
+            this.instance = drizzle(connection, {schema});
             console.log('[DB INIT] Drizzle client successfully initialized.');
 
             // Run migrations automatically after initialization
@@ -39,7 +39,7 @@ export class DatabaseManager {
     }
 
     /**
-     * Synchronously gets the database instance. 
+     * Synchronously gets the database instance.
      * Ensure that initialize() has been called and awaited first.
      */
     public getInstance(): PgliteDatabase<typeof schema> {

@@ -1,13 +1,8 @@
 import {inject, injectable} from "inversify";
-import {
-    ModelProvider,
-    ModelProviderCreateInput, // Use the Drizzle-derived Input type
-    ModelProviderLite,
-    ModelProviderTypeEnum,
-    Model,
-} from "@database/schema/modelProviderSchema";
 import {CORETYPES} from "../types/types";
 import {ModelProviderRepository} from "../repositories/ModelProviderRepository";
+import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite} from "../dto";
+import {ModelProviderTypeEnum} from "@database/schema/modelProviderSchema";
 
 
 @injectable()
@@ -90,7 +85,7 @@ export class ModelProviderService {
     public async getProviders(): Promise<ModelProviderLite[]> {
         const providers = await this.repository.findAll();
         // Strip API key before returning to the public interface
-        return providers.map(({ apiKey, ...rest }) => rest);
+        return providers.map(({...rest}) => rest);
     }
 
     public async getModels(providerId: string): Promise<Model[]> {

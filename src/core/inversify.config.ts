@@ -1,13 +1,11 @@
 import "reflect-metadata";
 import {Container} from "inversify";
 import {CORETYPES} from "./types/types";
-import {DatabaseManager} from "@database/DatabaseManager";
+import {DatabaseManager} from "./database/DatabaseManager";
 import {ChatRepository} from "./repositories/ChatRepository";
 import {MessageRepository} from "./repositories/MessageRepository";
 import {ChatService} from "./services/ChatService";
 import {MessageService} from "./services/MessageService";
-import {ChatController} from "./controllers/ChatController";
-import {MessageController} from "./controllers/MessageController";
 import {ModelProviderRepository} from "./repositories/ModelProviderRepository";
 import {ModelProviderService} from "./services/ModelProviderService";
 
@@ -25,9 +23,5 @@ coreContainer.bind<ModelProviderRepository>(CORETYPES.ModelProviderRepository).t
 coreContainer.bind<ChatService>(CORETYPES.ChatService).to(ChatService).inSingletonScope();
 coreContainer.bind<MessageService>(CORETYPES.MessageService).to(MessageService).inSingletonScope();
 coreContainer.bind<ModelProviderService>(CORETYPES.ModelProviderService).to(ModelProviderService).inSingletonScope();
-
-// Controllers
-coreContainer.bind<ChatController>(CORETYPES.ChatController).to(ChatController).inSingletonScope();
-coreContainer.bind<MessageController>(CORETYPES.MessageController).to(MessageController).inSingletonScope();
 
 export {coreContainer};

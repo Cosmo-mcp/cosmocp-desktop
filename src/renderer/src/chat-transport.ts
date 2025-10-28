@@ -29,14 +29,12 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
                 }
 
                 const cleanup = () => {
-                    window.chatAPI.removeChatListener(`${streamChannel}-data`);
-                    window.chatAPI.removeChatListener(`${streamChannel}-end`);
-                    window.chatAPI.removeChatListener(`${streamChannel}-error`);
+                    window.api.streaming.removeListeners(streamChannel);
                 };
 
-                window.chatAPI.onChatData(`${streamChannel}-data`, onData);
-                window.chatAPI.onceChatEnd(`${streamChannel}-end`, onEnd);
-                window.chatAPI.onceChatError(`${streamChannel}-error`, onError);
+                window.api.streaming.onData(`${streamChannel}`, onData);
+                window.api.streaming.onEnd(`${streamChannel}`, onEnd);
+                window.api.streaming.onError(`${streamChannel}`, onError);
 
             }
         });
@@ -71,30 +69,28 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
                 }
 
                 const cleanup = () => {
-                    window.chatAPI.removeChatListener(`${streamChannel}-data`);
-                    window.chatAPI.removeChatListener(`${streamChannel}-end`);
-                    window.chatAPI.removeChatListener(`${streamChannel}-error`);
+                    window.api.streaming.removeListeners(streamChannel);
                 };
 
-                window.chatAPI.onChatData(`${streamChannel}-data`, onData);
-                window.chatAPI.onceChatEnd(`${streamChannel}-end`, onEnd);
-                window.chatAPI.onceChatError(`${streamChannel}-error`, onError);
+                window.api.streaming.onData(`${streamChannel}`, onData);
+                window.api.streaming.onEnd(`${streamChannel}`, onEnd);
+                window.api.streaming.onError(`${streamChannel}`, onError);
 
                 // Send to main process
                 const messages = options.messages;
-                window.chatAPI.sendChatMessages({
+                window.api.streaming.sendMessage({
                     chatId, messages, streamChannel,
                 });
 
                 if (options.abortSignal) {
                     options.abortSignal.addEventListener('abort', () => {
                         cleanup();
-                        window.chatAPI.abortChat(streamChannel);
+                        window.api.streaming.abortMessage({streamChannel});
                         controller.error(new Error('Aborted by user'));
                     });
                 }
             }, cancel() {
-                window.chatAPI.abortChat(streamChannel);
+                window.api.streaming.abortMessage({streamChannel});
             }
         });
         return Promise.resolve(stream);

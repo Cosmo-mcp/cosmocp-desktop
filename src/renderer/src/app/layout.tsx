@@ -9,9 +9,9 @@ export default async function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-        <body className={`antialiased`}>
-        <ClientLayout>{children}</ClientLayout>
-        </body>
+            <body className={`antialiased`}>
+                <ClientLayout>{children}</ClientLayout>
+            </body>
         </html>
     );
 }

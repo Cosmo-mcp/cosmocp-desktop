@@ -5,13 +5,15 @@ import {DatabaseManager} from "../core/database/DatabaseManager";
 import 'reflect-metadata';
 import container from "./inversify.config";
 import {TYPES} from "./types";
+import {config} from "dotenv";
 
 export class Main {
     private mainWindow: BrowserWindow | null = null;
-    private readonly isDev = process.env.NODE_ENV === 'development';
+    private readonly isDev = process.env.NODE_ENV !== 'production';
     private readonly MAIN_WINDOW_VITE_DEV_SERVER_URL = this.isDev ? 'http://localhost:3000' : undefined;
 
     constructor() {
+        config();
         app.whenReady().then(async () => {
             await this.initializeDatabase();
             const ipcHandlerRegistry = container.get<IpcHandlerRegistry>(TYPES.IpcHandlerRegistry);
@@ -50,6 +52,7 @@ export class Main {
                 preload: path.join(__dirname, '../preload/index.js'),
             },
         });
+        this.mainWindow.webContents.reloadIgnoringCache();
 
         this.mainWindow.setMenuBarVisibility(false);
 

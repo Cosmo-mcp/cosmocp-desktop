@@ -111,8 +111,6 @@ function PureMultimodalInput({
     const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
     const submitForm = useCallback(() => {
-        window.history.replaceState({}, '', `/chat/${chatId}`);
-
         sendMessage({
             role: 'user',
             parts: [
@@ -206,25 +204,7 @@ function PureMultimodalInput({
 
     return (
         <div className="flex relative flex-col gap-4 w-full">
-            {showSuggestedActions &&
-                uploadQueue.length === 0 && (
-                    <SuggestedActions
-                        sendMessage={sendMessage}
-                        chatId={chatId}
-                    />
-                )}
-
-            <input
-                type="file"
-                className="-top-4 -left-4 pointer-events-none fixed size-0.5 opacity-0"
-                ref={fileInputRef}
-                multiple
-                onChange={handleFileChange}
-                tabIndex={-1}
-            />
-
-            <PromptInput
-                className="p-3 rounded-xl border transition-all duration-200 border-border bg-background shadow-xs focus-within:border-border hover:border-muted-foreground/50"
+            <PromptInput globalDrop multiple
                 onSubmit={(_, event) => {
                     event.preventDefault();
                     if (stillAnswering) {
