@@ -26,7 +26,7 @@ function getMethodSignature(controllerFileContent: string, methodName: string): 
     args: string,
     returnType: string
 } {
-    const methodRegex = new RegExp(`(?:@IpcHandler\\(|@IpcOn\\()\"[^\"]+\"\\)[\\s\\S]*?public (?:async )?${methodName}\\s*\\(([^)]*)\\)(?::\\s*([^{]*))?`, 'm');
+    const methodRegex = new RegExp(`(?:@IpcHandler\\(|@IpcOn\\()(?:'[^']+'|\\"[^\\"]+\\")\\)[\\s\\S]*?public (?:async )?${methodName}\\s*\\(([^)]*)\\)(?::\\s*([^{]*))?`, 'm');
     const match = controllerFileContent.match(methodRegex);
 
     if (match) {
@@ -108,7 +108,8 @@ import {
     ChatAbortArgs,
     ChatSendMessageArgs,
     Model,
-    Chat
+    Chat,
+    ModelProviderCreateInput
 } from '../../src/core/dto';
 
 `;

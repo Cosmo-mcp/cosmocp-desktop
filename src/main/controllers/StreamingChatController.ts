@@ -5,10 +5,11 @@ import {IpcMainEvent, WebContents} from "electron";
 import {injectable} from "inversify";
 import {IpcController, IpcOn, IpcRendererOn} from "../ipc/Decorators";
 import {ChatAbortArgs, ChatSendMessageArgs} from "../../core/dto";
+import {Controller} from "./Controller";
 
 @injectable()
 @IpcController("streamingChat")
-export class StreamingChatController {
+export class StreamingChatController implements Controller {
     private readonly activeStreams = new Map<string, AbortController>();
     private readonly google: GoogleGenerativeAIProvider | null = null;
     private readonly modelName = 'gemini-2.0-flash-lite';

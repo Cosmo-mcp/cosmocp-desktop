@@ -1,13 +1,13 @@
-import {injectable} from 'inversify';
+import {inject, injectable} from 'inversify';
 import {IpcController, IpcHandler} from '../ipc/Decorators';
 import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite,} from '../../core/dto';
-import {inject} from 'inversify';
 import {CORETYPES} from '../../core/types/types';
 import {ModelProviderService} from '../../core/services/ModelProviderService';
+import {Controller} from "./Controller";
 
 @injectable()
 @IpcController('modelProvider')
-export class ModelProviderController {
+export class ModelProviderController implements Controller {
     constructor(@inject(CORETYPES.ModelProviderService)
                 private modelProviderService: ModelProviderService
     ) {
