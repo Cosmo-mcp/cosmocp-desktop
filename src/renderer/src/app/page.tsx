@@ -1,7 +1,7 @@
 'use client'
 import {JSX, useEffect, useState} from "react";
 import {ChatHistory} from "@/components/chat-history";
-import {ChatWindow} from "@/components/chatWindow";
+import {ChatWindow} from "@/components/chat-window";
 import {Chat} from "../../../core/dto";
 
 export default function Page(): JSX.Element {
