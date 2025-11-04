@@ -1,5 +1,14 @@
 import {ipcRenderer} from 'electron';
-import {Chat, ChatAbortArgs, ChatSendMessageArgs, NewChat} from '../../src/core/dto';
+import {
+    Chat,
+    ChatAbortArgs,
+    ChatSendMessageArgs,
+    Model,
+    ModelProvider,
+    ModelProviderCreateInput,
+    ModelProviderLite,
+    NewChat
+} from '../../src/core/dto';
 
 export interface ChatApi {
     getAllChats(): Promise<Chat[]>;
@@ -14,15 +23,15 @@ export interface ChatApi {
 }
 
 export interface ModelProviderApi {
-    addProvider(): Promise<void>;
+    addProvider(providerData: ModelProviderCreateInput): Promise<ModelProvider>;
 
-    getProviderForId(): Promise<void>;
+    getProviderForId(providerId: string): Promise<ModelProvider | undefined>;
 
-    getProviders(): Promise<void>;
+    getProviders(): Promise<ModelProviderLite[]>;
 
-    getModels(): Promise<void>;
+    getModels(providerId: string): Promise<Model[]>;
 
-    deleteProvider(): Promise<void>;
+    deleteProvider(providerId: string): Promise<void>;
 }
 
 export interface StreamingApi {
@@ -51,11 +60,11 @@ export const api: Api = {
         deleteChat: (id: string) => ipcRenderer.invoke('chat:deleteChat', id)
     },
     modelProvider: {
-        addProvider: () => ipcRenderer.invoke('modelProvider:addProvider'),
-        getProviderForId: () => ipcRenderer.invoke('modelProvider:getProviderForId'),
+        addProvider: (providerData: ModelProviderCreateInput) => ipcRenderer.invoke('modelProvider:addProvider', providerData),
+        getProviderForId: (providerId: string) => ipcRenderer.invoke('modelProvider:getProviderForId', providerId),
         getProviders: () => ipcRenderer.invoke('modelProvider:getProviders'),
-        getModels: () => ipcRenderer.invoke('modelProvider:getModels'),
-        deleteProvider: () => ipcRenderer.invoke('modelProvider:deleteProvider')
+        getModels: (providerId: string) => ipcRenderer.invoke('modelProvider:getModels', providerId),
+        deleteProvider: (providerId: string) => ipcRenderer.invoke('modelProvider:deleteProvider', providerId)
     },
     streaming: {
         sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('streamingChat:sendMessage', args),
