@@ -21,7 +21,7 @@ export function AppSidebar() {
     const menuItems = [
         {
             title: "Chat",
-            url: "/",
+            url: "./",
             icon: Home,
         },
     ]
@@ -65,7 +65,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
-                            <Link href="/settings">
+                            <Link href="./settings">
                                 <SettingsIcon/>
                                 <span>Settings</span>
                             </Link>
