@@ -1,3 +1,4 @@
+'use client'
 import ClientLayout from "@/app/client-layout";
 import React from "react";
 import "./globals.css";
