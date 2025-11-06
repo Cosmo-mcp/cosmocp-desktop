@@ -6,7 +6,7 @@ import {useChat} from "@ai-sdk/react";
 import {IpcChatTransport} from "@/chat-transport";
 import {MultimodalInput} from "@/components/multimodal-input";
 import {useEffect, useState} from "react";
-import {Chat} from "../../../core/dto";
+import {Chat} from "../../../../packages/core/dto";
 
 export function ChatWindow({
                          chat,

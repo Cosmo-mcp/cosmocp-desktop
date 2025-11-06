@@ -7,17 +7,11 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {cn} from '@/lib/utils';
 
 import {CheckCircleFillIcon, ChevronDownIcon} from './icons';
-import {Model} from "@/common/models/model";
-import {
-    CustomProvider,
-    ModelProviderCreate,
-    ModelProviderLite,
-    ModelProviderType,
-    PredefinedProviders,
-} from "@/common/models/modelProvider";
+import {Model, ModelProviderCreateInput, ModelProviderLite} from "core/dto";
 import {useTheme} from "next-themes";
 import ProviderIcon from "@/components/ui/provider-icon";
 import {ProviderInfo} from "@/lib/types";
+import {CustomProvider, PredefinedProviders, ModelProviderTypeEnum} from "core/database/schema/modelProviderSchema";
 
 const LS_PROVIDER_KEY = 'selectedProviderId';
 
@@ -37,7 +31,7 @@ export function ModelSelector({
     const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
     const [addingProvider, setAddingProvider] = useState(false);
 
-    const [newProviderType, setNewProviderType] = useState<ModelProviderType | null>(null);
+    const [newProviderType, setNewProviderType] = useState<ModelProviderTypeEnum | null>(null);
     const [newProviderNickName, setNewProviderNickName] = useState('');
     const [newProviderApiKey, setNewProviderApiKey] = useState('');
     const [newProviderApiUrl, setNewProviderApiUrl] = useState<string | undefined>(undefined);
@@ -47,7 +41,7 @@ export function ModelSelector({
     useEffect(() => {
         async function init() {
             try {
-                const list = await window.modelProviderAPI.getProviders();
+                const list = await window.api.modelProvider.getProviders();
                 setProviders(list);
                 // TODO: get from providers.json
                 const saved = localStorage.getItem(LS_PROVIDER_KEY);
@@ -67,7 +61,7 @@ export function ModelSelector({
         async function loadModels() {
             if (!selectedProviderId) return;
             try {
-                const models = await window.modelProviderAPI.getModels(selectedProviderId);
+                const models = await window.api.modelProvider.getModels(selectedProviderId);
                 setAvailableChatModels(models);
             } catch (e) {
                 console.error('Failed to load models', e);
@@ -108,8 +102,8 @@ export function ModelSelector({
                 type: newProviderType,
                 apiKey: newProviderApiKey,
                 apiUrl: newProviderApiUrl,
-            } as ModelProviderCreate;
-            const newProvider = await window.modelProviderAPI.addProvider(providerData);
+            } as ModelProviderCreateInput;
+            const newProvider = await window.api.modelProvider.addProvider(providerData);
             if (newProvider) {
                 setSelectedProviderId(newProvider.id);
                 setProviders([...providers, newProvider]);
@@ -206,7 +200,7 @@ export function ModelSelector({
                         ) : (
                             // Show the form for the selected provider
                             (() => {
-                                const isCustomProvider = newProviderType === ModelProviderType.CUSTOM;
+                                const isCustomProvider = newProviderType === ModelProviderTypeEnum.CUSTOM;
                                 const apiUrlLabel = isCustomProvider ? 'API URL' : 'API URL (optional override)';
                                 const apiUrlPlaceholder = isCustomProvider ? 'https://api.example.com/v1' : 'Leave blank for default';
 

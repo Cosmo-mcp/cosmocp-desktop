@@ -1,7 +1,7 @@
 import {app, BrowserWindow} from 'electron';
 import path from 'path';
 import {IpcHandlerRegistry} from './ipc';
-import {DatabaseManager} from "@database/DatabaseManager";
+import {DatabaseManager} from "core/database/DatabaseManager";
 import 'reflect-metadata';
 import container from "./inversify.config";
 import {TYPES} from "./types";

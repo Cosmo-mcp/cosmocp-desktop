@@ -1,6 +1,6 @@
 import {Container} from "inversify";
 import {IpcHandlerRegistry} from "./ipc";
-import {coreContainer} from "../core/inversify.config";
+import {coreContainer} from "../../packages/core/inversify.config";
 import {TYPES} from "./types";
 import {ChatController} from "./controllers/ChatController";
 import {ModelProviderController} from "./controllers/ModelProviderController";

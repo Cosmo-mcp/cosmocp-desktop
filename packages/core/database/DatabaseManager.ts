@@ -1,6 +1,6 @@
 import {PGlite} from '@electric-sql/pglite';
 import {drizzle, PgliteDatabase} from 'drizzle-orm/pglite';
-import * as schema from '@database/schema/schema';
+import * as schema from './schema/schema';
 import {injectable} from 'inversify';
 import {runMigrations} from './migrator';
 

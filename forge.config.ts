@@ -39,13 +39,13 @@ const config: ForgeConfig = {
                 renderer: [], // Empty renderer part because we build next.js
             }),
             //this plugin copies files already build next.js frontend app
-            //next.js frontend app is build part of `make/package` script
+            //next.js frontend app is build part of `make/packages` script
             new NextPlugin({
                 outDir: '../.vite/renderer/main_window',
                 sourceDir: './renderer/out'
             }),
             // Fuses are used to enable/disable various Electron functionality
-            // at package time, before code signing the application
+            // at packages time, before code signing the application
             new FusesPlugin({
                 version: FuseVersion.V1,
                 [FuseV1Options.RunAsNode]: false,
@@ -70,7 +70,7 @@ const config: ForgeConfig = {
             }
         }],
         // we asked vite not to bundle PGLite because it was not bundled properly
-        // now we copy PGlite package directly into electron asar bundle
+        // now we copy PGlite packages directly into electron asar bundle
         hooks: {
             async packageAfterCopy(_forgeConfig, buildPath) {
                 const requiredNativePackages = ["@electric-sql"];

@@ -1,12 +1,12 @@
 import {pgEnum, pgTable, text, timestamp, uuid} from "drizzle-orm/pg-core";
 
 // --- ENUM and Base Fields ---
-export const ModelProviderTypeEnum = {
-    OPENAI: 'openai',
-    ANTHROPIC: 'anthropic',
-    GOOGLE: 'google',
-    CUSTOM: 'custom',
-} as const;
+export enum ModelProviderTypeEnum {
+    OPENAI = 'openai',
+    ANTHROPIC = 'anthropic',
+    GOOGLE = 'google',
+    CUSTOM = 'custom',
+}
 
 export const PredefinedProviders = [
     ModelProviderTypeEnum.OPENAI,

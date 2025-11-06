@@ -2,7 +2,7 @@
 import {JSX, useEffect, useState} from "react";
 import {ChatHistory} from "@/components/chat-history";
 import {ChatWindow} from "@/components/chat-window";
-import {Chat} from "../../../core/dto";
+import {Chat} from "../../../../packages/core/dto";
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);

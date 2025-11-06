@@ -1,7 +1,7 @@
 'use client'
 import {Button} from "@/components/ui/button";
 import {Fragment} from "react";
-import {Chat} from "../../../core/dto";
+import {Chat} from "../../../../packages/core/dto";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Separator} from "@/components/ui/separator";
 import {Trash} from "lucide-react";

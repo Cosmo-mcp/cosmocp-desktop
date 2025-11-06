@@ -4,10 +4,14 @@
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
+  "workspaces": [
+    "packages/*",
+    "src/renderer"
+  ],
   "scripts": {
     "generate-api": "ts-node -r tsconfig-paths/register scripts/generate-api.ts",
     "start": "NODE_ENV=development electron-forge start",
-    "package": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge package",
+    "package": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge packages",
     "make": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge make",
     "publish": "cd src/renderer && npm run build && cd ../.. && set NODE_ENV=production && electron-forge publish",
     "lint": "gts lint",

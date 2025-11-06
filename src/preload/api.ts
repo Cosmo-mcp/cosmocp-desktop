@@ -8,7 +8,7 @@ import {
     ModelProviderCreateInput,
     ModelProviderLite,
     NewChat
-} from '../../src/core/dto';
+} from '../../packages/core/dto';
 
 export interface ChatApi {
     getAllChats(): Promise<Chat[]>;

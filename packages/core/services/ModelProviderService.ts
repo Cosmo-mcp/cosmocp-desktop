@@ -2,7 +2,7 @@ import {inject, injectable} from "inversify";
 import {CORETYPES} from "../types/types";
 import {ModelProviderRepository} from "../repositories/ModelProviderRepository";
 import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite} from "../dto";
-import {ModelProviderTypeEnum} from "@database/schema/modelProviderSchema";
+import {ModelProviderTypeEnum} from "../database/schema/modelProviderSchema";
 
 
 @injectable()
