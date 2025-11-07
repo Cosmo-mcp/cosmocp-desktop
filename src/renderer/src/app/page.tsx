@@ -27,7 +27,7 @@ export default function Page(): JSX.Element {
                         setSelectedChat(chat)
                     }}
                     onNewChat={() => {
-                        window.api.chat.createChat({title: "New Chat_" + new Date()});
+                        window.api.chat.createChat({title: "New Chat"});
                         setRefreshHistory(true);
                     }}
                     onDeleteChat={(chat) => {
@@ -41,7 +41,6 @@ export default function Page(): JSX.Element {
                     selectedChat !== undefined ? (
                         <ChatWindow
                             chat={selectedChat}
-                            initialMessages={[]}
                             initialChatModel=''
                         />) : (
                         <div>No chat selected</div>
