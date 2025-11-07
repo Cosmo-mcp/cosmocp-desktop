@@ -1,9 +1,9 @@
 import {inject, injectable} from "inversify";
-import {CORETYPES} from "../../core/types/types";
-import {ChatService} from "../../core/services/ChatService";
+import {CORETYPES} from "../../../packages/core/types/types";
+import {ChatService} from "../../../packages/core/services/ChatService";
 import {IpcController, IpcHandler} from "../ipc/Decorators";
 import {Controller} from "./Controller";
-import {Chat, NewChat} from "../../core/dto";
+import {Chat, NewChat} from "../../../packages/core/dto";
 
 @injectable()
 @IpcController("chat")

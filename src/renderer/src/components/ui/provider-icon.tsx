@@ -1,26 +1,26 @@
-import {ModelProviderType} from "@/common/models/modelProvider";
 import React from "react";
+import {ModelProviderTypeEnum} from "core/database/schema/modelProviderSchema";
 
 type ThemeType = "light" | "dark";
 
 type ProviderIconProps = {
-    type: ModelProviderType;
+    type: ModelProviderTypeEnum;
     size?: number;
     theme?: string;
 };
 
 const iconMap = {
     light: {
-        [ModelProviderType.OPENAI]: "providers/openai-black.webp",
-        [ModelProviderType.ANTHROPIC]: "providers/anthropic-black.webp",
-        [ModelProviderType.GOOGLE]: "providers/gemini.svg",
-        [ModelProviderType.CUSTOM]: "providers/custom-provider.webp",
+        [ModelProviderTypeEnum.OPENAI]: "providers/openai-black.webp",
+        [ModelProviderTypeEnum.ANTHROPIC]: "providers/anthropic-black.webp",
+        [ModelProviderTypeEnum.GOOGLE]: "providers/gemini.svg",
+        [ModelProviderTypeEnum.CUSTOM]: "providers/custom-provider.webp",
     },
     dark: {
-        [ModelProviderType.OPENAI]: "providers/openai-white.webp",
-        [ModelProviderType.ANTHROPIC]: "providers/anthropic-white.webp",
-        [ModelProviderType.GOOGLE]: "providers/gemini.svg",
-        [ModelProviderType.CUSTOM]: "providers/custom-provider.webp",
+        [ModelProviderTypeEnum.OPENAI]: "providers/openai-white.webp",
+        [ModelProviderTypeEnum.ANTHROPIC]: "providers/anthropic-white.webp",
+        [ModelProviderTypeEnum.GOOGLE]: "providers/gemini.svg",
+        [ModelProviderTypeEnum.CUSTOM]: "providers/custom-provider.webp",
     },
 };
 

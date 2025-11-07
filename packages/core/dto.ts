@@ -1,6 +1,6 @@
 import {InferInsertModel, InferSelectModel} from "drizzle-orm";
-import {chat, message, modelProvider} from "@database/schema/schema";
-import {ChatMessage} from "../renderer/src/lib/types";
+import {chat, message, modelProvider} from "./database/schema/schema";
+import {ChatMessage} from "../../src/renderer/src/lib/types";
 
 //full entity based dto
 export type Message = InferSelectModel<typeof message>;

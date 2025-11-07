@@ -1,5 +1,5 @@
 import {pgTable, text, timestamp, uuid} from "drizzle-orm/pg-core";
-import {chat} from "@database/schema/chatSchema";
+import {chat} from "./chatSchema";
 
 export const message = pgTable("Message", {
     id: uuid("id").primaryKey().notNull().defaultRandom(),

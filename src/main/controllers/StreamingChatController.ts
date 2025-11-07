@@ -4,7 +4,7 @@ import {config} from 'dotenv';
 import {IpcMainEvent, WebContents} from "electron";
 import {injectable} from "inversify";
 import {IpcController, IpcOn, IpcRendererOn} from "../ipc/Decorators";
-import {ChatAbortArgs, ChatSendMessageArgs} from "../../core/dto";
+import {ChatAbortArgs, ChatSendMessageArgs} from "../../../packages/core/dto";
 import {Controller} from "./Controller";
 
 @injectable()
