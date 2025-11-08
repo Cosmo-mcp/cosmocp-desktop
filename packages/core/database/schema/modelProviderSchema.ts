@@ -1,3 +1,4 @@
+import {relations} from "drizzle-orm";
 import {pgEnum, pgTable, text, timestamp, uuid} from "drizzle-orm/pg-core";
 
 // --- ENUM and Base Fields ---
@@ -39,3 +40,24 @@ export const modelProvider = pgTable("ModelProvider", {
     // Optional for Predefined, required for Custom
     apiUrl: text("apiUrl"),
 });
+
+
+export const model = pgTable("Model", {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt"),
+    name: text("name").notNull(),
+    modelId: text("modelId").notNull(),
+    providerId: uuid("providerId").references(() => modelProvider.id),
+});
+
+export const modelProviderRelations = relations(modelProvider, ({ many }) => ({
+    models: many(model),
+}));
+
+export const modelRelations = relations(model, ({ one }) => ({
+    provider: one(modelProvider, {
+        fields: [model.providerId],
+        references: [modelProvider.id],
+    }),
+}));

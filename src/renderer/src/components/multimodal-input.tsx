@@ -1,7 +1,7 @@
 'use client';
 
 import type {UIMessage} from 'ai';
-import {type ChangeEvent, type Dispatch, memo, type SetStateAction, useCallback, useRef, useState,} from 'react';
+import {type Dispatch, memo, type SetStateAction, useCallback, useRef, useState,} from 'react';
 import {toast} from 'sonner';
 import {
     PromptInput,
@@ -12,7 +12,6 @@ import {
     PromptInputAttachment,
     PromptInputAttachments,
     PromptInputBody,
-    PromptInputButton,
     PromptInputFooter,
     PromptInputHeader,
     PromptInputMessage,
@@ -22,7 +21,6 @@ import {
     PromptInputModelSelectTrigger,
     PromptInputModelSelectValue,
     PromptInputProvider,
-    PromptInputSpeechButton,
     PromptInputSubmit,
     PromptInputTextarea,
     PromptInputTools,
@@ -30,7 +28,6 @@ import {
 import equal from 'fast-deep-equal';
 import type {UseChatHelpers} from '@ai-sdk/react';
 import type {Attachment, ChatMessage} from '@/lib/types';
-import {GlobeIcon} from "lucide-react";
 
 const models = [
     {id: 'gpt-4o', name: 'GPT-4o'},
