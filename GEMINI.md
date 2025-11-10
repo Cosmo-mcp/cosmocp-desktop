@@ -10,7 +10,7 @@ This guide is a checklist to help you write, test, and review code *specifically
     1.  **Main Process (Electron):** Lives in `src/main`. It manages windows, database access, and has access to Node.js APIs (like `fs` for files). The entry point is `src/main/index.ts`. It imports business logic from `src/core`.
     2.  **Renderer Process (Next.js):** Lives in `src/renderer`. This is our entire UI. It's a standard Next.js app. You can see the main page component at `src/renderer/src/app/page.tsx`.
     3.  **Core Logic (`src/core`):** This directory contains the core application logic, which is designed to be environment-agnostic. It is imported by the Electron main process (`src/main`). In the future, this same `core` logic can be imported into a different entry point, such as an Express.js server, to create a web-based version of the application without significant refactoring.
-    4.  **Database:** We use `Drizzle ORM` with `pglite` as the database engine. Schema definitions are located in `src/core/database/schema.ts`.
+    4.  **Database:** We use `Drizzle ORM` with `pglite` as the database engine. Schema definitions are located in `packages/core/database/schema/schema.ts`.
 
 *   **Plan Your Feature Location:**
     *   Is it a purely visual change? It belongs in `src/renderer` (e.g., modifying a React component in `src/renderer/src/components`).
