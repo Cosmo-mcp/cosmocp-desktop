@@ -103,15 +103,13 @@ let apiContent = `import { ipcRenderer } from 'electron';
 import {
     NewChat,
     ModelProvider,
-    ModelProviderCreate,
     ModelProviderLite,
     ChatAbortArgs,
     ChatSendMessageArgs,
     Model,
     Chat,
     ModelProviderCreateInput
-} from '../../src/core/dto';
-
+} from '../../packages/core/dto';
 `;
 
 const mainApiInterfaceMembers: string[] = [];
