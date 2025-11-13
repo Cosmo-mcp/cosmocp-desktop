@@ -30,6 +30,12 @@ export function ChatWindow({
         onError: (error) => {
             console.error(error);
         },
+        onFinish: (message) => {
+            window.api.message.save({
+                text: message.message.parts.join(''),
+                chatId: chat.id
+            });
+        }
     });
 
 

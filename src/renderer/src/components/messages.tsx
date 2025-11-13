@@ -30,7 +30,7 @@ function PureMessages({
                       }: MessagesProps) {
 
     return (
-        <Conversation>
+        <Conversation className="relative size-full">
             <ConversationContent>
                 {messages.length === 0 ? (
                     <ConversationEmptyState

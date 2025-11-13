@@ -14,8 +14,8 @@ export class MessageService {
         return this.messageRepository.getMessagesByChatId(chatId);
     }
 
-    public async createMessage(newMessage: NewMessage, chat: Chat): Promise<Message> {
-        return this.messageRepository.create(newMessage, chat);
+    public async createMessage(newMessage: NewMessage): Promise<Message> {
+        return this.messageRepository.create(newMessage);
     }
 
     public async updateMessage(id: string, updates: Partial<NewMessage>): Promise<Message> {

@@ -3,12 +3,14 @@ import {
     Chat,
     ChatAbortArgs,
     ChatSendMessageArgs,
+    Message,
     Model,
     ModelProvider,
     ModelProviderCreateInput,
     ModelProviderLite,
-    NewChat
-} from 'core/dto';
+    NewChat,
+    NewMessage
+} from '../../packages/core/dto';
 
 export interface ChatApi {
     getAllChats(): Promise<Chat[]>;
@@ -34,6 +36,16 @@ export interface ModelProviderApi {
     deleteProvider(providerId: string): Promise<void>;
 }
 
+export interface MessageApi {
+    getByChat(chatId: string): Promise<Message[]>;
+
+    save(newMessage: NewMessage): Promise<Message>;
+
+    updateMessage(id: string, updates: Partial<NewMessage>): Promise<void>;
+
+    delete(id: string): Promise<void>;
+}
+
 export interface StreamingApi {
     sendMessage(args: ChatSendMessageArgs): void;
 
@@ -48,6 +60,7 @@ export interface StreamingApi {
 export interface Api {
     chat: ChatApi;
     modelProvider: ModelProviderApi;
+    message: MessageApi;
     streaming: StreamingApi;
 }
 
@@ -65,6 +78,12 @@ export const api: Api = {
         getProviders: () => ipcRenderer.invoke('modelProvider:getProviders'),
         getModels: (providerId: string) => ipcRenderer.invoke('modelProvider:getModels', providerId),
         deleteProvider: (providerId: string) => ipcRenderer.invoke('modelProvider:deleteProvider', providerId)
+    },
+    message: {
+        getByChat: (chatId: string) => ipcRenderer.invoke('message:getByChat', chatId),
+        save: (newMessage: NewMessage) => ipcRenderer.invoke('message:save', newMessage),
+        updateMessage: (id: string, updates: Partial<NewMessage>) => ipcRenderer.invoke('message:update', id, updates),
+        delete: (id: string) => ipcRenderer.invoke('message:update', id)
     },
     streaming: {
         sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('streamingChat:sendMessage', args),
