@@ -102,7 +102,7 @@ function PureMultimodalInput({
                 </PromptInputHeader>
                 <PromptInputBody>
                     <PromptInputTextarea
-                        onChange={(e) => setText(e.target.value)}
+                        onChange={(e) => setInput(e.target.value)}
                         ref={textareaRef}
                         value={text}
                     />
