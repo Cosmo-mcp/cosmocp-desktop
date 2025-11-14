@@ -25,7 +25,7 @@ export class MessageController {
         return this.messageService.updateMessage(id, updates);
     }
 
-    @IpcHandler("update")
+    @IpcHandler("delete")
     public async delete(id: string) {
         return this.messageService.deleteMessage(id);
     }
