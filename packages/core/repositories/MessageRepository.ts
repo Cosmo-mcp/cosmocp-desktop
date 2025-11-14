@@ -17,9 +17,9 @@ export class MessageRepository {
         return this.db.select().from(message).where(eq(message.chatId, chatId));
     }
 
-    public async create(newMessage: NewMessage, chat: Chat): Promise<Message> {
+    public async create(newMessage: NewMessage): Promise<Message> {
         const result = await this.db.insert(message).values({
-            chatId: chat.id,
+            chatId: newMessage.chatId,
             createdAt: new Date(),
             text: newMessage.text
         }).returning();

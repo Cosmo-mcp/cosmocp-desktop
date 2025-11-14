@@ -5,76 +5,52 @@ import {Messages} from "@/components/messages";
 import {useChat} from "@ai-sdk/react";
 import {IpcChatTransport} from "@/chat-transport";
 import {MultimodalInput} from "@/components/multimodal-input";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {Chat} from "../../../../packages/core/dto";
 
 export function ChatWindow({
-                         chat,
-                         initialMessages,
-                         initialChatModel,
-                     }: {
-    initialMessages: ChatMessage[];
+                               chat,
+                               initialChatModel,
+                           }: {
     initialChatModel: string;
     chat: Chat;
 }) {
 
     const [input, setInput] = useState<string>('');
     const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-    const [forceScrollToBottom, setForceScrollToBottom] = useState(false);
-    const [stillAnswering, setStillAnswering] = useState(false);
     const {
         messages,
-        setMessages,
         sendMessage,
         status,
         stop,
         regenerate,
     } = useChat<ChatMessage>({
         id: chat.id,
-        messages: initialMessages,
         transport: new IpcChatTransport(),
-        onData: (dataPart) => {
-            console.log(dataPart);
-        },
-        onFinish: () => {
-            setForceScrollToBottom(true);
-        },
         onError: (error) => {
             console.error(error);
         },
+        onFinish: (message) => {
+            window.api.message.save({
+                text: message.message.parts.join(''),
+                chatId: chat.id
+            });
+        }
     });
 
-    // Track if the model is still answering based on the status
-    useEffect(() => {
-        if (status === 'ready' || status === 'error') {
-            setStillAnswering(false);
-        } else if (status === 'submitted' || status === 'streaming') {
-            setStillAnswering(true);
-        }
-    }, [status]);
-
-
-    const showSuggestedActions = messages.length === 0 && attachments.length === 0;
 
     return (
         <>
-            <div className="flex flex-col min-w-0 h-dvh bg-background">
-                <Messages
-                    chatId={chat.id}
-                    status={status}
-                    messages={messages}
-                    setMessages={setMessages}
-                    regenerate={regenerate}
-                    isReadonly={false}
-                    isArtifactVisible={false}
-                    stillAnswering={stillAnswering}
-                    forceScrollToBottom={forceScrollToBottom}
-                    setForceScrollToBottom={setForceScrollToBottom}
-                    selectedModelId={initialChatModel}
-                />
+            <div className="max-w-4xl mx-auto p-6 relative size-full">
+                <div className="flex flex-col h-full">
+                    <Messages
+                        chatId={chat.id}
+                        status={status}
+                        messages={messages}
+                        regenerate={regenerate}
+                        selectedModelId={initialChatModel}
+                    />
 
-                <div
-                    className="sticky bottom-0 flex gap-2 px-4 pb-4 mx-auto w-full bg-background md:pb-6 md:max-w-3xl z-[1] border-t-0">
                     <MultimodalInput
                         chatId={chat.id}
                         input={input}
@@ -85,11 +61,7 @@ export function ChatWindow({
                         setAttachments={setAttachments}
                         messages={messages}
                         selectedModelId={initialChatModel}
-                        setMessages={setMessages}
                         sendMessage={sendMessage}
-                        showSuggestedActions={showSuggestedActions}
-                        stillAnswering={stillAnswering}
-                        setForceScrollToBottom={setForceScrollToBottom}
                     />
                 </div>
             </div>
