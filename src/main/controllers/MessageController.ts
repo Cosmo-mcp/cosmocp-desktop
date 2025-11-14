@@ -21,7 +21,7 @@ export class MessageController {
     }
 
     @IpcHandler("update")
-    public async updateMessage(id: string, updates: Partial<NewMessage>) {
+    public async update(id: string, updates: Partial<NewMessage>) {
         return this.messageService.updateMessage(id, updates);
     }
 

@@ -41,7 +41,7 @@ export interface MessageApi {
 
     save(newMessage: NewMessage): Promise<Message>;
 
-    updateMessage(id: string, updates: Partial<NewMessage>): Promise<void>;
+    update(id: string, updates: Partial<NewMessage>): Promise<void>;
 
     delete(id: string): Promise<void>;
 }
@@ -82,7 +82,7 @@ export const api: Api = {
     message: {
         getByChat: (chatId: string) => ipcRenderer.invoke('message:getByChat', chatId),
         save: (newMessage: NewMessage) => ipcRenderer.invoke('message:save', newMessage),
-        updateMessage: (id: string, updates: Partial<NewMessage>) => ipcRenderer.invoke('message:update', id, updates),
+        update: (id: string, updates: Partial<NewMessage>) => ipcRenderer.invoke('message:update', id, updates),
         delete: (id: string) => ipcRenderer.invoke('message:update', id)
     },
     streaming: {
