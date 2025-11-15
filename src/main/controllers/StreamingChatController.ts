@@ -1,36 +1,35 @@
-import {convertToModelMessages, ModelMessage, smoothStream, streamText} from 'ai';
-import {createGoogleGenerativeAI, GoogleGenerativeAIProvider} from '@ai-sdk/google';
+import {convertToModelMessages, ModelMessage, smoothStream, streamText, createProviderRegistry} from 'ai';
+import {createGoogleGenerativeAI} from '@ai-sdk/google';
+import {createOpenAI} from '@ai-sdk/openai';
+import {createAnthropic} from '@ai-sdk/anthropic';
 import {config} from 'dotenv';
 import {IpcMainEvent, WebContents} from "electron";
 import {injectable} from "inversify";
 import {IpcController, IpcOn, IpcRendererOn} from "../ipc/Decorators";
-import {ChatAbortArgs, ChatSendMessageArgs} from "../../../packages/core/dto";
+import {ChatAbortArgs, ChatSendMessageArgs} from "core/dto";
 import {Controller} from "./Controller";
 
 @injectable()
 @IpcController("streamingChat")
 export class StreamingChatController implements Controller {
     private readonly activeStreams = new Map<string, AbortController>();
-    private readonly google: GoogleGenerativeAIProvider | null = null;
-    private readonly modelName = 'gemini-2.0-flash-lite';
+    private readonly modelProviderRegistry;
 
     constructor() {
         config();
+        const openaiApiKey = process.env['OPENAI_API_KEY'];
         const geminiApiKey = process.env['GEMINI_API_KEY'];
-        if (!geminiApiKey) {
-            console.error("GEMINI_API_KEY is not set in the environment variables. Chat functionality will be disabled.");
-        } else {
-            this.google = createGoogleGenerativeAI({apiKey: geminiApiKey});
-        }
+        const anthropicApiKey = process.env['ANTHROPIC_API_KEY'];
+
+        this.modelProviderRegistry = createProviderRegistry({
+            anthropic: createAnthropic({apiKey: anthropicApiKey}),
+            openai: createOpenAI({apiKey: openaiApiKey}),
+            gemini: createGoogleGenerativeAI({apiKey: geminiApiKey}),
+        });
     }
 
     @IpcOn("sendMessage")
     public async sendMessage(args: ChatSendMessageArgs, event: IpcMainEvent) {
-        if (!this.google) {
-            console.error("Google AI client is not initialized. Cannot send message.");
-            return;
-        }
-
         const webContents = event.sender as WebContents;
         const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
 
@@ -39,7 +38,7 @@ export class StreamingChatController implements Controller {
 
         try {
             const result = streamText({
-                model: this.google(this.modelName),
+                model: this.modelProviderRegistry.languageModel(args.modelIdentifier),
                 messages: modelMessages,
                 abortSignal: controller.signal,
                 experimental_transform: smoothStream(),
@@ -62,6 +61,7 @@ export class StreamingChatController implements Controller {
             });
 
             for await (const chunk of result.toUIMessageStream()) {
+                console.log(chunk);
                 if (webContents.isDestroyed()) {
                     console.log("WebContents destroyed, stopping stream.");
                     controller.abort();
@@ -91,13 +91,22 @@ export class StreamingChatController implements Controller {
 
     @IpcRendererOn("data")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onData(channel: string, listener: (data: any) => void): () => void { return () => {}; }
+    public onData(channel: string, listener: (data: any) => void): () => void {
+        return () => {
+        };
+    }
 
     @IpcRendererOn("end")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onEnd(channel: string, listener: () => void): () => void { return () => {}; }
+    public onEnd(channel: string, listener: () => void): () => void {
+        return () => {
+        };
+    }
 
     @IpcRendererOn("error")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onError(channel: string, listener: (error: any) => void): () => void { return () => {}; }
+    public onError(channel: string, listener: (error: any) => void): () => void {
+        return () => {
+        };
+    }
 }

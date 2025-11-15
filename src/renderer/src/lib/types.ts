@@ -3,7 +3,8 @@ import {z} from "zod";
 import {ModelProviderTypeEnum} from "core/database/schema/modelProviderSchema";
 
 export const messageMetadataSchema = z.object({
-    createdAt: z.string(),
+    createdAt: z.string().optional(),
+    modelId: z.string(),
 });
 
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
