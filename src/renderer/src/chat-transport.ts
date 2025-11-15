@@ -78,8 +78,15 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
 
                 // Send to main process
                 const messages = options.messages;
+
+                // QUICK HACK FOR NOW: Extract modelId from the last user message metadata
+                const lastUserMessage = [...messages].reverse().find(msg => msg.role === 'user');
+                const modelIdentifier = lastUserMessage?.metadata?.modelId;
+
+                console.log("Model Identifier:", modelIdentifier);
                 window.api.streaming.sendMessage({
-                    chatId, messages, streamChannel, modelIdentifier: 'openai:gpt-5-nano'
+                    chatId, messages, streamChannel,
+                    modelIdentifier,
                 });
 
                 if (options.abortSignal) {

@@ -1,13 +1,12 @@
-import {convertToModelMessages, ModelMessage, smoothStream, streamText} from 'ai';
+import {convertToModelMessages, ModelMessage, smoothStream, streamText, createProviderRegistry} from 'ai';
 import {createGoogleGenerativeAI} from '@ai-sdk/google';
 import {createOpenAI} from '@ai-sdk/openai';
 import {createAnthropic} from '@ai-sdk/anthropic';
-import {createProviderRegistry} from "ai";
 import {config} from 'dotenv';
 import {IpcMainEvent, WebContents} from "electron";
 import {injectable} from "inversify";
 import {IpcController, IpcOn, IpcRendererOn} from "../ipc/Decorators";
-import {ChatAbortArgs, ChatSendMessageArgs} from "../../../packages/core/dto";
+import {ChatAbortArgs, ChatSendMessageArgs} from "core/dto";
 import {Controller} from "./Controller";
 
 @injectable()
@@ -92,13 +91,22 @@ export class StreamingChatController implements Controller {
 
     @IpcRendererOn("data")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onData(channel: string, listener: (data: any) => void): () => void { return () => {}; }
+    public onData(channel: string, listener: (data: any) => void): () => void {
+        return () => {
+        };
+    }
 
     @IpcRendererOn("end")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onEnd(channel: string, listener: () => void): () => void { return () => {}; }
+    public onEnd(channel: string, listener: () => void): () => void {
+        return () => {
+        };
+    }
 
     @IpcRendererOn("error")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onError(channel: string, listener: (error: any) => void): () => void { return () => {}; }
+    public onError(channel: string, listener: (error: any) => void): () => void {
+        return () => {
+        };
+    }
 }
