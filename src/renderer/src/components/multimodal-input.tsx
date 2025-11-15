@@ -30,8 +30,9 @@ import type {UseChatHelpers} from '@ai-sdk/react';
 import type {Attachment, ChatMessage} from '@/lib/types';
 
 const models = [
-    {id: 'gpt-4o', name: 'GPT-4o'},
-    {id: 'claude-opus-4-20250514', name: 'Claude 4 Opus'},
+    {id: 'openai:gpt-5-nano', name: 'GPT-5 Nano'},
+    {id: 'anthropic:claude-opus-4-20250514', name: 'Claude 4 Opus'},
+    {id: 'gemini:gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite'},
 ];
 
 function PureMultimodalInput({

@@ -32,7 +32,7 @@ export interface ChatSendMessageArgs {
     chatId: string;
     messages: ChatMessage[];
     streamChannel: string;
-    provider: string;
+    modelIdentifier: `anthropic:${string}` | `openai:${string}` | `gemini:${string}`;
 }
 
 export interface ChatAbortArgs {

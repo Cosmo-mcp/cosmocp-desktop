@@ -1,8 +1,8 @@
 import {convertToModelMessages, ModelMessage, smoothStream, streamText} from 'ai';
 import {createGoogleGenerativeAI} from '@ai-sdk/google';
 import {createOpenAI} from '@ai-sdk/openai';
-import {} from '@ai-sdk/anthropic';
-import {LanguageModelV2, ProviderV2} from '@ai-sdk/provider';
+import {createAnthropic} from '@ai-sdk/anthropic';
+import {createProviderRegistry} from "ai";
 import {config} from 'dotenv';
 import {IpcMainEvent, WebContents} from "electron";
 import {injectable} from "inversify";
@@ -14,35 +14,23 @@ import {Controller} from "./Controller";
 @IpcController("streamingChat")
 export class StreamingChatController implements Controller {
     private readonly activeStreams = new Map<string, AbortController>();
-    private readonly model: LanguageModelV2;
-    private readonly modelRegistry;
+    private readonly modelProviderRegistry;
 
     constructor() {
         config();
         const openaiApiKey = process.env['OPENAI_API_KEY'];
         const geminiApiKey = process.env['GEMINI_API_KEY'];
         const anthropicApiKey = process.env['ANTHROPIC_API_KEY'];
-        switch (useModelProvider) {
-            case 'OPENAI':
-                console.log("Using OPENAI as the model provider");
-                // this.modelName = 'gpt-4o-mini';
-                this.model = createOpenAI({apiKey: openaiApiKey}).responses('gpt-5-nano');
-                break;
-            case 'GOOGLE':
-                console.log("Using GOOGLE as the model provider");
-                this.model = createGoogleGenerativeAI({apiKey: geminiApiKey}).languageModel('gemini-2.0-flash-lite');
-                break;
-            default: throw new Error('Unknown model provider');
-        }
+
+        this.modelProviderRegistry = createProviderRegistry({
+            anthropic: createAnthropic({apiKey: anthropicApiKey}),
+            openai: createOpenAI({apiKey: openaiApiKey}),
+            gemini: createGoogleGenerativeAI({apiKey: geminiApiKey}),
+        });
     }
 
     @IpcOn("sendMessage")
     public async sendMessage(args: ChatSendMessageArgs, event: IpcMainEvent) {
-        if (!this.model) {
-            console.error("Google AI client is not initialized. Cannot send message.");
-            return;
-        }
-
         const webContents = event.sender as WebContents;
         const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
 
@@ -51,7 +39,7 @@ export class StreamingChatController implements Controller {
 
         try {
             const result = streamText({
-                model: this.model,
+                model: this.modelProviderRegistry.languageModel(args.modelIdentifier),
                 messages: modelMessages,
                 abortSignal: controller.signal,
                 experimental_transform: smoothStream(),
