@@ -1,5 +1,8 @@
 import {convertToModelMessages, ModelMessage, smoothStream, streamText} from 'ai';
-import {createGoogleGenerativeAI, GoogleGenerativeAIProvider} from '@ai-sdk/google';
+import {createGoogleGenerativeAI} from '@ai-sdk/google';
+import {createOpenAI} from '@ai-sdk/openai';
+import {} from '@ai-sdk/anthropic';
+import {LanguageModelV2, ProviderV2} from '@ai-sdk/provider';
 import {config} from 'dotenv';
 import {IpcMainEvent, WebContents} from "electron";
 import {injectable} from "inversify";
@@ -11,22 +14,31 @@ import {Controller} from "./Controller";
 @IpcController("streamingChat")
 export class StreamingChatController implements Controller {
     private readonly activeStreams = new Map<string, AbortController>();
-    private readonly google: GoogleGenerativeAIProvider | null = null;
-    private readonly modelName = 'gemini-2.0-flash-lite';
+    private readonly model: LanguageModelV2;
+    private readonly modelRegistry;
 
     constructor() {
         config();
+        const openaiApiKey = process.env['OPENAI_API_KEY'];
         const geminiApiKey = process.env['GEMINI_API_KEY'];
-        if (!geminiApiKey) {
-            console.error("GEMINI_API_KEY is not set in the environment variables. Chat functionality will be disabled.");
-        } else {
-            this.google = createGoogleGenerativeAI({apiKey: geminiApiKey});
+        const anthropicApiKey = process.env['ANTHROPIC_API_KEY'];
+        switch (useModelProvider) {
+            case 'OPENAI':
+                console.log("Using OPENAI as the model provider");
+                // this.modelName = 'gpt-4o-mini';
+                this.model = createOpenAI({apiKey: openaiApiKey}).responses('gpt-5-nano');
+                break;
+            case 'GOOGLE':
+                console.log("Using GOOGLE as the model provider");
+                this.model = createGoogleGenerativeAI({apiKey: geminiApiKey}).languageModel('gemini-2.0-flash-lite');
+                break;
+            default: throw new Error('Unknown model provider');
         }
     }
 
     @IpcOn("sendMessage")
     public async sendMessage(args: ChatSendMessageArgs, event: IpcMainEvent) {
-        if (!this.google) {
+        if (!this.model) {
             console.error("Google AI client is not initialized. Cannot send message.");
             return;
         }
@@ -39,7 +51,7 @@ export class StreamingChatController implements Controller {
 
         try {
             const result = streamText({
-                model: this.google(this.modelName),
+                model: this.model,
                 messages: modelMessages,
                 abortSignal: controller.signal,
                 experimental_transform: smoothStream(),
@@ -62,6 +74,7 @@ export class StreamingChatController implements Controller {
             });
 
             for await (const chunk of result.toUIMessageStream()) {
+                console.log(chunk);
                 if (webContents.isDestroyed()) {
                     console.log("WebContents destroyed, stopping stream.");
                     controller.abort();

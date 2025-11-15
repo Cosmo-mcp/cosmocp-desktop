@@ -79,7 +79,7 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
                 // Send to main process
                 const messages = options.messages;
                 window.api.streaming.sendMessage({
-                    chatId, messages, streamChannel,
+                    chatId, messages, streamChannel, provider: 'openai'
                 });
 
                 if (options.abortSignal) {

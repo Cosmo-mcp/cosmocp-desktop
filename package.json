@@ -58,6 +58,8 @@
   },
   "dependencies": {
     "@ai-sdk/google": "2.0.17",
+    "@ai-sdk/openai": "2.0.66",
+    "@ai-sdk/anthropic": "2.0.44",
     "@electric-sql/pglite": "0.3.10",
     "ai": "5.0.60",
     "dotenv": "17.2.3",

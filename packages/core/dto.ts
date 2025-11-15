@@ -32,6 +32,7 @@ export interface ChatSendMessageArgs {
     chatId: string;
     messages: ChatMessage[];
     streamChannel: string;
+    provider: string;
 }
 
 export interface ChatAbortArgs {
