@@ -76,4 +76,9 @@ export class ModelProviderRepository {
     public async deleteById(id: string): Promise<void> {
         await this.db.delete(modelProvider).where(eq(modelProvider.id, id));
     }
+
+    public async update(providerId: string, updateObject: Partial<ModelProviderCreateInput>): Promise<ModelProvider> {
+        const result = await this.db.update(modelProvider).set(updateObject).where(eq(modelProvider.id, providerId)).returning();
+        return result[0];
+    }
 }

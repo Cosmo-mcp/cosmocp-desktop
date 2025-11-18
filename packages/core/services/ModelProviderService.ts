@@ -113,4 +113,8 @@ export class ModelProviderService {
         }
         await this.repository.deleteById(providerId);
     }
+
+    public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>): Promise<ModelProvider> {
+        return this.repository.update(providerId, updateObject);
+    }
 }
