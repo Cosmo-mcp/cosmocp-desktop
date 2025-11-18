@@ -85,7 +85,11 @@ export class ModelProviderService {
     public async getProviders(): Promise<ModelProviderLite[]> {
         const providers = await this.repository.findAll();
         // Strip API key before returning to the public interface
-        return providers.map(({...rest}) => rest);
+        return providers.map((provider) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const {apiKey, ...rest} = provider;
+            return rest;
+        });
     }
 
     public async getModels(providerId: string): Promise<Model[]> {
