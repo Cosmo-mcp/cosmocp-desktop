@@ -48,6 +48,7 @@ export const model = pgTable("Model", {
     updatedAt: timestamp("updatedAt"),
     name: text("name").notNull(),
     modelId: text("modelId").notNull(),
+    description: text("description"),
     providerId: uuid("providerId").references(() => modelProvider.id),
 });
 

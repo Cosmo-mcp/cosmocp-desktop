@@ -1,7 +1,7 @@
 import {inject, injectable} from "inversify";
 import {CORETYPES} from "../types/types";
 import {ModelProviderRepository} from "../repositories/ModelProviderRepository";
-import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite} from "../dto";
+import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite, NewModel} from "../dto";
 import {ModelProviderTypeEnum} from "../database/schema/modelProviderSchema";
 
 
@@ -92,7 +92,7 @@ export class ModelProviderService {
         });
     }
 
-    public async getModels(providerId: string): Promise<Model[]> {
+    public async getModels(providerId: string): Promise<NewModel[]> {
         const provider = await this.getProviderForId(providerId);
         if (!provider) {
             throw new Error('Provider not found.');
@@ -100,11 +100,11 @@ export class ModelProviderService {
 
         // Dummy model return logic
         return [{
-            id: 'gemini-2.0-flash-lite',
+            modelId: 'gemini-2.0-flash-lite',
             name: 'Gemini Flash Lite',
             description: 'Fast and efficient model for everyday tasks.'
         }, {
-            id: 'gemini-2.0-pro-lite',
+            modelId: 'gemini-2.0-pro-lite',
             name: 'Gemini Pro Lite',
             description: 'Most capable model for complex reasoning.'
         }];
@@ -120,5 +120,9 @@ export class ModelProviderService {
 
     public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>): Promise<ModelProvider> {
         return this.repository.update(providerId, updateObject);
+    }
+
+    public async addModel(model: NewModel, provider: ModelProvider): Promise<Model> {
+        return this.repository.createModel(model, provider);
     }
 }

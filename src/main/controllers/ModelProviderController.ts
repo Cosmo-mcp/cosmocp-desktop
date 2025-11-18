@@ -1,6 +1,6 @@
 import {inject, injectable} from 'inversify';
 import {IpcController, IpcHandler} from '../ipc/Decorators';
-import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite} from 'core/dto';
+import {ModelProvider, ModelProviderCreateInput, ModelProviderLite, NewModel} from 'core/dto';
 import {CORETYPES} from 'core/types/types';
 import {ModelProviderService} from 'core/services/ModelProviderService';
 import {Controller} from "./Controller";
@@ -14,8 +14,13 @@ export class ModelProviderController implements Controller {
     }
 
     @IpcHandler('addProvider')
-    public async addProvider(providerData: ModelProviderCreateInput): Promise<ModelProvider> {
-        return this.modelProviderService.addProvider(providerData);
+    public async addProvider(providerData: ModelProviderCreateInput, models: NewModel[]): Promise<void> {
+        const provider = await this.modelProviderService.addProvider(providerData);
+        if (models) {
+            models.forEach(model => {
+                this.modelProviderService.addModel(model, provider);
+            })
+        }
     }
 
     @IpcHandler('getProviderForId')
@@ -29,7 +34,7 @@ export class ModelProviderController implements Controller {
     }
 
     @IpcHandler('getModels')
-    public async getModels(providerId: string): Promise<Model[]> {
+    public async getModels(providerId: string): Promise<NewModel[]> {
         return this.modelProviderService.getModels(providerId);
     }
 
@@ -42,6 +47,4 @@ export class ModelProviderController implements Controller {
     public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>): Promise<ModelProvider> {
         return this.modelProviderService.updateProvider(providerId, updateObject);
     }
-
-
 }

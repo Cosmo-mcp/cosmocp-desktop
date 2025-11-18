@@ -1,10 +1,10 @@
 import {inject, injectable} from "inversify";
-import {modelProvider,} from "../database/schema/modelProviderSchema"; // Use Drizzle-derived types
+import {model, modelProvider,} from "../database/schema/modelProviderSchema"; // Use Drizzle-derived types
 import {eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {safeStorage} from 'electron';
 import {DatabaseManager} from "../database/DatabaseManager";
-import {ModelProvider, ModelProviderCreateInput, ModelProviderInsert} from "../dto";
+import {Model, ModelInsert, ModelProvider, ModelProviderCreateInput, ModelProviderInsert, NewModel} from "../dto";
 
 
 @injectable()
@@ -80,5 +80,16 @@ export class ModelProviderRepository {
     public async update(providerId: string, updateObject: Partial<ModelProviderCreateInput>): Promise<ModelProvider> {
         const result = await this.db.update(modelProvider).set(updateObject).where(eq(modelProvider.id, providerId)).returning();
         return result[0];
+    }
+
+    public async createModel(newModel: NewModel, provider: ModelProvider): Promise<Model> {
+        const value: ModelInsert = {
+            ...newModel,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            providerId: provider.id,
+        }
+        const values = await this.db.insert(model).values(value).returning();
+        return values[0];
     }
 }

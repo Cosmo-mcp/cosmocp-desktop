@@ -1,5 +1,5 @@
 import {InferInsertModel, InferSelectModel} from "drizzle-orm";
-import {chat, message, modelProvider} from "./database/schema/schema";
+import {chat, message, model, modelProvider} from "./database/schema/schema";
 import {ChatMessage} from "../../src/renderer/src/lib/types";
 
 //full entity based dto
@@ -22,11 +22,10 @@ export type ModelProviderCreateInput = Omit<ModelProviderInsert, 'id' | 'created
 export type ModelProviderLite = Omit<ModelProvider, "apiKey">;
 
 // Simple Model interface (kept here for full context)
-export interface Model {
-    id: string;
-    name: string;
-    description: string;
-}
+export type Model = InferSelectModel<typeof model>;
+export type ModelInsert = InferInsertModel<typeof model>;
+
+export type NewModel = Omit<Model, 'id' | 'createdAt' | 'updatedAt' | 'providerId'>;
 
 export interface ChatSendMessageArgs {
     chatId: string;
