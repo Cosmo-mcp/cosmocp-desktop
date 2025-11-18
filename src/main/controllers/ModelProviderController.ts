@@ -1,8 +1,8 @@
 import {inject, injectable} from 'inversify';
 import {IpcController, IpcHandler} from '../ipc/Decorators';
-import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite,} from '../../../packages/core/dto';
-import {CORETYPES} from '../../../packages/core/types/types';
-import {ModelProviderService} from '../../../packages/core/services/ModelProviderService';
+import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite,} from 'core/dto';
+import {CORETYPES} from 'core/types/types';
+import {ModelProviderService} from 'core/services/ModelProviderService';
 import {Controller} from "./Controller";
 
 @injectable()

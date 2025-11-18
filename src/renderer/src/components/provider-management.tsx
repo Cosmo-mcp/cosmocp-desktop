@@ -9,6 +9,7 @@ import { ProviderInfo } from '@/lib/types';
 import { ModelProviderLite } from 'core/dto';
 import { CustomProvider, PredefinedProviders, ModelProviderTypeEnum } from 'core/database/schema/modelProviderSchema';
 import { useTheme } from 'next-themes';
+import { Edit, Trash2 } from 'lucide-react';
 
 export function ProviderManagement() {
     const { resolvedTheme } = useTheme();
@@ -17,6 +18,7 @@ export function ProviderManagement() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
     // Form state
     const [selectedProviderType, setSelectedProviderType] = useState<ModelProviderTypeEnum | null>(null);
@@ -83,11 +85,32 @@ export function ProviderManagement() {
                 setProviders([...providers, newProvider]);
                 handleCloseDialog();
             }
-        } catch (err: any) {
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to add provider';
             console.error('Failed to add provider:', err);
-            setError(err.message || 'Failed to add provider');
+            setError(errorMessage);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleEditProvider = (provider: ModelProviderLite) => {
+        // TODO: Implement updateProvider method
+        console.log('Edit provider:', provider);
+    };
+
+    const handleDeleteProvider = async (providerId: string) => {
+        setIsDeleting(providerId);
+
+        try {
+            await window.api.modelProvider.deleteProvider(providerId);
+            setProviders(providers.filter(p => p.id !== providerId));
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to delete provider';
+            console.error('Failed to delete provider:', err);
+            setError(errorMessage);
+        } finally {
+            setIsDeleting(null);
         }
     };
 
@@ -122,10 +145,25 @@ export function ProviderManagement() {
                                     <p className="text-xs text-muted-foreground capitalize">{provider.type}</p>
                                 </div>
                             </div>
-                            <div className="text-xs text-muted-foreground">
-                                {/* Could add edit/delete actions here later */}
-                                <p>Edit</p>
-                                <p>Delete</p>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    onClick={() => handleEditProvider(provider)}
+                                    title="Edit provider">
+                                    <Edit className="size-4" />
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    onClick={() => handleDeleteProvider(provider.id)}
+                                    disabled={isDeleting === provider.id}
+                                    title="Delete provider"
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                    <Trash2 className="size-4" />
+                                </Button>
                             </div>
                         </Card>
                     ))}

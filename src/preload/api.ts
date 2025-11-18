@@ -10,7 +10,7 @@ import {
     ModelProviderCreateInput,
     NewMessage,
     Message
-} from '../../packages/core/dto';
+} from 'core/dto';
 export interface ChatApi {
     getAllChats(): Promise<Chat[]>;
     getChatById(id: string): Promise<Chat | undefined>;
