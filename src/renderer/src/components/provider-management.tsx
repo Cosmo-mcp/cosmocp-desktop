@@ -11,6 +11,7 @@ import {CustomProvider, ModelProviderTypeEnum, PredefinedProviders} from 'core/d
 import {useTheme} from 'next-themes';
 import {Edit, Trash2} from 'lucide-react';
 import {defineStepper} from "@stepperize/react";
+import {ScrollArea} from "@/components/ui/scroll-area";
 
 export function ProviderManagement() {
     const {resolvedTheme} = useTheme();
@@ -233,7 +234,7 @@ export function ProviderManagement() {
                         {selectedProviderType && methods.when("step-2", () => (
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2 pb-2 border-b">
-                                    <ProviderIcon type={selectedProviderType} theme={resolvedTheme} size={32} />
+                                    <ProviderIcon type={selectedProviderType} theme={resolvedTheme} size={32}/>
                                     <div>
                                         <p className="text-sm font-medium">
                                             {ProviderInfo[selectedProviderType].name}
@@ -301,16 +302,18 @@ export function ProviderManagement() {
                         {methods.when("step-3", (step) => (
                             //iterate over the models
                             <div className="space-y-4">
-                                {models.map((model) => (
-                                    <div key={model.modelId} className="flex items-center space-x-2">
-                                        <input type="checkbox" id={model.modelId} name={model.modelId}/>
-                                        <label htmlFor={model.modelId} className="text-sm font-medium">
-                                            {model.name}
-                                        </label>
-                                    </div>
-                                ))}
+                                <ScrollArea className="h-72 rounded-md border">
+                                    {models.map((model) => (
+                                        <div key={model.modelId} className="flex items-center space-x-2">
+                                            <input type="checkbox" id={model.modelId} name={model.modelId}/>
+                                            <label htmlFor={model.modelId} className="text-sm font-medium">
+                                                {model.name}
+                                            </label>
+                                        </div>
+                                    ))}
+                            </ScrollArea>
                             </div>
-                        ))}
+                            ))}
                     </React.Fragment>
                     <DialogFooter>
                         {!methods.isFirst && (
