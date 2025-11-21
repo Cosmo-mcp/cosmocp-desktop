@@ -29,6 +29,7 @@ export function ProviderManagement() {
     const [apiKey, setApiKey] = useState('');
     const [apiUrl, setApiUrl] = useState('');
     const [editingProvider, setEditingProvider] = useState<ModelProviderLite | null>(null);
+    const [selectedModels, setSelectedModels] = useState<NewModel[]>([]);
 
     const {useStepper} = defineStepper(
         {id: "step-1", title: "Select Provider"},
@@ -69,6 +70,7 @@ export function ProviderManagement() {
         setApiUrl('');
         setError(null);
         setEditingProvider(null);
+        setSelectedModels([]);
     };
 
     const handleProviderTypeChange = (type: string) => {
@@ -103,8 +105,7 @@ export function ProviderManagement() {
                     handleCloseDialog();
                 }
             } else {
-                // Create new provider
-                const newProvider = await window.api.modelProvider.addProvider(providerData, []);
+                const newProvider = await window.api.modelProvider.addProvider(providerData, selectedModels);
                 if (newProvider) {
                     setProviders([...providers, newProvider]);
                     handleCloseDialog();
@@ -142,6 +143,22 @@ export function ProviderManagement() {
             setError(errorMessage);
         } finally {
             setIsDeleting(null);
+        }
+    };
+
+    const handleModelToggle = (modelId: string) => {
+        // Use Set for uniqueness checking
+        const modelIdSet = new Set(selectedModels.map(m => m.modelId));
+
+        if (modelIdSet.has(modelId)) {
+            // Remove model
+            setSelectedModels(selectedModels.filter(m => m.modelId !== modelId));
+        } else {
+            // Add model
+            const modelToAdd = models.find(m => m.modelId === modelId);
+            if (modelToAdd) {
+                setSelectedModels([...selectedModels, modelToAdd]);
+            }
         }
     };
 
@@ -299,14 +316,20 @@ export function ProviderManagement() {
                                 )}
                             </div>
                         ))}
-                        {methods.when("step-3", (step) => (
+                        {methods.when("step-3", () => (
                             //iterate over the models
                             <div className="space-y-4">
                                 <ScrollArea className="h-72 rounded-md border">
                                     {models.map((model) => (
-                                        <div key={model.modelId} className="flex items-center space-x-2">
-                                            <input type="checkbox" id={model.modelId} name={model.modelId}/>
-                                            <label htmlFor={model.modelId} className="text-sm font-medium">
+                                        <div key={model.modelId} className="flex items-center space-x-2 p-2">
+                                            <input
+                                                type="checkbox"
+                                                id={model.modelId}
+                                                name={model.modelId}
+                                                checked={selectedModels.some(m => m.modelId === model.modelId)}
+                                                onChange={() => handleModelToggle(model.modelId)}
+                                            />
+                                            <label htmlFor={model.modelId} className="text-sm font-medium cursor-pointer">
                                                 {model.name}
                                             </label>
                                         </div>
@@ -314,6 +337,7 @@ export function ProviderManagement() {
                             </ScrollArea>
                             </div>
                             ))}
+
                     </React.Fragment>
                     <DialogFooter>
                         {!methods.isFirst && (
@@ -352,8 +376,7 @@ export function ProviderManagement() {
                         {methods.isLast && (
                             <Button
                                 type="button"
-                                onClick={() => handleAddProvider}
-                            >
+                                onClick={handleAddProvider}>
                                 Save
                             </Button>
                         )}
