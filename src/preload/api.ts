@@ -4,7 +4,6 @@ import {
     ChatAbortArgs,
     ChatSendMessageArgs,
     Message,
-    Model,
     ModelProvider,
     ModelProviderCreateInput,
     ModelProviderLite,
@@ -25,13 +24,11 @@ export interface ChatApi {
 }
 
 export interface ModelProviderApi {
-    addProvider(providerData: ModelProviderCreateInput): Promise<ModelProvider>;
+    addProvider(providerData: ModelProviderCreateInput, models: NewModel[]): Promise<ProviderWithModels>;
 
-    getProviderForId(providerId: string): Promise<ModelProvider | undefined>;
+    getProviderForId(providerId: string): Promise<ProviderWithModels | undefined>;
 
     getProviders(): Promise<ModelProviderLite[]>;
-
-    getModels(providerId: string): Promise<Model[]>;
 
     deleteProvider(providerId: string): Promise<void>;
 
@@ -75,10 +72,9 @@ export const api: Api = {
         deleteChat: (id: string) => ipcRenderer.invoke('chat:deleteChat', id)
     },
     modelProvider: {
-        addProvider: (providerData: ModelProviderCreateInput) => ipcRenderer.invoke('modelProvider:addProvider', providerData),
+        addProvider: (providerData: ModelProviderCreateInput, models: NewModel[]) => ipcRenderer.invoke('modelProvider:addProvider', providerData, models),
         getProviderForId: (providerId: string) => ipcRenderer.invoke('modelProvider:getProviderForId', providerId),
         getProviders: () => ipcRenderer.invoke('modelProvider:getProviders'),
-        getModels: (providerId: string) => ipcRenderer.invoke('modelProvider:getModels', providerId),
         deleteProvider: (providerId: string) => ipcRenderer.invoke('modelProvider:deleteProvider', providerId),
         updateProvider: (providerId: string, updateObject: Partial<ModelProviderCreateInput>) => ipcRenderer.invoke('modelProvider:updateProvider', providerId, updateObject)
     },

@@ -49,7 +49,7 @@ export const model = pgTable("Model", {
     name: text("name").notNull(),
     modelId: text("modelId").notNull(),
     description: text("description"),
-    providerId: uuid("providerId").references(() => modelProvider.id),
+    providerId: uuid("providerId").references(() => modelProvider.id, {onDelete: 'cascade'}),
 });
 
 export const modelProviderRelations = relations(modelProvider, ({ many }) => ({
