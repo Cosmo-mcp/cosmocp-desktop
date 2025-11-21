@@ -3,7 +3,7 @@
 import React, {useEffect, useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Card} from '@/components/ui/card';
-import {Dialog, DialogContent, DialogFooter} from '@/components/ui/dialog';
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import ProviderIcon from '@/components/ui/provider-icon';
 import {ProviderInfo} from '@/lib/types';
 import {ModelProviderLite, NewModel} from 'core/dto';
@@ -27,8 +27,9 @@ export function ProviderManagement() {
     const [nickName, setNickName] = useState('');
     const [apiKey, setApiKey] = useState('');
     const [apiUrl, setApiUrl] = useState('');
+    const [editingProvider, setEditingProvider] = useState<ModelProviderLite | null>(null);
 
-    const {Scoped, useStepper, steps} = defineStepper(
+    const {useStepper} = defineStepper(
         {id: "step-1", title: "Select Provider"},
         {id: "step-2", title: "Enter Info"},
         {id: "step-3", title: "Select Models"}
@@ -56,6 +57,7 @@ export function ProviderManagement() {
     const handleOpenDialog = () => {
         setIsOpen(true);
         setError(null);
+        methods.goTo("step-1");
     };
 
     const handleCloseDialog = () => {
@@ -65,6 +67,7 @@ export function ProviderManagement() {
         setApiKey('');
         setApiUrl('');
         setError(null);
+        setEditingProvider(null);
     };
 
     const handleProviderTypeChange = (type: string) => {
@@ -72,6 +75,7 @@ export function ProviderManagement() {
         setSelectedProviderType(selectedType);
         const info = ProviderInfo[selectedType];
         setNickName(info.name);
+        methods.next();
     };
 
     const handleAddProvider = async (e: React.FormEvent) => {
@@ -105,8 +109,14 @@ export function ProviderManagement() {
     };
 
     const handleEditProvider = (provider: ModelProviderLite) => {
-        // TODO: Implement updateProvider method
-        console.log('Edit provider:', provider);
+        setEditingProvider(provider);
+        setSelectedProviderType(provider.type);
+        setNickName(provider.nickName ?? '');
+        setApiKey(provider.apiKey ?? '');
+        setApiUrl(provider.apiUrl ?? '');
+        setIsOpen(true);
+        setError(null);
+        methods.goTo("step-2");
     };
 
     const handleDeleteProvider = async (providerId: string) => {
@@ -123,8 +133,6 @@ export function ProviderManagement() {
             setIsDeleting(null);
         }
     };
-
-    const isFormValid = selectedProviderType && apiKey.trim() && (selectedProviderType !== ModelProviderTypeEnum.CUSTOM || apiUrl.trim());
 
     if (loading) {
         return <div className="text-sm text-muted-foreground">Loading providers...</div>;
@@ -186,8 +194,11 @@ export function ProviderManagement() {
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>{editingProvider ? 'Edit Provider' : 'Add Provider'}</DialogTitle>
+                    </DialogHeader>
                     <React.Fragment>
-                        {methods.when("step-1", (step) => (
+                        {methods.when("step-1", () => (
                             <div className="space-y-3">
                                 <p className="text-sm text-muted-foreground">Select a provider type:</p>
                                 {[...PredefinedProviders, CustomProvider].map((providerType) => {
@@ -197,7 +208,7 @@ export function ProviderManagement() {
                                             key={providerType}
                                             type="button"
                                             onClick={() => handleProviderTypeChange(providerType)}
-                                            className={`w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-blue-100 transition-colors text-left ${selectedProviderType === providerType ? 'bg-blue-100' : ''}`}
+                                            className={`w-full flex items-center gap-3 p-3 border rounded-lg transition-colors text-left ${selectedProviderType === providerType ? 'bg-secondary text-secondary-foreground' : 'hover:bg-accent'}`}
                                         >
                                             <ProviderIcon type={providerType} theme={resolvedTheme} size={40}/>
                                             <div>
@@ -209,8 +220,16 @@ export function ProviderManagement() {
                                 })}
                             </div>
                         ))}
-                        {methods.when("step-2", (step) => (
+                        {selectedProviderType && methods.when("step-2", () => (
                             <div className="space-y-4">
+                                <div className="flex items-center gap-2 pb-2 border-b">
+                                    <ProviderIcon type={selectedProviderType} theme={resolvedTheme} size={32} />
+                                    <div>
+                                        <p className="text-sm font-medium">
+                                            {ProviderInfo[selectedProviderType].name}
+                                        </p>
+                                    </div>
+                                </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Nick Name</label>
                                     <input
