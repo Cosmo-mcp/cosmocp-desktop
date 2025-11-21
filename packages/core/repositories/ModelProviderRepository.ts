@@ -73,21 +73,23 @@ export class ModelProviderRepository {
             const [savedProvider] = await tx.insert(modelProvider)
                 .values(encryptedData)
                 .returning({...providerRest}); // Returning the DB record (with encrypted key)
-            if (newModels) {
-                newModels.forEach(newModel => {
-                    return {
-                        ...newModel,
-                        createdAt: new Date(),
-                        updatedAt: new Date(),
-                        providerId: savedProvider.id,
-                    }
-                })
-                const savedModels = await tx.insert(model).values(newModels).returning({...modelRest});
+            if (newModels && newModels.length > 0) {
+                const modelsWithProvider = newModels.map(newModel => ({
+                    ...newModel,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    providerId: savedProvider.id,
+                }));
+                const savedModels = await tx.insert(model).values(modelsWithProvider).returning({...modelRest});
                 return {
                     ...savedProvider,
                     models: savedModels
                 };
             }
+            return {
+                ...savedProvider,
+                models: []
+            };
         });
 
     }
