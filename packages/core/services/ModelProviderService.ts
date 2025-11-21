@@ -98,19 +98,30 @@ export class ModelProviderService {
         return safeStorage.decryptString(buffer);
     };
 
-    public getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<NewModel[]> {
+    public async getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<NewModel[]> {
         const apiKey = provider.apiKey;
+        const result: NewModel[] = [];
         if (provider.type == ModelProviderTypeEnum.GOOGLE) {
-            fetch(ModelProviderService.GOOGLE_MODEL_LIST_URL, {
-                method: 'GET',
-                headers: [["x-goog-api-key", apiKey],
-                    ["Content-Type", "application/json"]]
-            })
-                .then(json => {
-                    return json.json();
-
+            try {
+                const response = await fetch(ModelProviderService.GOOGLE_MODEL_LIST_URL, {
+                    method: 'GET',
+                    headers: [["x-goog-api-key", apiKey],
+                        ["Content-Type", "application/json"]]
+                });
+                const data = await response.json();
+                const jsonArray = data.models;
+                jsonArray.forEach((model: {name:string, description: string}) => {
+                    const modelId = model.name.substring(6);
+                    result.push({
+                        name: model.name,
+                        modelId: modelId,
+                        description: model.description,
+                    })
                 })
-                .catch(err => console.error(err));
+            } catch (error) {
+                console.error(error);
+            }
         }
+        return result;
     }
 }

@@ -38,7 +38,7 @@ export interface ChatSendMessageArgs {
     chatId: string;
     messages: ChatMessage[];
     streamChannel: string;
-    modelIdentifier?: string;
+    modelIdentifier: string & {};
 }
 
 export interface ChatAbortArgs {

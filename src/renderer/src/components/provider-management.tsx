@@ -6,7 +6,7 @@ import {Card} from '@/components/ui/card';
 import {Dialog, DialogContent, DialogFooter} from '@/components/ui/dialog';
 import ProviderIcon from '@/components/ui/provider-icon';
 import {ProviderInfo} from '@/lib/types';
-import {ModelProviderLite} from 'core/dto';
+import {ModelProviderLite, NewModel} from 'core/dto';
 import {CustomProvider, ModelProviderTypeEnum, PredefinedProviders} from 'core/database/schema/modelProviderSchema';
 import {useTheme} from 'next-themes';
 import {Edit, Trash2} from 'lucide-react';
@@ -15,6 +15,7 @@ import {defineStepper} from "@stepperize/react";
 export function ProviderManagement() {
     const {resolvedTheme} = useTheme();
     const [providers, setProviders] = useState<ModelProviderLite[]>([]);
+    const [models, setModels] = useState<NewModel[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -269,7 +270,17 @@ export function ProviderManagement() {
                             </div>
                         ))}
                         {methods.when("step-3", (step) => (
-                            <p>Third step: {step.title}</p>
+                            //iterate over the models
+                            <div className="space-y-4">
+                                {models.map((model) => (
+                                    <div key={model.modelId} className="flex items-center space-x-2">
+                                        <input type="checkbox" id={model.modelId} name={model.modelId}/>
+                                        <label htmlFor={model.modelId} className="text-sm font-medium">
+                                            {model.name}
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
                         ))}
                     </React.Fragment>
                     <DialogFooter>
@@ -285,7 +296,23 @@ export function ProviderManagement() {
                         {!methods.isLast && (
                             <Button
                                 type="button"
-                                onClick={() => methods.next()}
+                                onClick={() => {
+                                    if (methods.current.id === 'step-2') {
+                                        methods.beforeNext(() => {
+                                            window.api.modelProvider.getAvailableModelsFromProviders({
+                                                type: selectedProviderType as ModelProviderTypeEnum,
+                                                apiKey,
+                                                apiUrl
+                                            }).then((values) => {
+                                                setModels(values);
+                                            }).catch(error => {
+                                                console.log(error);
+                                            });
+                                            return true;
+                                        });
+                                    }
+                                    methods.next()
+                                }}
                             >
                                 Next
                             </Button>
