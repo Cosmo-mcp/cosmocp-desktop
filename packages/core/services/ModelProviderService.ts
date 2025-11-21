@@ -49,8 +49,7 @@ export class ModelProviderService {
         };
 
         // 4. Repository handles insertion and encryption
-        const newProvider = await this.repository.addProvider(insertData, modelsData);
-        return newProvider;
+        return await this.repository.addProvider(insertData, modelsData);
     }
 
     public async getProviderForId(providerId: string): Promise<ProviderWithModels | undefined> {

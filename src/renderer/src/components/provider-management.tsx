@@ -94,14 +94,24 @@ export function ProviderManagement() {
                 apiUrl: apiUrl.trim() || (isCustomProvider ? '' : undefined),
             };
 
-            const newProvider = await window.api.modelProvider.addProvider(providerData, []);
-            if (newProvider) {
-                setProviders([...providers, newProvider]);
-                handleCloseDialog();
+            if (editingProvider) {
+                // Update existing provider
+                const updatedProvider = await window.api.modelProvider.updateProvider(editingProvider.id, providerData);
+                if (updatedProvider) {
+                    setProviders(providers.map(p => p.id === editingProvider.id ? updatedProvider : p));
+                    handleCloseDialog();
+                }
+            } else {
+                // Create new provider
+                const newProvider = await window.api.modelProvider.addProvider(providerData, []);
+                if (newProvider) {
+                    setProviders([...providers, newProvider]);
+                    handleCloseDialog();
+                }
             }
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Failed to add provider';
-            console.error('Failed to add provider:', err);
+            const errorMessage = err instanceof Error ? err.message : `Failed to ${editingProvider ? 'update' : 'add'} provider`;
+            console.error(`Failed to ${editingProvider ? 'update' : 'add'} provider:`, err);
             setError(errorMessage);
         } finally {
             setIsSubmitting(false);
