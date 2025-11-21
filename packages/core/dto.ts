@@ -1,6 +1,7 @@
 import {InferInsertModel, InferSelectModel} from "drizzle-orm";
 import {chat, message, model, modelProvider} from "./database/schema/schema";
 import {ChatMessage} from "../../src/renderer/src/lib/types";
+import {ChatMessage} from "renderer/src/lib/types";
 
 type Optional<T, K extends keyof T> = Omit<T, K> & Pick<Partial<T>, K>;
 
@@ -38,6 +39,7 @@ export interface ChatSendMessageArgs {
     chatId: string;
     messages: ChatMessage[];
     streamChannel: string;
+    modelIdentifier?: string;
 }
 
 export interface ChatAbortArgs {

@@ -30,8 +30,9 @@ import type {UseChatHelpers} from '@ai-sdk/react';
 import type {Attachment, ChatMessage} from '@/lib/types';
 
 const models = [
-    {id: 'gpt-4o', name: 'GPT-4o'},
-    {id: 'claude-opus-4-20250514', name: 'Claude 4 Opus'},
+    {id: 'openai:gpt-5-nano', name: 'GPT-5 Nano'},
+    {id: 'anthropic:claude-opus-4-20250514', name: 'Claude 4 Opus'},
+    {id: 'gemini:gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite'},
 ];
 
 function PureMultimodalInput({
@@ -60,12 +61,13 @@ function PureMultimodalInput({
     onModelChange?: (modelId: string) => void;
 }) {
     const [text, setText] = useState<string>('');
-    const [model, setModel] = useState<string>(models[0].id);
+    const [modelId, setModelId] = useState<string>(models[0].id);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const submitForm = useCallback(() => {
         sendMessage({
             role: 'user',
+            metadata: {modelId},
             parts: [
                 ...attachments.map((attachment) => ({
                     type: 'file' as const,
@@ -86,7 +88,7 @@ function PureMultimodalInput({
         }).finally(() => {
             setText('');
         })
-    }, [chatId, sendMessage, attachments, input, setAttachments, setInput]);
+    }, [sendMessage, attachments, input, modelId]);
 
     const handlePromptSubmit = (message: PromptInputMessage) => {
         submitForm();
@@ -117,9 +119,9 @@ function PureMultimodalInput({
                         </PromptInputActionMenu>
                         <PromptInputModelSelect
                             onValueChange={(value) => {
-                                setModel(value);
+                                setModelId(value);
                             }}
-                            value={model}
+                            value={modelId}
                         >
                             <PromptInputModelSelectTrigger>
                                 <PromptInputModelSelectValue/>
