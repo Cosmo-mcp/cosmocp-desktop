@@ -11,6 +11,7 @@ import {
 import {Message, MessageContent} from "@/components/ai-elements/message";
 import {MessageSquare} from "lucide-react";
 import {Response} from '@/components/ai-elements/response';
+import {Reasoning, ReasoningContent, ReasoningTrigger} from "@/components/ai-elements/reasoning";
 
 
 interface MessagesProps {
@@ -49,6 +50,17 @@ function PureMessages({
                                                 <Response key={`${message.id}-${i}`}>
                                                     {part.text}
                                                 </Response>
+                                            );
+                                        case 'reasoning':
+                                            return (
+                                                <Reasoning
+                                                    key={`${message.id}-${i}`}
+                                                    className="w-full"
+                                                    isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
+                                                >
+                                                    <ReasoningTrigger />
+                                                    <ReasoningContent>{part.text}</ReasoningContent>
+                                                </Reasoning>
                                             );
                                         default:
                                             return null;
