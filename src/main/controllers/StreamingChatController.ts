@@ -60,7 +60,10 @@ export class StreamingChatController implements Controller {
                 }
             });
 
-            for await (const chunk of result.toUIMessageStream()) {
+            for await (const chunk of result.toUIMessageStream({
+                sendReasoning: true,
+                sendSources: true
+            })) {
                 console.log(chunk);
                 if (webContents.isDestroyed()) {
                     console.log("WebContents destroyed, stopping stream.");
