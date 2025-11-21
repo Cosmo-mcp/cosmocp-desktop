@@ -59,6 +59,7 @@
   "dependencies": {
     "@ai-sdk/google": "2.0.17",
     "@electric-sql/pglite": "0.3.10",
+    "@stepperize/react": "^5.1.9",
     "ai": "5.0.60",
     "dotenv": "17.2.3",
     "drizzle-orm": "0.44.6",

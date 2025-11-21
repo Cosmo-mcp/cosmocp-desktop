@@ -10,6 +10,8 @@ import {safeStorage} from "electron";
 export class ModelProviderService {
     private readonly repository: ModelProviderRepository;
 
+    private static readonly GOOGLE_MODEL_LIST_URL: string = "https://generativelanguage.googleapis.com/v1beta/models";
+
     constructor(
         @inject(CORETYPES.ModelProviderRepository) repository: ModelProviderRepository
     ) {
@@ -95,4 +97,20 @@ export class ModelProviderService {
         const buffer = Buffer.from(encryptedKey, 'base64');
         return safeStorage.decryptString(buffer);
     };
+
+    public getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<NewModel[]> {
+        const apiKey = provider.apiKey;
+        if (provider.type == ModelProviderTypeEnum.GOOGLE) {
+            fetch(ModelProviderService.GOOGLE_MODEL_LIST_URL, {
+                method: 'GET',
+                headers: [["x-goog-api-key", apiKey],
+                    ["Content-Type", "application/json"]]
+            })
+                .then(json => {
+                    return json.json();
+
+                })
+                .catch(err => console.error(err));
+        }
+    }
 }

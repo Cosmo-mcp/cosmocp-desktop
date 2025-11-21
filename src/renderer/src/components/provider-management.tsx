@@ -1,18 +1,19 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import React, {useEffect, useState} from 'react';
+import {Button} from '@/components/ui/button';
+import {Card} from '@/components/ui/card';
+import {Dialog, DialogContent, DialogFooter} from '@/components/ui/dialog';
 import ProviderIcon from '@/components/ui/provider-icon';
-import { ProviderInfo } from '@/lib/types';
-import { ModelProviderLite } from 'core/dto';
-import { CustomProvider, PredefinedProviders, ModelProviderTypeEnum } from 'core/database/schema/modelProviderSchema';
-import { useTheme } from 'next-themes';
-import { Edit, Trash2 } from 'lucide-react';
+import {ProviderInfo} from '@/lib/types';
+import {ModelProviderLite} from 'core/dto';
+import {CustomProvider, ModelProviderTypeEnum, PredefinedProviders} from 'core/database/schema/modelProviderSchema';
+import {useTheme} from 'next-themes';
+import {Edit, Trash2} from 'lucide-react';
+import {defineStepper} from "@stepperize/react";
 
 export function ProviderManagement() {
-    const { resolvedTheme } = useTheme();
+    const {resolvedTheme} = useTheme();
     const [providers, setProviders] = useState<ModelProviderLite[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,6 +26,14 @@ export function ProviderManagement() {
     const [nickName, setNickName] = useState('');
     const [apiKey, setApiKey] = useState('');
     const [apiUrl, setApiUrl] = useState('');
+
+    const {Scoped, useStepper, steps} = defineStepper(
+        {id: "step-1", title: "Select Provider"},
+        {id: "step-2", title: "Enter Info"},
+        {id: "step-3", title: "Select Models"}
+    );
+
+    const methods = useStepper();
 
     // Load providers on mount
     useEffect(() => {
@@ -80,7 +89,7 @@ export function ProviderManagement() {
                 apiUrl: apiUrl.trim() || (isCustomProvider ? '' : undefined),
             };
 
-            const newProvider = await window.api.modelProvider.addProvider(providerData);
+            const newProvider = await window.api.modelProvider.addProvider(providerData, []);
             if (newProvider) {
                 setProviders([...providers, newProvider]);
                 handleCloseDialog();
@@ -139,7 +148,7 @@ export function ProviderManagement() {
                     {providers.map((provider) => (
                         <Card key={provider.id} className="p-4 justify-between flex-row">
                             <div className="flex items-center gap-3">
-                                <ProviderIcon type={provider.type} theme={resolvedTheme} size={40} />
+                                <ProviderIcon type={provider.type} theme={resolvedTheme} size={40}/>
                                 <div>
                                     <p className="font-medium text-sm">{provider.nickName}</p>
                                     <p className="text-xs text-muted-foreground capitalize">{provider.type}</p>
@@ -152,7 +161,7 @@ export function ProviderManagement() {
                                     size="icon-sm"
                                     onClick={() => handleEditProvider(provider)}
                                     title="Edit provider">
-                                    <Edit className="size-4" />
+                                    <Edit className="size-4"/>
                                 </Button>
                                 <Button
                                     type="button"
@@ -162,7 +171,7 @@ export function ProviderManagement() {
                                     disabled={isDeleting === provider.id}
                                     title="Delete provider"
                                     className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                    <Trash2 className="size-4" />
+                                    <Trash2 className="size-4"/>
                                 </Button>
                             </div>
                         </Card>
@@ -176,12 +185,8 @@ export function ProviderManagement() {
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Add Provider</DialogTitle>
-                    </DialogHeader>
-
-                    <form onSubmit={handleAddProvider} className="space-y-4">
-                        {!selectedProviderType ? (
+                    <React.Fragment>
+                        {methods.when("step-1", (step) => (
                             <div className="space-y-3">
                                 <p className="text-sm text-muted-foreground">Select a provider type:</p>
                                 {[...PredefinedProviders, CustomProvider].map((providerType) => {
@@ -191,9 +196,9 @@ export function ProviderManagement() {
                                             key={providerType}
                                             type="button"
                                             onClick={() => handleProviderTypeChange(providerType)}
-                                            className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-accent transition-colors text-left"
+                                            className={`w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-blue-100 transition-colors text-left ${selectedProviderType === providerType ? 'bg-blue-100' : ''}`}
                                         >
-                                            <ProviderIcon type={providerType} theme={resolvedTheme} size={40} />
+                                            <ProviderIcon type={providerType} theme={resolvedTheme} size={40}/>
                                             <div>
                                                 <p className="text-sm font-medium">{info.name}</p>
                                                 <p className="text-xs text-muted-foreground">{info.description}</p>
@@ -202,17 +207,9 @@ export function ProviderManagement() {
                                     );
                                 })}
                             </div>
-                        ) : (
+                        ))}
+                        {methods.when("step-2", (step) => (
                             <div className="space-y-4">
-                                <div className="flex items-center gap-2 pb-2 border-b">
-                                    <ProviderIcon type={selectedProviderType} theme={resolvedTheme} size={32} />
-                                    <div>
-                                        <p className="text-sm font-medium">
-                                            {ProviderInfo[selectedProviderType].name}
-                                        </p>
-                                    </div>
-                                </div>
-
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Nick Name</label>
                                     <input
@@ -264,42 +261,50 @@ export function ProviderManagement() {
                                 )}
 
                                 {error && (
-                                    <div className="p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
+                                    <div
+                                        className="p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
                                         {error}
                                     </div>
                                 )}
                             </div>
-                        )}
-                    </form>
-
+                        ))}
+                        {methods.when("step-3", (step) => (
+                            <p>Third step: {step.title}</p>
+                        ))}
+                    </React.Fragment>
                     <DialogFooter>
-                        {selectedProviderType && (
+                        {!methods.isFirst && (
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => setSelectedProviderType(null)}
+                                onClick={() => methods.prev()}
                             >
-                                Back
+                                Prev
                             </Button>
                         )}
-                        {selectedProviderType && (
+                        {!methods.isLast && (
                             <Button
                                 type="button"
-                                onClick={handleAddProvider}
-                                disabled={isSubmitting || !isFormValid}
+                                onClick={() => methods.next()}
                             >
-                                {isSubmitting ? 'Saving...' : 'Save Provider'}
+                                Next
                             </Button>
                         )}
-                        {!selectedProviderType && (
+                        {methods.isLast && (
                             <Button
                                 type="button"
-                                variant="outline"
-                                onClick={handleCloseDialog}
+                                onClick={() => handleAddProvider}
                             >
-                                Cancel
+                                Save
                             </Button>
                         )}
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleCloseDialog}
+                        >
+                            Cancel
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

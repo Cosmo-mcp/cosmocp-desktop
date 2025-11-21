@@ -37,4 +37,9 @@ export class ModelProviderController implements Controller {
     public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>): Promise<ModelProvider> {
         return this.modelProviderService.updateProvider(providerId, updateObject);
     }
+
+    @IpcHandler('getAvailableModelsFromProviders')
+    public async getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<ModelProvider> {
+        return this.modelProviderService.getAvailableModelsFromProviders(provider);
+    }
 }
