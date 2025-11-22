@@ -32,6 +32,8 @@ export interface ModelProviderApi {
 
     getProviders(): Promise<ModelProviderLite[]>;
 
+    getProvidersWithModels(): Promise<ProviderWithModels[]>;
+
     deleteProvider(providerId: string): Promise<void>;
 
     updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>): Promise<ModelProvider>;
@@ -79,6 +81,7 @@ export const api: Api = {
         addProvider: (providerData: ModelProviderCreateInput, models: NewModel[]) => ipcRenderer.invoke('modelProvider:addProvider', providerData, models),
         getProviderForId: (providerId: string) => ipcRenderer.invoke('modelProvider:getProviderForId', providerId),
         getProviders: () => ipcRenderer.invoke('modelProvider:getProviders'),
+        getProvidersWithModels: () => ipcRenderer.invoke('modelProvider:getProvidersWithModels'),
         deleteProvider: (providerId: string) => ipcRenderer.invoke('modelProvider:deleteProvider', providerId),
         updateProvider: (providerId: string, updateObject: Partial<ModelProviderCreateInput>) => ipcRenderer.invoke('modelProvider:updateProvider', providerId, updateObject),
         getAvailableModelsFromProviders: (provider: ModelProviderCreateInput) => ipcRenderer.invoke('modelProvider:getAvailableModelsFromProviders', provider)

@@ -60,6 +60,10 @@ export class ModelProviderService {
         return this.repository.findAll({withApiKey: false});
     }
 
+    public async getProvidersWithModels(): Promise<ProviderWithModels[]> {
+        return this.repository.getAllWithModels();
+    }
+
     public async deleteProvider(providerId: string): Promise<void> {
         try {
             await this.repository.deleteProviderById(providerId);

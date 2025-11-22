@@ -56,6 +56,18 @@ export class ModelProviderRepository {
         return result;
     }
 
+    public async getAllWithModels(): Promise<ProviderWithModels[]> {
+        const result = await this.db.query.modelProvider.findMany({
+            columns: {
+                apiKey: false
+            },
+            with: {
+                models: true
+            }
+        });
+        return result;
+    }
+
     // Accepts the type-checked input from the service
     public async addProvider(newProvider: ModelProviderCreateInput, newModels: NewModel[]): Promise<ProviderWithModels> {
         // Encrypt the key before hitting the database

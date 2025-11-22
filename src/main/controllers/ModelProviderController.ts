@@ -28,6 +28,11 @@ export class ModelProviderController implements Controller {
         return this.modelProviderService.getProviders();
     }
 
+    @IpcHandler('getProvidersWithModels')
+    public async getProvidersWithModels(): Promise<ProviderWithModels[]> {
+        return this.modelProviderService.getProvidersWithModels();
+    }
+
     @IpcHandler('deleteProvider')
     public async deleteProvider(providerId: string): Promise<void> {
         return this.modelProviderService.deleteProvider(providerId);
