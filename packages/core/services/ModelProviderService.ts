@@ -110,7 +110,7 @@ export class ModelProviderService {
                 const data = await response.json();
                 const jsonArray = data.models;
                 jsonArray.forEach((model: {name:string, description: string}) => {
-                    const modelId = model.name.substring(6);
+                    const modelId = model.name.substring(7);
                     result.push({
                         name: model.name,
                         modelId: modelId,
