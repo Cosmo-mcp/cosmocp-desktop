@@ -37,7 +37,9 @@ export class StreamingChatController implements Controller {
         this.activeStreams.set(args.streamChannel, controller);
 
         try {
+
             const result = streamText({
+                // @ts-expect-error/type-does-not-exist
                 model: this.modelProviderRegistry.languageModel(args.modelIdentifier),
                 messages: modelMessages,
                 abortSignal: controller.signal,

@@ -1,7 +1,7 @@
 'use client';
 
 import type {UIMessage} from 'ai';
-import {type Dispatch, memo, type SetStateAction, useCallback, useRef, useState,} from 'react';
+import {type Dispatch, memo, type SetStateAction, useCallback, useEffect, useRef, useState,} from 'react';
 import {toast} from 'sonner';
 import {
     PromptInput,
@@ -12,14 +12,10 @@ import {
     PromptInputAttachment,
     PromptInputAttachments,
     PromptInputBody,
+    PromptInputButton,
     PromptInputFooter,
     PromptInputHeader,
     PromptInputMessage,
-    PromptInputModelSelect,
-    PromptInputModelSelectContent,
-    PromptInputModelSelectItem,
-    PromptInputModelSelectTrigger,
-    PromptInputModelSelectValue,
     PromptInputProvider,
     PromptInputSubmit,
     PromptInputTextarea,
@@ -28,12 +24,16 @@ import {
 import equal from 'fast-deep-equal';
 import type {UseChatHelpers} from '@ai-sdk/react';
 import type {Attachment, ChatMessage} from '@/lib/types';
-
-const models = [
-    {id: 'openai:gpt-5-nano', name: 'GPT-5 Nano'},
-    {id: 'anthropic:claude-opus-4-20250514', name: 'Claude 4 Opus'},
-    {id: 'gemini:gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite'},
-];
+import {ModelLite, ProviderWithModels} from "core/dto";
+import {
+    ModelSelector, ModelSelectorContent, ModelSelectorEmpty, ModelSelectorGroup, ModelSelectorInput,
+    ModelSelectorItem, ModelSelectorList,
+    ModelSelectorLogo, ModelSelectorLogoGroup,
+    ModelSelectorName,
+    ModelSelectorTrigger
+} from "@/components/ai-elements/model-selector";
+import {CheckIcon} from "lucide-react";
+import {model} from "core/database/schema/modelProviderSchema";
 
 function PureMultimodalInput({
                                  chatId,
@@ -61,10 +61,24 @@ function PureMultimodalInput({
     onModelChange?: (modelId: string) => void;
 }) {
     const [text, setText] = useState<string>('');
-    const [modelId, setModelId] = useState<string>(models[0].id);
+    const [modelId, setModelId] = useState<string | undefined>(undefined);
+    const [providers, setProviders] = useState<ProviderWithModels[]>([]);
+    const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+    useEffect(() => {
+        window.api.modelProvider.getProvidersWithModels()
+            .then((providers) => {
+                setProviders(providers);
+                if (providers.length > 0) {
+                    setModelId(providers[0].models[0].modelId);
+                }
+            })
+            .catch((error) => console.log(error));
+    });
     const submitForm = useCallback(() => {
+        if (!modelId) {
+            return;
+        }
         sendMessage({
             role: 'user',
             metadata: {modelId},
@@ -117,23 +131,56 @@ function PureMultimodalInput({
                                 <PromptInputActionAddAttachments/>
                             </PromptInputActionMenuContent>
                         </PromptInputActionMenu>
-                        <PromptInputModelSelect
-                            onValueChange={(value) => {
-                                setModelId(value);
-                            }}
-                            value={modelId}
+                        <ModelSelector
+                            onOpenChange={setModelSelectorOpen}
+                            open={modelSelectorOpen}
                         >
-                            <PromptInputModelSelectTrigger>
-                                <PromptInputModelSelectValue/>
-                            </PromptInputModelSelectTrigger>
-                            <PromptInputModelSelectContent>
-                                {models.map((model) => (
-                                    <PromptInputModelSelectItem key={model.id} value={model.id}>
-                                        {model.name}
-                                    </PromptInputModelSelectItem>
-                                ))}
-                            </PromptInputModelSelectContent>
-                        </PromptInputModelSelect>
+                            <ModelSelectorTrigger asChild>
+                                <PromptInputButton className="w-48">
+                                    {modelId && (
+                                        <ModelSelectorName>
+                                            {modelId}
+                                        </ModelSelectorName>
+                                    )}
+                                </PromptInputButton>
+                            </ModelSelectorTrigger>
+                            <ModelSelectorContent>
+                                <ModelSelectorInput placeholder="Search models..."/>
+                                <ModelSelectorList>
+                                    <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
+                                    {providers.map((provider) => (
+                                        <ModelSelectorGroup heading={provider.type.toString()} key={provider.type.toString()}>
+                                            {provider.models
+                                                .map((m) => (
+                                                    <ModelSelectorItem
+                                                        key={m.modelId}
+                                                        onSelect={() => {
+                                                            setModelId(m.modelId);
+                                                            setModelSelectorOpen(false);
+                                                        }}
+                                                        value={m.modelId}
+                                                    >
+                                                        <ModelSelectorName>{m.name}</ModelSelectorName>
+                                                        <ModelSelectorLogoGroup>
+                                                            {providers.map((provider) => (
+                                                                <ModelSelectorLogo
+                                                                    key={provider.type.toString()}
+                                                                    provider={provider.type.toString()}
+                                                                />
+                                                            ))}
+                                                        </ModelSelectorLogoGroup>
+                                                        {modelId === m.modelId ? (
+                                                            <CheckIcon className="ml-auto size-4"/>
+                                                        ) : (
+                                                            <div className="ml-auto size-4"/>
+                                                        )}
+                                                    </ModelSelectorItem>
+                                                ))}
+                                        </ModelSelectorGroup>
+                                    ))}
+                                </ModelSelectorList>
+                            </ModelSelectorContent>
+                        </ModelSelector>
                     </PromptInputTools>
                     <PromptInputSubmit disabled={!text && !status} status={status}/>
                 </PromptInputFooter>

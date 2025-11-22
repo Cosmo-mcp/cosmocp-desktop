@@ -112,7 +112,9 @@ import {
     Chat,
     ModelProviderCreateInput,
     NewMessage,
-    Message
+    Message,
+    NewModel,
+    ProviderWithModels
 } from '../../packages/core/dto';
 `;
 
