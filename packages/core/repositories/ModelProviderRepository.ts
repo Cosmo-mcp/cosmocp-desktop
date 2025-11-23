@@ -110,9 +110,43 @@ export class ModelProviderRepository {
         await this.db.delete(modelProvider).where(eq(modelProvider.id, id));
     }
 
-    public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>): Promise<ModelProvider> {
-        const result = await this.db.update(modelProvider).set(updateObject).where(eq(modelProvider.id, providerId)).returning();
-        return result[0];
+    public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, newModels?: NewModel[]): Promise<ProviderWithModels> {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {apiKey, ...providerRest} = getTableColumns(modelProvider);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {providerId: _, ...modelRest} = getTableColumns(model);
+
+        return this.db.transaction(async (tx) => {
+            const [updatedProvider] = await tx.update(modelProvider)
+                .set(updateObject)
+                .where(eq(modelProvider.id, providerId))
+                .returning({...providerRest});
+
+            if (newModels && newModels.length > 0) {
+                // Delete existing models for this provider
+                await tx.delete(model).where(eq(model.providerId, providerId));
+
+                // Insert new models
+                const modelsWithProvider = newModels.map(newModel => ({
+                    ...newModel,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    providerId: providerId,
+                }));
+                const savedModels = await tx.insert(model).values(modelsWithProvider).returning({...modelRest});
+                return {
+                    ...updatedProvider,
+                    models: savedModels
+                };
+            }
+
+            // If no new models provided, fetch existing models
+            const existingModels = await tx.select().from(model).where(eq(model.providerId, providerId));
+            return {
+                ...updatedProvider,
+                models: existingModels
+            };
+        });
     }
 
     public async getModels(provider: ModelProvider): Promise<Model[]> {

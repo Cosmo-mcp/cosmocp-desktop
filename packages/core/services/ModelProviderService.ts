@@ -74,8 +74,8 @@ export class ModelProviderService {
 
     }
 
-    public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>): Promise<ModelProvider> {
-        return this.repository.updateProvider(providerId, updateObject);
+    public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData?: NewModel[]): Promise<ProviderWithModels> {
+        return this.repository.updateProvider(providerId, updateObject, modelsData);
     }
 
     public async addModel(model: NewModel, provider: ModelProvider): Promise<ProviderWithModels> {

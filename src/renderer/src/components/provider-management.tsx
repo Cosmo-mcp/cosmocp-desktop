@@ -6,7 +6,7 @@ import {Card} from '@/components/ui/card';
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import ProviderIcon from '@/components/ui/provider-icon';
 import {ProviderInfo} from '@/lib/types';
-import {ModelProviderLite, NewModel} from 'core/dto';
+import {NewModel, ProviderWithModels} from 'core/dto';
 import {CustomProvider, ModelProviderTypeEnum, PredefinedProviders} from 'core/database/schema/modelProviderSchema';
 import {useTheme} from 'next-themes';
 import {Edit, Trash2} from 'lucide-react';
@@ -15,7 +15,7 @@ import {ScrollArea} from "@/components/ui/scroll-area";
 
 export function ProviderManagement() {
     const {resolvedTheme} = useTheme();
-    const [providers, setProviders] = useState<ModelProviderLite[]>([]);
+    const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [models, setModels] = useState<NewModel[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +28,7 @@ export function ProviderManagement() {
     const [nickName, setNickName] = useState('');
     const [apiKey, setApiKey] = useState('');
     const [apiUrl, setApiUrl] = useState('');
-    const [editingProvider, setEditingProvider] = useState<ModelProviderLite | null>(null);
+    const [editingProvider, setEditingProvider] = useState<ProviderWithModels | null>(null);
     const [selectedModels, setSelectedModels] = useState<NewModel[]>([]);
 
     const {useStepper} = defineStepper(
@@ -43,7 +43,7 @@ export function ProviderManagement() {
     useEffect(() => {
         async function loadProviders() {
             try {
-                const list = await window.api.modelProvider.getProviders();
+                const list = await window.api.modelProvider.getProvidersWithModels();
                 setProviders(list);
             } catch (e) {
                 console.error('Failed to load providers', e);
@@ -71,6 +71,7 @@ export function ProviderManagement() {
         setError(null);
         setEditingProvider(null);
         setSelectedModels([]);
+        setModels([]);
     };
 
     const handleProviderTypeChange = (type: string) => {
@@ -99,7 +100,7 @@ export function ProviderManagement() {
 
             if (editingProvider) {
                 // Update existing provider
-                const updatedProvider = await window.api.modelProvider.updateProvider(editingProvider.id, providerData);
+                const updatedProvider = await window.api.modelProvider.updateProvider(editingProvider.id, providerData, selectedModels);
                 if (updatedProvider) {
                     setProviders(providers.map(p => p.id === editingProvider.id ? updatedProvider : p));
                     handleCloseDialog();
@@ -120,12 +121,13 @@ export function ProviderManagement() {
         }
     };
 
-    const handleEditProvider = (provider: ModelProviderLite) => {
+    const handleEditProvider = (provider: ProviderWithModels) => {
         setEditingProvider(provider);
         setSelectedProviderType(provider.type);
         setNickName(provider.nickName ?? '');
         setApiKey(provider.apiKey ?? '');
         setApiUrl(provider.apiUrl ?? '');
+        setSelectedModels(provider.models ?? []);
         setIsOpen(true);
         setError(null);
         methods.goTo("step-2");
@@ -186,9 +188,18 @@ export function ProviderManagement() {
                         <Card key={provider.id} className="p-4 justify-between flex-row">
                             <div className="flex items-center gap-3">
                                 <ProviderIcon type={provider.type} theme={resolvedTheme} size={40}/>
-                                <div>
+                                <div className="flex-1">
                                     <p className="font-medium text-sm">{provider.nickName}</p>
                                     <p className="text-xs text-muted-foreground capitalize">{provider.type}</p>
+                                    {provider.models && provider.models.length > 0 && (
+                                        <div className="mt-2 flex flex-wrap gap-1">
+                                            {provider.models.map((model) => (
+                                                <span key={model.modelId} className="inline-block px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded">
+                                                    {model.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -329,14 +340,15 @@ export function ProviderManagement() {
                                                 checked={selectedModels.some(m => m.modelId === model.modelId)}
                                                 onChange={() => handleModelToggle(model.modelId)}
                                             />
-                                            <label htmlFor={model.modelId} className="text-sm font-medium cursor-pointer">
+                                            <label htmlFor={model.modelId}
+                                                   className="text-sm font-medium cursor-pointer">
                                                 {model.name}
                                             </label>
                                         </div>
                                     ))}
-                            </ScrollArea>
+                                </ScrollArea>
                             </div>
-                            ))}
+                        ))}
 
                     </React.Fragment>
                     <DialogFooter>
@@ -361,6 +373,8 @@ export function ProviderManagement() {
                                                 apiUrl
                                             }).then((values) => {
                                                 setModels(values);
+                                                // If editing and already have selected models, they'll stay selected
+                                                // because we set them in handleEditProvider
                                             }).catch(error => {
                                                 console.log(error);
                                             });

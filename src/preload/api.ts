@@ -4,14 +4,13 @@ import {
     ChatAbortArgs,
     ChatSendMessageArgs,
     Message,
-    ModelProvider,
     ModelProviderCreateInput,
     ModelProviderLite,
     NewChat,
     NewMessage,
     NewModel,
     ProviderWithModels
-} from '../../packages/core/dto';
+} from 'core/dto';
 
 export interface ChatApi {
     getAllChats(): Promise<Chat[]>;
@@ -36,7 +35,7 @@ export interface ModelProviderApi {
 
     deleteProvider(providerId: string): Promise<void>;
 
-    updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>): Promise<ModelProvider>;
+    updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, models?: NewModel[]): Promise<ProviderWithModels>;
 
     getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<NewModel[]>;
 }
@@ -83,7 +82,7 @@ export const api: Api = {
         getProviders: () => ipcRenderer.invoke('modelProvider:getProviders'),
         getProvidersWithModels: () => ipcRenderer.invoke('modelProvider:getProvidersWithModels'),
         deleteProvider: (providerId: string) => ipcRenderer.invoke('modelProvider:deleteProvider', providerId),
-        updateProvider: (providerId: string, updateObject: Partial<ModelProviderCreateInput>) => ipcRenderer.invoke('modelProvider:updateProvider', providerId, updateObject),
+        updateProvider: (providerId: string, updateObject: Partial<ModelProviderCreateInput>, models?: NewModel[]) => ipcRenderer.invoke('modelProvider:updateProvider', providerId, updateObject, models),
         getAvailableModelsFromProviders: (provider: ModelProviderCreateInput) => ipcRenderer.invoke('modelProvider:getAvailableModelsFromProviders', provider)
     },
     message: {
