@@ -24,16 +24,21 @@ import {
 import equal from 'fast-deep-equal';
 import type {UseChatHelpers} from '@ai-sdk/react';
 import type {Attachment, ChatMessage} from '@/lib/types';
-import {ModelLite, ProviderWithModels} from "core/dto";
+import {ModelLite, ModelProviderLite, ProviderWithModels} from "core/dto";
 import {
-    ModelSelector, ModelSelectorContent, ModelSelectorEmpty, ModelSelectorGroup, ModelSelectorInput,
-    ModelSelectorItem, ModelSelectorList,
-    ModelSelectorLogo, ModelSelectorLogoGroup,
+    ModelSelector,
+    ModelSelectorContent,
+    ModelSelectorEmpty,
+    ModelSelectorGroup,
+    ModelSelectorInput,
+    ModelSelectorItem,
+    ModelSelectorList,
+    ModelSelectorLogo,
+    ModelSelectorLogoGroup,
     ModelSelectorName,
     ModelSelectorTrigger
 } from "@/components/ai-elements/model-selector";
 import {CheckIcon} from "lucide-react";
-import {model} from "core/database/schema/modelProviderSchema";
 
 function PureMultimodalInput({
                                  chatId,
@@ -44,7 +49,6 @@ function PureMultimodalInput({
                                  attachments,
                                  setAttachments,
                                  sendMessage,
-                                 selectedModelId,
                              }: {
     chatId: string;
     input: string;
@@ -57,11 +61,11 @@ function PureMultimodalInput({
     sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
     className?: string;
     stillAnswering?: boolean,
-    selectedModelId: string;
     onModelChange?: (modelId: string) => void;
 }) {
     const [text, setText] = useState<string>('');
-    const [modelId, setModelId] = useState<string | undefined>(undefined);
+    const [selectedModel, setSelectedModel] = useState<ModelLite | undefined>(undefined);
+    const [selectedProvider, setSelectedProvider] = useState<ModelProviderLite | undefined>(undefined);
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -70,15 +74,17 @@ function PureMultimodalInput({
             .then((providers) => {
                 setProviders(providers);
                 if (providers.length > 0) {
-                    setModelId(providers[0].models[0].modelId);
+                    setSelectedProvider((providers[0]));
+                    setSelectedModel(providers[0].models[0]);
                 }
             })
             .catch((error) => console.log(error));
     });
     const submitForm = useCallback(() => {
-        if (!modelId) {
+        if (!selectedModel) {
             return;
         }
+        const modelId = selectedProvider?.nickName + ":" + selectedModel.modelId
         sendMessage({
             role: 'user',
             metadata: {modelId},
@@ -102,7 +108,7 @@ function PureMultimodalInput({
         }).finally(() => {
             setText('');
         })
-    }, [sendMessage, attachments, input, modelId]);
+    }, [sendMessage, attachments, input]);
 
     const handlePromptSubmit = (message: PromptInputMessage) => {
         submitForm();
@@ -137,9 +143,9 @@ function PureMultimodalInput({
                         >
                             <ModelSelectorTrigger asChild>
                                 <PromptInputButton className="w-48">
-                                    {modelId && (
+                                    {selectedModel && (
                                         <ModelSelectorName>
-                                            {modelId}
+                                            {selectedModel.modelId}
                                         </ModelSelectorName>
                                     )}
                                 </PromptInputButton>
@@ -149,13 +155,14 @@ function PureMultimodalInput({
                                 <ModelSelectorList>
                                     <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
                                     {providers.map((provider) => (
-                                        <ModelSelectorGroup heading={provider.type.toString()} key={provider.type.toString()}>
+                                        <ModelSelectorGroup heading={provider.type.toString()}
+                                                            key={provider.type.toString()}>
                                             {provider.models
                                                 .map((m) => (
                                                     <ModelSelectorItem
                                                         key={m.modelId}
                                                         onSelect={() => {
-                                                            setModelId(m.modelId);
+                                                            setSelectedModel(m);
                                                             setModelSelectorOpen(false);
                                                         }}
                                                         value={m.modelId}
@@ -169,7 +176,7 @@ function PureMultimodalInput({
                                                                 />
                                                             ))}
                                                         </ModelSelectorLogoGroup>
-                                                        {modelId === m.modelId ? (
+                                                        {selectedModel?.modelId === m.modelId ? (
                                                             <CheckIcon className="ml-auto size-4"/>
                                                         ) : (
                                                             <div className="ml-auto size-4"/>

@@ -1,31 +1,49 @@
-import {convertToModelMessages, ModelMessage, smoothStream, streamText, createProviderRegistry} from 'ai';
+import {
+    convertToModelMessages,
+    createProviderRegistry,
+    ModelMessage,
+    ProviderRegistryProvider,
+    smoothStream,
+    streamText
+} from 'ai';
 import {createGoogleGenerativeAI} from '@ai-sdk/google';
+import {ProviderV2} from '@ai-sdk/provider';
 import {createOpenAI} from '@ai-sdk/openai';
 import {createAnthropic} from '@ai-sdk/anthropic';
-import {config} from 'dotenv';
 import {IpcMainEvent, WebContents} from "electron";
 import {injectable} from "inversify";
 import {IpcController, IpcOn, IpcRendererOn} from "../ipc/Decorators";
 import {ChatAbortArgs, ChatSendMessageArgs} from "core/dto";
 import {Controller} from "./Controller";
+import {inject} from "inversify";
+import {CORETYPES} from "core/types/types";
+import {ModelProviderService} from "core/services/ModelProviderService";
+import {ModelProviderTypeEnum} from "core/database/schema/modelProviderSchema";
 
 @injectable()
 @IpcController("streamingChat")
 export class StreamingChatController implements Controller {
     private readonly activeStreams = new Map<string, AbortController>();
-    private readonly modelProviderRegistry;
+    private modelProviderRegistry: ProviderRegistryProvider;
 
-    constructor() {
-        config();
-        const openaiApiKey = process.env['OPENAI_API_KEY'];
-        const geminiApiKey = process.env['GEMINI_API_KEY'];
-        const anthropicApiKey = process.env['ANTHROPIC_API_KEY'];
-
-        this.modelProviderRegistry = createProviderRegistry({
-            anthropic: createAnthropic({apiKey: anthropicApiKey}),
-            openai: createOpenAI({apiKey: openaiApiKey}),
-            gemini: createGoogleGenerativeAI({apiKey: geminiApiKey}),
-        });
+    constructor(@inject(CORETYPES.ModelProviderService)
+                private modelProviderService: ModelProviderService) {
+        const registryObject: Record<string, ProviderV2> = {};
+        this.modelProviderService.getProviders({withApiKey: true})
+            .then(providers => {
+                for (const provider of providers) {
+                    if (provider.type === ModelProviderTypeEnum.ANTHROPIC) {
+                        registryObject[provider.nickName] = createAnthropic({apiKey: provider.apiKey});
+                    } else if (provider.type === ModelProviderTypeEnum.GOOGLE) {
+                        registryObject[provider.nickName] = createGoogleGenerativeAI({apiKey: provider.apiKey});
+                    } else if (provider.type === ModelProviderTypeEnum.OPENAI) {
+                        registryObject[provider.nickName] = createOpenAI({apiKey: provider.apiKey});
+                    } else {
+                        throw new Error(`Unknown provider provider: ${provider.type} , ${provider.nickName}`);
+                    }
+                }
+                this.modelProviderRegistry = createProviderRegistry(registryObject);
+            })
     }
 
     @IpcOn("sendMessage")
