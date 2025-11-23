@@ -25,7 +25,7 @@ export class ModelProviderController implements Controller {
 
     @IpcHandler('getProviders')
     public async getProviders(): Promise<ModelProviderLite[]> {
-        return this.modelProviderService.getProviders();
+        return this.modelProviderService.getProviders({withApiKey: false});
     }
 
     @IpcHandler('getProvidersWithModels')

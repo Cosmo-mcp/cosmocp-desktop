@@ -18,7 +18,6 @@ interface MessagesProps {
     status: UseChatHelpers<ChatMessage>['status'];
     messages: ChatMessage[];
     regenerate: UseChatHelpers<ChatMessage>['regenerate'];
-    selectedModelId: string;
 }
 
 function PureMessages({
@@ -26,7 +25,6 @@ function PureMessages({
                           status,
                           messages,
                           regenerate,
-                          selectedModelId,
                       }: MessagesProps) {
 
     return (
@@ -66,7 +64,6 @@ function PureMessages({
 
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
     if (prevProps.status !== nextProps.status) return false;
-    if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
     if (prevProps.messages.length !== nextProps.messages.length) return false;
     if (!equal(prevProps.messages, nextProps.messages)) return false;
 

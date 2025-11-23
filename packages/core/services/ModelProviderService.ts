@@ -56,8 +56,9 @@ export class ModelProviderService {
         return this.repository.findProviderById(providerId);
     }
 
-    public async getProviders(): Promise<ModelProviderLite[]> {
-        return this.repository.findAll({withApiKey: false});
+    public async getProviders(input: {withApiKey: boolean}): Promise<ModelProviderLite[]> {
+        const providers = await this.repository.findAll({withApiKey: input.withApiKey});
+        return providers.map(this.mapToModelProvider);
     }
 
     public async getProvidersWithModels(): Promise<ProviderWithModels[]> {
@@ -93,7 +94,10 @@ export class ModelProviderService {
         } as ModelProvider;
     };
 
-    private decryptApiKey = (encryptedKey: string): string => {
+    private decryptApiKey = (encryptedKey?: string): string => {
+        if (!encryptedKey) {
+            return "";
+        }
         if (!safeStorage.isEncryptionAvailable()) {
             throw new Error('Encryption is not available.');
         }
