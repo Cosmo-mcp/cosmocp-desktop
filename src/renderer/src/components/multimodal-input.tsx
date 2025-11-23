@@ -79,7 +79,7 @@ function PureMultimodalInput({
                 }
             })
             .catch((error) => console.log(error));
-    });
+    }, []);
     const submitForm = useCallback(() => {
         if (!selectedModel) {
             return;
@@ -162,6 +162,7 @@ function PureMultimodalInput({
                                                     <ModelSelectorItem
                                                         key={m.modelId}
                                                         onSelect={() => {
+                                                            setSelectedProvider(provider);
                                                             setSelectedModel(m);
                                                             setModelSelectorOpen(false);
                                                         }}
