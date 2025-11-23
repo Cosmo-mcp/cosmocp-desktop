@@ -1,55 +1,30 @@
 import {inject, injectable} from "inversify";
 import {CORETYPES} from "../types/types";
 import {ModelProviderRepository} from "../repositories/ModelProviderRepository";
-import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite} from "../dto";
+import {ModelProvider, ModelProviderCreateInput, ModelProviderLite, NewModel, ProviderWithModels} from "../dto";
 import {ModelProviderTypeEnum} from "../database/schema/modelProviderSchema";
+import {safeStorage} from "electron";
 
 
 @injectable()
 export class ModelProviderService {
     private readonly repository: ModelProviderRepository;
 
+    private static readonly GOOGLE_MODEL_LIST_URL: string = "https://generativelanguage.googleapis.com/v1beta/models";
+
     constructor(
         @inject(CORETYPES.ModelProviderRepository) repository: ModelProviderRepository
     ) {
         this.repository = repository;
-
-        (async () => {
-            try {
-                const providers = await this.repository.findAll();
-                if (providers.length === 0) {
-                    await this.createMockProvider();
-                    console.log("Mock provider created.");
-                }
-            } catch (error) {
-                // Log any errors that occur during initial check or mock creation
-                console.error("Error during initial provider check:", error);
-            }
-        })();
-    }
-
-    private async createMockProvider(): Promise<void> {
-        const mockProviderInput: ModelProviderCreateInput = {
-            nickName: "Mock Model Provider",
-            apiKey: 'mock-model-provider-key',
-            type: ModelProviderTypeEnum.CUSTOM,
-            apiUrl: 'http://localhost:8080/api/v1/chat/completions',
-        };
-
-        await this.addProvider(mockProviderInput);
     }
 
     private async isDuplicate(provider: ModelProviderCreateInput): Promise<boolean> {
-        const providers = await this.repository.findAll();
-        return providers.some(
-            p => p.type === provider.type
-                && p.apiKey === provider.apiKey // Check with plain text key
-                && p.apiUrl === provider.apiUrl
-        );
+        const providers = await this.repository.findDuplicates(provider);
+        return providers.length > 0;
     }
 
     // Accepts ModelProviderCreateInput directly, relying on the caller/UI for data integrity.
-    public async addProvider(providerData: ModelProviderCreateInput): Promise<ModelProvider> {
+    public async addProvider(providerData: ModelProviderCreateInput, modelsData: NewModel[]): Promise<ProviderWithModels> {
         // Note: Runtime validation (like checking if apiUrl is a valid URL or
         // if type is valid) must now be handled manually or by a different library.
 
@@ -74,43 +49,86 @@ export class ModelProviderService {
         };
 
         // 4. Repository handles insertion and encryption
-        const newProvider = await this.repository.create(insertData);
-        return newProvider;
+        return await this.repository.addProvider(insertData, modelsData);
     }
 
-    public async getProviderForId(providerId: string): Promise<ModelProvider | undefined> {
-        return this.repository.findById(providerId);
+    public async getProviderForId(providerId: string): Promise<ProviderWithModels | undefined> {
+        return this.repository.findProviderById(providerId);
     }
 
-    public async getProviders(): Promise<ModelProviderLite[]> {
-        const providers = await this.repository.findAll();
-        // Strip API key before returning to the public interface
-        return providers.map(({...rest}) => rest);
+    public async getProviders(input: {withApiKey: boolean}): Promise<ModelProviderLite[]> {
+        const providers = await this.repository.findAll({withApiKey: input.withApiKey});
+        return providers.map(this.mapToModelProvider);
     }
 
-    public async getModels(providerId: string): Promise<Model[]> {
-        const provider = await this.getProviderForId(providerId);
-        if (!provider) {
-            throw new Error('Provider not found.');
-        }
-
-        // Dummy model return logic
-        return [{
-            id: 'gemini-2.0-flash-lite',
-            name: 'Gemini Flash Lite',
-            description: 'Fast and efficient model for everyday tasks.'
-        }, {
-            id: 'gemini-2.0-pro-lite',
-            name: 'Gemini Pro Lite',
-            description: 'Most capable model for complex reasoning.'
-        }];
+    public async getProvidersWithModels(): Promise<ProviderWithModels[]> {
+        return this.repository.getAllWithModels();
     }
 
     public async deleteProvider(providerId: string): Promise<void> {
-        const provider = await this.repository.findById(providerId);
-        if (!provider) {
-            throw new Error('Provider not found.');
+        try {
+            await this.repository.deleteProviderById(providerId);
+        } catch (error) {
+            console.error(error);
         }
-        await this.repository.deleteById(providerId);
+
+    }
+
+    public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData?: NewModel[]): Promise<ProviderWithModels> {
+        return this.repository.updateProvider(providerId, updateObject, modelsData);
+    }
+
+    public async addModel(model: NewModel, provider: ModelProvider): Promise<ProviderWithModels> {
+        return this.repository.addProvider(provider, [model]);
+    }
+
+    /** Maps a DB record (encrypted key) to the application model (decrypted key). */
+    private mapToModelProvider = (dbRecord: ModelProvider): ModelProvider => {
+        // Note: You must handle the timestamp conversion here if needed,
+        // as we dropped Zod's automatic date coercion.
+        return {
+            ...dbRecord,
+            apiKey: this.decryptApiKey(dbRecord.apiKey),
+            createdAt: new Date(dbRecord.createdAt),
+            updatedAt: dbRecord.updatedAt ? new Date(dbRecord.updatedAt) : undefined,
+        } as ModelProvider;
+    };
+
+    private decryptApiKey = (encryptedKey?: string): string => {
+        if (!encryptedKey) {
+            return "";
+        }
+        if (!safeStorage.isEncryptionAvailable()) {
+            throw new Error('Encryption is not available.');
+        }
+        const buffer = Buffer.from(encryptedKey, 'base64');
+        return safeStorage.decryptString(buffer);
+    };
+
+    public async getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<NewModel[]> {
+        const apiKey = provider.apiKey;
+        const result: NewModel[] = [];
+        if (provider.type == ModelProviderTypeEnum.GOOGLE) {
+            try {
+                const response = await fetch(ModelProviderService.GOOGLE_MODEL_LIST_URL, {
+                    method: 'GET',
+                    headers: [["x-goog-api-key", apiKey],
+                        ["Content-Type", "application/json"]]
+                });
+                const data = await response.json();
+                const jsonArray = data.models;
+                jsonArray.forEach((model: {name:string, description: string}) => {
+                    const modelId = model.name.substring(7);
+                    result.push({
+                        name: model.name,
+                        modelId: modelId,
+                        description: model.description,
+                    })
+                })
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        return result;
     }
 }

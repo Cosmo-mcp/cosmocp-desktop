@@ -41,7 +41,6 @@ export default function Page(): JSX.Element {
                     selectedChat !== undefined ? (
                         <ChatWindow
                             chat={selectedChat}
-                            initialChatModel=''
                         />) : (
                         <div>No chat selected</div>
                     )

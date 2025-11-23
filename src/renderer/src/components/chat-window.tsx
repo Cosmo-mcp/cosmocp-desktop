@@ -10,9 +10,7 @@ import {Chat} from "core/dto";
 
 export function ChatWindow({
                                chat,
-                               initialChatModel,
                            }: {
-    initialChatModel: string;
     chat: Chat;
 }) {
 
@@ -48,7 +46,6 @@ export function ChatWindow({
                         status={status}
                         messages={messages}
                         regenerate={regenerate}
-                        selectedModelId={initialChatModel}
                     />
 
                     <MultimodalInput
@@ -60,7 +57,6 @@ export function ChatWindow({
                         attachments={attachments}
                         setAttachments={setAttachments}
                         messages={messages}
-                        selectedModelId={initialChatModel}
                         sendMessage={sendMessage}
                     />
                 </div>

@@ -48,7 +48,8 @@ export const model = pgTable("Model", {
     updatedAt: timestamp("updatedAt"),
     name: text("name").notNull(),
     modelId: text("modelId").notNull(),
-    providerId: uuid("providerId").references(() => modelProvider.id),
+    description: text("description"),
+    providerId: uuid("providerId").references(() => modelProvider.id, {onDelete: 'cascade'}),
 });
 
 export const modelProviderRelations = relations(modelProvider, ({ many }) => ({

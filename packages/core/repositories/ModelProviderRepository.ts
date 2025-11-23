@@ -1,10 +1,18 @@
 import {inject, injectable} from "inversify";
-import {modelProvider,} from "../database/schema/modelProviderSchema"; // Use Drizzle-derived types
-import {eq} from "drizzle-orm";
+import {model, modelProvider,} from "../database/schema/modelProviderSchema"; // Use Drizzle-derived types
+import {and, eq, getTableColumns} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {safeStorage} from 'electron';
 import {DatabaseManager} from "../database/DatabaseManager";
-import {ModelProvider, ModelProviderCreateInput, ModelProviderInsert} from "../dto";
+import {
+    Model,
+    ModelProvider,
+    ModelProviderCreateInput,
+    ModelProviderInsert,
+    ModelProviderLite,
+    NewModel,
+    ProviderWithModels,
+} from "../dto";
 
 
 @injectable()
@@ -15,6 +23,136 @@ export class ModelProviderRepository {
         this.db = databaseManager.getInstance();
     }
 
+    public async findAll(columns: { withApiKey: boolean }): Promise<ModelProviderLite[]> {
+        if (columns.withApiKey) {
+            return this.db.select().from(modelProvider);
+        } else {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const {apiKey, ...rest} = getTableColumns(modelProvider);
+            return this.db.select({...rest}).from(modelProvider);
+        }
+    }
+
+    public async findDuplicates(provider: ModelProviderCreateInput): Promise<ModelProvider[]> {
+        return this.db.select().from(modelProvider).where(
+            and(
+                eq(modelProvider.type, provider.type),
+                eq(modelProvider.apiKey, provider.apiKey),
+                eq(modelProvider.apiUrl, provider.apiUrl),
+            )
+        );
+    }
+
+    public async findProviderById(id: string): Promise<ProviderWithModels | undefined> {
+        const result = await this.db.query.modelProvider.findFirst({
+            columns: {
+                apiKey: false
+            },
+            where: eq(modelProvider.id, id),
+            with: {
+                models: true
+            }
+        });
+        return result;
+    }
+
+    public async getAllWithModels(): Promise<ProviderWithModels[]> {
+        const result = await this.db.query.modelProvider.findMany({
+            columns: {
+                apiKey: false
+            },
+            with: {
+                models: true
+            }
+        });
+        return result;
+    }
+
+    // Accepts the type-checked input from the service
+    public async addProvider(newProvider: ModelProviderCreateInput, newModels: NewModel[]): Promise<ProviderWithModels> {
+        // Encrypt the key before hitting the database
+        const encryptedData: ModelProviderInsert = {
+            ...newProvider,
+            apiKey: this.encryptApiKey(newProvider.apiKey),
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {apiKey, ...providerRest} = getTableColumns(modelProvider);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {providerId, ...modelRest} = getTableColumns(model);
+
+        return this.db.transaction(async (tx) => {
+            const [savedProvider] = await tx.insert(modelProvider)
+                .values(encryptedData)
+                .returning({...providerRest}); // Returning the DB record (with encrypted key)
+            if (newModels && newModels.length > 0) {
+                const modelsWithProvider = newModels.map(newModel => ({
+                    ...newModel,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    providerId: savedProvider.id,
+                }));
+                const savedModels = await tx.insert(model).values(modelsWithProvider).returning({...modelRest});
+                return {
+                    ...savedProvider,
+                    models: savedModels
+                };
+            }
+            return {
+                ...savedProvider,
+                models: []
+            };
+        });
+
+    }
+
+    public async deleteProviderById(id: string): Promise<void> {
+        await this.db.delete(modelProvider).where(eq(modelProvider.id, id));
+    }
+
+    public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, newModels?: NewModel[]): Promise<ProviderWithModels> {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {apiKey, ...providerRest} = getTableColumns(modelProvider);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {providerId: _, ...modelRest} = getTableColumns(model);
+
+        return this.db.transaction(async (tx) => {
+            const [updatedProvider] = await tx.update(modelProvider)
+                .set(updateObject)
+                .where(eq(modelProvider.id, providerId))
+                .returning({...providerRest});
+
+            if (newModels && newModels.length > 0) {
+                // Delete existing models for this provider
+                await tx.delete(model).where(eq(model.providerId, providerId));
+
+                // Insert new models
+                const modelsWithProvider = newModels.map(newModel => ({
+                    ...newModel,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    providerId: providerId,
+                }));
+                const savedModels = await tx.insert(model).values(modelsWithProvider).returning({...modelRest});
+                return {
+                    ...updatedProvider,
+                    models: savedModels
+                };
+            }
+
+            // If no new models provided, fetch existing models
+            const existingModels = await tx.select().from(model).where(eq(model.providerId, providerId));
+            return {
+                ...updatedProvider,
+                models: existingModels
+            };
+        });
+    }
+
+    public async getModels(provider: ModelProvider): Promise<Model[]> {
+        return this.db.select().from(model).where(eq(model.providerId, provider.id));
+    }
+
     private encryptApiKey = (apiKey: string): string => {
         if (!safeStorage.isEncryptionAvailable()) {
             throw new Error('Encryption is not available.');
@@ -23,57 +161,4 @@ export class ModelProviderRepository {
         return buffer.toString('base64');
     };
 
-    private decryptApiKey = (encryptedKey: string): string => {
-        if (!safeStorage.isEncryptionAvailable()) {
-            throw new Error('Encryption is not available.');
-        }
-        const buffer = Buffer.from(encryptedKey, 'base64');
-        return safeStorage.decryptString(buffer);
-    };
-
-    /** Maps a DB record (encrypted key) to the application model (decrypted key). */
-    private mapToModelProvider = (dbRecord: ModelProvider): ModelProvider => {
-        // Note: You must handle the timestamp conversion here if needed,
-        // as we dropped Zod's automatic date coercion.
-        return {
-            ...dbRecord,
-            apiKey: this.decryptApiKey(dbRecord.apiKey),
-            createdAt: new Date(dbRecord.createdAt),
-            updatedAt: dbRecord.updatedAt ? new Date(dbRecord.updatedAt) : undefined,
-        } as ModelProvider;
-    };
-
-    public async findAll(): Promise<ModelProvider[]> {
-        const providers = await this.db.select().from(modelProvider);
-        return providers.map(this.mapToModelProvider);
-    }
-
-    public async findById(id: string): Promise<ModelProvider | undefined> {
-        const result = await this.db.select()
-            .from(modelProvider)
-            .where(eq(modelProvider.id, id))
-            .limit(1);
-
-        return result.length ? this.mapToModelProvider(result[0]) : undefined;
-    }
-
-    // Accepts the type-checked input from the service
-    public async create(data: ModelProviderCreateInput): Promise<ModelProvider> {
-        // Encrypt the key before hitting the database
-        const encryptedData: ModelProviderInsert = {
-            ...data,
-            apiKey: this.encryptApiKey(data.apiKey),
-        };
-
-        const [newProvider] = await this.db.insert(modelProvider)
-            .values(encryptedData)
-            .returning(); // Returning the DB record (with encrypted key)
-
-        // Return the application model (with decrypted key)
-        return this.mapToModelProvider(newProvider);
-    }
-
-    public async deleteById(id: string): Promise<void> {
-        await this.db.delete(modelProvider).where(eq(modelProvider.id, id));
-    }
 }

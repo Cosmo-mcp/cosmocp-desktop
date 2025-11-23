@@ -1,8 +1,8 @@
 import {inject, injectable} from 'inversify';
 import {IpcController, IpcHandler} from '../ipc/Decorators';
-import {Model, ModelProvider, ModelProviderCreateInput, ModelProviderLite,} from '../../../packages/core/dto';
-import {CORETYPES} from '../../../packages/core/types/types';
-import {ModelProviderService} from '../../../packages/core/services/ModelProviderService';
+import {ModelProviderCreateInput, ModelProviderLite, NewModel, ProviderWithModels} from 'core/dto';
+import {CORETYPES} from 'core/types/types';
+import {ModelProviderService} from 'core/services/ModelProviderService';
 import {Controller} from "./Controller";
 
 @injectable()
@@ -14,27 +14,37 @@ export class ModelProviderController implements Controller {
     }
 
     @IpcHandler('addProvider')
-    public async addProvider(providerData: ModelProviderCreateInput): Promise<ModelProvider> {
-        return this.modelProviderService.addProvider(providerData);
+    public async addProvider(providerData: ModelProviderCreateInput, models: NewModel[]): Promise<ProviderWithModels> {
+        return this.modelProviderService.addProvider(providerData, models);
     }
 
     @IpcHandler('getProviderForId')
-    public async getProviderForId(providerId: string): Promise<ModelProvider | undefined> {
+    public async getProviderForId(providerId: string): Promise<ProviderWithModels | undefined> {
         return this.modelProviderService.getProviderForId(providerId);
     }
 
     @IpcHandler('getProviders')
     public async getProviders(): Promise<ModelProviderLite[]> {
-        return this.modelProviderService.getProviders();
+        return this.modelProviderService.getProviders({withApiKey: false});
     }
 
-    @IpcHandler('getModels')
-    public async getModels(providerId: string): Promise<Model[]> {
-        return this.modelProviderService.getModels(providerId);
+    @IpcHandler('getProvidersWithModels')
+    public async getProvidersWithModels(): Promise<ProviderWithModels[]> {
+        return this.modelProviderService.getProvidersWithModels();
     }
 
     @IpcHandler('deleteProvider')
     public async deleteProvider(providerId: string): Promise<void> {
         return this.modelProviderService.deleteProvider(providerId);
+    }
+
+    @IpcHandler('updateProvider')
+    public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData?: NewModel[]): Promise<ProviderWithModels> {
+        return this.modelProviderService.updateProvider(providerId, updateObject, modelsData);
+    }
+
+    @IpcHandler('getAvailableModelsFromProviders')
+    public async getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<NewModel[]> {
+        return this.modelProviderService.getAvailableModelsFromProviders(provider);
     }
 }

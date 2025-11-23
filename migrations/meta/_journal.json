@@ -15,6 +15,13 @@
       "when": 1762563386614,
       "tag": "0001_nappy_ultragirl",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1763811559098,
+      "tag": "0002_robust_tomas",
+      "breakpoints": true
     }
   ]
 }
