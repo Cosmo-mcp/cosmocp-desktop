@@ -51,7 +51,7 @@ export function ChatWindow({
                     <MultimodalInput
                         input={input}
                         setInput={setInput}
-                        status={statu₹s}
+                        status={status}
                         attachments={attachments}
                         messages={messages}
                         sendMessage={sendMessage}
