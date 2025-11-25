@@ -41,22 +41,16 @@ import {
 import {CheckIcon} from "lucide-react";
 
 function PureMultimodalInput({
-                                 chatId,
                                  input,
                                  setInput,
                                  status,
-                                 stop,
                                  attachments,
-                                 setAttachments,
                                  sendMessage,
                              }: {
-    chatId: string;
     input: string;
     setInput: Dispatch<SetStateAction<string>>;
     status: UseChatHelpers<ChatMessage>['status'];
-    stop: () => void;
     attachments: Array<Attachment>;
-    setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
     messages: Array<UIMessage>;
     sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
     className?: string;
@@ -108,7 +102,7 @@ function PureMultimodalInput({
         }).finally(() => {
             setText('');
         })
-    }, [sendMessage, attachments, input]);
+    }, [sendMessage, attachments, input, selectedModel, selectedProvider]);
 
     const handlePromptSubmit = (message: PromptInputMessage) => {
         submitForm();
@@ -202,8 +196,7 @@ export const MultimodalInput = memo(
     (prevProps, nextProps) => {
         if (prevProps.input !== nextProps.input) return false;
         if (prevProps.stillAnswering !== nextProps.stillAnswering) return false;
-        if (prevProps.status !== nextProps.status) return false;
         if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-
+        return prevProps.status !== nextProps.status;
     },
 );

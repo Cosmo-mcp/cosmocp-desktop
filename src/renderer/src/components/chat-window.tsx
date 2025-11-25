@@ -49,13 +49,10 @@ export function ChatWindow({
                     />
 
                     <MultimodalInput
-                        chatId={chat.id}
                         input={input}
                         setInput={setInput}
-                        status={status}
-                        stop={stop}
+                        status={statu₹s}
                         attachments={attachments}
-                        setAttachments={setAttachments}
                         messages={messages}
                         sendMessage={sendMessage}
                     />
