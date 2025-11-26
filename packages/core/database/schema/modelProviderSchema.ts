@@ -34,7 +34,7 @@ export const modelProvider = pgTable("ModelProvider", {
     type: providerTypeEnum("type").notNull(),
 
     // User-editable fields
-    nickName: text("nickName"),
+    name: text("name").notNull().unique(),
     apiKey: text("apiKey").notNull(),
 
     // Optional for Predefined, required for Custom

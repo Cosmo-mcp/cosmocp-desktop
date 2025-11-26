@@ -1,53 +1,24 @@
-import {
-    convertToModelMessages,
-    createProviderRegistry,
-    ModelMessage,
-    ProviderRegistryProvider,
-    smoothStream,
-    streamText
-} from 'ai';
-import {createGoogleGenerativeAI} from '@ai-sdk/google';
-import {ProviderV2} from '@ai-sdk/provider';
-import {createOpenAI} from '@ai-sdk/openai';
-import {createAnthropic} from '@ai-sdk/anthropic';
+import {convertToModelMessages, ModelMessage, smoothStream, streamText} from 'ai';
 import {IpcMainEvent, WebContents} from "electron";
-import {injectable} from "inversify";
+import {inject, injectable} from "inversify";
 import {IpcController, IpcOn, IpcRendererOn} from "../ipc/Decorators";
 import {ChatAbortArgs, ChatSendMessageArgs} from "core/dto";
 import {Controller} from "./Controller";
-import {inject} from "inversify";
 import {CORETYPES} from "core/types/types";
 import {ModelProviderService} from "core/services/ModelProviderService";
-import {ModelProviderTypeEnum} from "core/database/schema/modelProviderSchema";
 
 @injectable()
 @IpcController("streamingChat")
 export class StreamingChatController implements Controller {
     private readonly activeStreams = new Map<string, AbortController>();
-    private modelProviderRegistry: ProviderRegistryProvider;
 
     constructor(@inject(CORETYPES.ModelProviderService)
                 private modelProviderService: ModelProviderService) {
-        const registryObject: Record<string, ProviderV2> = {};
-        this.modelProviderService.getProviders({withApiKey: true})
-            .then(providers => {
-                for (const provider of providers) {
-                    if (provider.type === ModelProviderTypeEnum.ANTHROPIC) {
-                        registryObject[provider.nickName] = createAnthropic({apiKey: provider.apiKey});
-                    } else if (provider.type === ModelProviderTypeEnum.GOOGLE) {
-                        registryObject[provider.nickName] = createGoogleGenerativeAI({apiKey: provider.apiKey});
-                    } else if (provider.type === ModelProviderTypeEnum.OPENAI) {
-                        registryObject[provider.nickName] = createOpenAI({apiKey: provider.apiKey});
-                    } else {
-                        throw new Error(`Unknown provider provider: ${provider.type} , ${provider.nickName}`);
-                    }
-                }
-                this.modelProviderRegistry = createProviderRegistry(registryObject);
-            })
     }
 
     @IpcOn("sendMessage")
     public async sendMessage(args: ChatSendMessageArgs, event: IpcMainEvent) {
+        const modelProviderRegistry = await this.modelProviderService.getModelProviderRegistry();
         const webContents = event.sender as WebContents;
         const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
 
@@ -58,7 +29,7 @@ export class StreamingChatController implements Controller {
 
             const result = streamText({
                 // @ts-expect-error/type-does-not-exist
-                model: this.modelProviderRegistry.languageModel(args.modelIdentifier),
+                model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 messages: modelMessages,
                 abortSignal: controller.signal,
                 experimental_transform: smoothStream(),
