@@ -15,8 +15,9 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
+    "strictNullChecks": true,
     "plugins": [
       {
         "name": "next"
@@ -34,7 +35,8 @@
     "../../.vite/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    "../../.vite/renderer/types/**/*.ts"
+    "../../.vite/renderer/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
