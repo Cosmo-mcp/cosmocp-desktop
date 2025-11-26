@@ -81,7 +81,7 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
 
                 // QUICK HACK FOR NOW: Extract modelId from the last user message metadata
                 const lastUserMessage = [...messages].reverse().find(msg => msg.role === 'user');
-                const modelIdentifier = lastUserMessage?.metadata?.modelId;
+                const modelIdentifier = lastUserMessage?.metadata?.modelId as string;
 
                 console.log("Model Identifier:", modelIdentifier);
                 window.api.streaming.sendMessage({
