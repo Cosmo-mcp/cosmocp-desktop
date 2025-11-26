@@ -39,6 +39,7 @@ export class ModelProviderRepository {
                 eq(modelProvider.type, provider.type),
                 eq(modelProvider.apiKey, provider.apiKey),
                 eq(modelProvider.apiUrl, provider.apiUrl),
+                eq(modelProvider.name, provider.name),
             )
         );
     }
@@ -115,6 +116,11 @@ export class ModelProviderRepository {
         const {apiKey, ...providerRest} = getTableColumns(modelProvider);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {providerId: _, ...modelRest} = getTableColumns(model);
+
+        // If apiKey is being updated, encrypt it
+        if (updateObject.apiKey) {
+            updateObject.apiKey = this.encryptApiKey(updateObject.apiKey);
+        }
 
         return this.db.transaction(async (tx) => {
             const [updatedProvider] = await tx.update(modelProvider)

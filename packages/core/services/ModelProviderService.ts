@@ -4,6 +4,11 @@ import {ModelProviderRepository} from "../repositories/ModelProviderRepository";
 import {ModelProvider, ModelProviderCreateInput, ModelProviderLite, NewModel, ProviderWithModels} from "../dto";
 import {ModelProviderTypeEnum} from "../database/schema/modelProviderSchema";
 import {safeStorage} from "electron";
+import {ProviderV2} from "@ai-sdk/provider";
+import {createAnthropic} from "@ai-sdk/anthropic";
+import {createGoogleGenerativeAI} from "@ai-sdk/google";
+import {createOpenAI} from "@ai-sdk/openai";
+import {createProviderRegistry, ProviderRegistryProvider} from "ai";
 
 
 @injectable()
@@ -11,11 +16,13 @@ export class ModelProviderService {
     private readonly repository: ModelProviderRepository;
 
     private static readonly GOOGLE_MODEL_LIST_URL: string = "https://generativelanguage.googleapis.com/v1beta/models";
+    private modelProviderRegistry: ProviderRegistryProvider;
 
     constructor(
         @inject(CORETYPES.ModelProviderRepository) repository: ModelProviderRepository
     ) {
         this.repository = repository;
+        this.updateModelProviderRegistry();
     }
 
     private async isDuplicate(provider: ModelProviderCreateInput): Promise<boolean> {
@@ -40,7 +47,7 @@ export class ModelProviderService {
 
         // 3. Map input data to the final Drizzle Insert type
         const insertData: ModelProviderCreateInput = {
-            nickName: providerData.nickName,
+            name: providerData.name,
             apiKey: providerData.apiKey, // Key is plain text here
             type: providerData.type,
             apiUrl: providerData.type === ModelProviderTypeEnum.CUSTOM
@@ -49,14 +56,16 @@ export class ModelProviderService {
         };
 
         // 4. Repository handles insertion and encryption
-        return await this.repository.addProvider(insertData, modelsData);
+        const result = await this.repository.addProvider(insertData, modelsData);
+        this.updateModelProviderRegistry();
+        return result;
     }
 
     public async getProviderForId(providerId: string): Promise<ProviderWithModels | undefined> {
         return this.repository.findProviderById(providerId);
     }
 
-    public async getProviders(input: {withApiKey: boolean}): Promise<ModelProviderLite[]> {
+    public async getProviders(input: { withApiKey: boolean }): Promise<ModelProviderLite[]> {
         const providers = await this.repository.findAll({withApiKey: input.withApiKey});
         return providers.map(this.mapToModelProvider);
     }
@@ -68,6 +77,7 @@ export class ModelProviderService {
     public async deleteProvider(providerId: string): Promise<void> {
         try {
             await this.repository.deleteProviderById(providerId);
+            this.updateModelProviderRegistry();
         } catch (error) {
             console.error(error);
         }
@@ -75,11 +85,36 @@ export class ModelProviderService {
     }
 
     public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData?: NewModel[]): Promise<ProviderWithModels> {
-        return this.repository.updateProvider(providerId, updateObject, modelsData);
+        const result = this.repository.updateProvider(providerId, updateObject, modelsData);
+        this.updateModelProviderRegistry();
+        return result;
     }
 
-    public async addModel(model: NewModel, provider: ModelProvider): Promise<ProviderWithModels> {
-        return this.repository.addProvider(provider, [model]);
+    public async getModelProviderRegistry(): Promise<ProviderRegistryProvider> {
+        if (!this.modelProviderRegistry) {
+            this.updateModelProviderRegistry();
+        }
+        return this.modelProviderRegistry;
+    }
+
+    private updateModelProviderRegistry() {
+        const registryObject: Record<string, ProviderV2> = {};
+        this.getProviders({withApiKey: true})
+            .then(providers => {
+                for (const provider of providers) {
+                    if (provider.type === ModelProviderTypeEnum.ANTHROPIC) {
+                        registryObject[provider.name] = createAnthropic({apiKey: provider.apiKey});
+                    } else if (provider.type === ModelProviderTypeEnum.GOOGLE) {
+                        registryObject[provider.name] = createGoogleGenerativeAI({apiKey: provider.apiKey});
+                    } else if (provider.type === ModelProviderTypeEnum.OPENAI) {
+                        registryObject[provider.name] = createOpenAI({apiKey: provider.apiKey});
+                    } else {
+                        throw new Error(`Unknown provider provider: ${provider.type} , ${provider.name}`);
+                    }
+                }
+                this.modelProviderRegistry = createProviderRegistry(registryObject);
+            })
+            .catch(error => console.error(error));
     }
 
     /** Maps a DB record (encrypted key) to the application model (decrypted key). */
@@ -117,7 +152,7 @@ export class ModelProviderService {
                 });
                 const data = await response.json();
                 const jsonArray = data.models;
-                jsonArray.forEach((model: {name:string, description: string}) => {
+                jsonArray.forEach((model: { name: string, description: string }) => {
                     const modelId = model.name.substring(7);
                     result.push({
                         name: model.name,

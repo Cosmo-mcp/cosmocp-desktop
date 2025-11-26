@@ -78,7 +78,7 @@ function PureMultimodalInput({
         if (!selectedModel) {
             return;
         }
-        const modelId = selectedProvider?.nickName + ":" + selectedModel.modelId
+        const modelId = selectedProvider?.name + ":" + selectedModel.modelId
         sendMessage({
             role: 'user',
             metadata: {modelId},
@@ -149,8 +149,8 @@ function PureMultimodalInput({
                                 <ModelSelectorList>
                                     <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
                                     {providers.map((provider) => (
-                                        <ModelSelectorGroup heading={provider.type.toString()}
-                                                            key={provider.type.toString()}>
+                                        <ModelSelectorGroup heading={provider.name}
+                                                            key={provider.name}>
                                             {provider.models
                                                 .map((m) => (
                                                     <ModelSelectorItem
@@ -163,15 +163,12 @@ function PureMultimodalInput({
                                                         value={m.modelId}
                                                     >
                                                         <ModelSelectorName>{m.name}</ModelSelectorName>
-                                                        <ModelSelectorLogoGroup>
-                                                            {providers.map((provider) => (
-                                                                <ModelSelectorLogo
-                                                                    key={provider.type.toString()}
-                                                                    provider={provider.type.toString()}
-                                                                />
-                                                            ))}
-                                                        </ModelSelectorLogoGroup>
-                                                        {selectedModel?.modelId === m.modelId ? (
+                                                        <ModelSelectorLogo
+                                                                key={provider.type.toString()}
+                                                            provider={provider.type.toString()}
+                                                        />
+                                                        {selectedProvider?.name === provider.name &&
+                                                        selectedModel?.modelId === m.modelId ? (
                                                             <CheckIcon className="ml-auto size-4"/>
                                                         ) : (
                                                             <div className="ml-auto size-4"/>
