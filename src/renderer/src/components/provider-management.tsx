@@ -25,7 +25,7 @@ export function ProviderManagement() {
 
     // Form state
     const [selectedProviderType, setSelectedProviderType] = useState<ModelProviderTypeEnum | null>(null);
-    const [nickName, setNickName] = useState('');
+    const [name, setName] = useState('');
     const [apiKey, setApiKey] = useState('');
     const [apiUrl, setApiUrl] = useState('');
     const [editingProvider, setEditingProvider] = useState<ProviderWithModels | null>(null);
@@ -65,7 +65,7 @@ export function ProviderManagement() {
     const handleCloseDialog = () => {
         setIsOpen(false);
         setSelectedProviderType(null);
-        setNickName('');
+        setName('');
         setApiKey('');
         setApiUrl('');
         setError(null);
@@ -78,7 +78,7 @@ export function ProviderManagement() {
         const selectedType = type as ModelProviderTypeEnum;
         setSelectedProviderType(selectedType);
         const info = ProviderInfo[selectedType];
-        setNickName(info.name);
+        setName(info.name);
         methods.next();
     };
 
@@ -93,7 +93,7 @@ export function ProviderManagement() {
             const isCustomProvider = selectedProviderType === ModelProviderTypeEnum.CUSTOM;
             const providerData = {
                 type: selectedProviderType,
-                nickName: nickName.trim(),
+                name: name.trim(),
                 apiKey: apiKey.trim(),
                 apiUrl: apiUrl.trim() || (isCustomProvider ? '' : undefined),
             };
@@ -113,7 +113,7 @@ export function ProviderManagement() {
                 }
             }
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : `Failed to ${editingProvider ? 'update' : 'add'} provider`;
+            const errorMessage = `Failed to ${editingProvider ? 'update' : 'add'} provider`;
             console.error(`Failed to ${editingProvider ? 'update' : 'add'} provider:`, err);
             setError(errorMessage);
         } finally {
@@ -124,7 +124,7 @@ export function ProviderManagement() {
     const handleEditProvider = (provider: ProviderWithModels) => {
         setEditingProvider(provider);
         setSelectedProviderType(provider.type);
-        setNickName(provider.nickName ?? '');
+        setName(provider.name ?? '');
         setApiKey(provider.apiKey ?? '');
         setApiUrl(provider.apiUrl ?? '');
         setSelectedModels(provider.models ?? []);
@@ -189,7 +189,7 @@ export function ProviderManagement() {
                             <div className="flex items-center gap-3">
                                 <ProviderIcon type={provider.type} theme={resolvedTheme} size={40}/>
                                 <div className="flex-1">
-                                    <p className="font-medium text-sm">{provider.nickName}</p>
+                                    <p className="font-medium text-sm">{provider.name}</p>
                                     <p className="text-xs text-muted-foreground capitalize">{provider.type}</p>
                                     {provider.models && provider.models.length > 0 && (
                                         <div className="mt-2 flex flex-wrap gap-1">
@@ -270,12 +270,12 @@ export function ProviderManagement() {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nick Name</label>
+                                    <label className="text-sm font-medium">Name(Unique)</label>
                                     <input
                                         type="text"
                                         placeholder="Display name (e.g., My OpenAI Account)"
-                                        value={nickName}
-                                        onChange={(e) => setNickName(e.target.value)}
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md bg-background text-sm"
                                     />
                                 </div>
@@ -318,13 +318,6 @@ export function ProviderManagement() {
                                         />
                                     </div>
                                 )}
-
-                                {error && (
-                                    <div
-                                        className="p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
-                                        {error}
-                                    </div>
-                                )}
                             </div>
                         ))}
                         {methods.when("step-3", () => (
@@ -347,6 +340,12 @@ export function ProviderManagement() {
                                         </div>
                                     ))}
                                 </ScrollArea>
+                                {error && (
+                                    <div
+                                        className="p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
+                                        {error}
+                                    </div>
+                                )}
                             </div>
                         ))}
 
@@ -370,7 +369,8 @@ export function ProviderManagement() {
                                             window.api.modelProvider.getAvailableModelsFromProviders({
                                                 type: selectedProviderType as ModelProviderTypeEnum,
                                                 apiKey,
-                                                apiUrl
+                                                apiUrl,
+                                                name
                                             }).then((values) => {
                                                 setModels(values);
                                                 // If editing and already have selected models, they'll stay selected
