@@ -5,8 +5,8 @@ import {inter} from "@/lib/fonts";
 import {ThemeProvider} from "next-themes";
 import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar";
 import {AppSidebar} from "@/components/app-sidebar";
-import {SidebarToggle} from "@/components/sidebar-toggle";
 import {Toaster} from "sonner";
+import {SiteHeader} from "@/components/site-header";
 
 export default async function RootLayout({
                                              children,
@@ -22,10 +22,22 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
-            <SidebarProvider defaultOpen={true}>
+            <SidebarProvider
+                style={{
+                    "--sidebar-width-icon": "3rem",
+                    "--header-height": "calc(var(--spacing) * 14)",
+                } as React.CSSProperties}>
                 <AppSidebar/>
-                <SidebarToggle/>
-                <SidebarInset>{children}</SidebarInset>
+                <SidebarInset>
+                    <SiteHeader/>
+                    <div className="flex flex-1 flex-col">
+                        <div className="@container/main flex flex-1 flex-col gap-2">
+                            <div className="flex flex-col h-full">
+                                {children}
+                            </div>
+                        </div>
+                    </div>
+                </SidebarInset>
             </SidebarProvider>
             <Toaster position="top-center"/>
         </ThemeProvider>

@@ -3,6 +3,7 @@ import {ModeToggle} from "@/components/mode-toggle";
 import {ProviderManagement} from "@/components/provider-management";
 import * as React from "react";
 import {useState} from "react";
+import {SiteFooter} from "@/components/site-footer";
 
 export default function SettingsPage() {
 
@@ -14,12 +15,8 @@ export default function SettingsPage() {
                 <div>
                     <h1 className="text-2xl font-semibold">Settings</h1>
                     <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
-                        Configure your provider, pick a model, and choose theme preferences.
+                        Configure your provider, pick a model
                     </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <ModeToggle onResolvedThemeChange={setResolvedTheme}/>
-                    <span className="capitalize text-sm">{resolvedTheme}</span>
                 </div>
             </header>
 
@@ -28,6 +25,7 @@ export default function SettingsPage() {
                     <ProviderManagement/>
                 </section>
             </div>
+            <SiteFooter/>
         </main>
     );
 }
