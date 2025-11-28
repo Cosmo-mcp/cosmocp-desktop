@@ -15,7 +15,6 @@ import {
     PromptInputButton,
     PromptInputFooter,
     PromptInputHeader,
-    PromptInputMessage,
     PromptInputProvider,
     PromptInputSubmit,
     PromptInputTextarea,
@@ -34,7 +33,6 @@ import {
     ModelSelectorItem,
     ModelSelectorList,
     ModelSelectorLogo,
-    ModelSelectorLogoGroup,
     ModelSelectorName,
     ModelSelectorTrigger
 } from "@/components/ai-elements/model-selector";
@@ -104,7 +102,7 @@ function PureMultimodalInput({
         })
     }, [sendMessage, attachments, input, selectedModel, selectedProvider]);
 
-    const handlePromptSubmit = (message: PromptInputMessage) => {
+    const handlePromptSubmit = () => {
         submitForm();
     }
 
@@ -136,7 +134,7 @@ function PureMultimodalInput({
                             open={modelSelectorOpen}
                         >
                             <ModelSelectorTrigger asChild>
-                                <PromptInputButton className="w-48">
+                                <PromptInputButton className="w-max">
                                     {selectedModel && (
                                         <ModelSelectorName>
                                             {selectedModel.modelId}
