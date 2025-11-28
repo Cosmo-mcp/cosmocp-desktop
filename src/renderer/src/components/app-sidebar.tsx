@@ -10,10 +10,12 @@ import {
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem, useSidebar
+    SidebarMenuItem,
+    useSidebar
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import {Home, SettingsIcon} from "lucide-react";
+import {MessageCircle, SettingsIcon} from "lucide-react";
+import {BotIcon} from "@/components/icons";
 
 export function AppSidebar() {
     const context = useSidebar();
@@ -22,27 +24,29 @@ export function AppSidebar() {
         {
             title: "Chat",
             url: "./",
-            icon: Home,
+            icon: MessageCircle,
         },
     ]
     return (
-        <Sidebar className="group-data-[side=left]:border-r-0" collapsible="icon">
-            {context.open && (
-                <SidebarHeader>
-                    <SidebarMenu>
-                        <div className="flex flex-row justify-between items-center">
-                            <Link
-                                href="/"
-                                className="flex flex-row gap-3 items-center"
-                                onClick={e => e.preventDefault()}>
-                          <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                            Cosmo
-                          </span>
+        <Sidebar collapsible="icon" variant="inset">
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton size="lg" asChild>
+                            <Link href="/">
+                                <div
+                                    className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                    <BotIcon/>
+                                </div>
+                                <div className="grid flex-1 text-left text-sm leading-tight">
+                                    <span className="truncate font-medium">Cosmo</span>
+                                    <span className="truncate text-xs">AI your way</span>
+                                </div>
                             </Link>
-                        </div>
-                    </SidebarMenu>
-                </SidebarHeader>
-            )}
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupContent>
