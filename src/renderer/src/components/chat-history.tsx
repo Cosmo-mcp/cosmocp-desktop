@@ -31,7 +31,10 @@ export function ChatHistory({
     }
 
     // Enhanced time formatting function
-    function formatMessageTime(timestamp: string): string {
+    function formatMessageTime(timestamp: Date | null): string {
+        if (!timestamp) {
+            return '';
+        }
         const date = new Date(timestamp)
 
         if (isToday(date)) {
@@ -57,7 +60,7 @@ export function ChatHistory({
                         {/* Search */}
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="cursor-pointer">
+                                <Button variant="ghost" size="icon" className="cursor-pointer" onClick={onNewChat}>
                                     <MessageCirclePlus className="h-4 w-4"/>
                                 </Button>
                             </TooltipTrigger>
@@ -87,7 +90,7 @@ export function ChatHistory({
                             key={chat.id}
                             className={cn(
                                 "flex items-center gap-3 p-3 rounded-lg cursor-pointer relative overflow-hidden hover:bg-accent/50 transition-colors",
-                                selectedChat.id === chat.id
+                                selectedChat?.id === chat.id
                                     ? "bg-accent text-accent-foreground"
                                     : ""
                             )}
@@ -97,19 +100,19 @@ export function ChatHistory({
                             <div className="flex-1 min-w-0 overflow-hidden">
                                 <div className="flex items-center justify-between mb-1 min-w-0">
                                     <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden pr-2">
-                                        <h3 className="font-medium truncate min-w-0 max-w-[160px] lg:max-w-[180px]">{conversation.name}</h3>
+                                        <h3 className="font-medium truncate min-w-0 max-w-[160px] lg:max-w-[180px]">{chat.title}</h3>
                                         {chat.pinned && (
                                             <Pin className="h-3 w-3 text-muted-foreground flex-shrink-0"/>
                                         )}
                                     </div>
                                     <span className="text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
-                    {formatMessageTime(chat.lastMessage.timestamp)}
+                    {formatMessageTime(chat.lastMessageAt)}
                   </span>
                                 </div>
 
                                 <div className="flex items-center justify-between gap-2 min-w-0">
                                     <p className="text-sm text-muted-foreground truncate flex-1 min-w-0 max-w-[180px] lg:max-w-[200px] pr-2">
-                                        {chat.lastMessage.content}
+                                        {chat.lastMessage}
                                     </p>
                                 </div>
                             </div>

@@ -6,6 +6,8 @@ export const chat = pgTable("Chat", {
     createdAt: timestamp("createdAt").notNull(),
     title: text("title").notNull(),
     pinned: boolean("pinned").default(false),
+    lastMessage: text("lastMessage"),
+    lastMessageAt: timestamp("lastMessageAt"),
 });
 
 export const chatRelations = relations(chat, ({many}) => ({
@@ -17,7 +19,7 @@ export const message = pgTable("Message", {
     chatId: uuid("chatId")
         .notNull()
         .references(() => chat.id),
-    content: text("title").notNull(),
+    content: text("content").notNull(),
     createdAt: timestamp("createdAt").notNull(),
 });
 

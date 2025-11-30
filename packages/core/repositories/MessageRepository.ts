@@ -3,7 +3,7 @@ import {eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {DatabaseManager} from "../database/DatabaseManager";
 import {Message, NewMessage} from "../dto";
-import {message} from "../database/schema/chatSchema";
+import {chat, message} from "../database/schema/chatSchema";
 
 @injectable()
 export class MessageRepository {
@@ -18,12 +18,23 @@ export class MessageRepository {
     }
 
     public async create(newMessage: NewMessage): Promise<Message> {
-        const result = await this.db.insert(message).values({
-            chatId: newMessage.chatId,
-            createdAt: new Date(),
-            text: newMessage.text
-        }).returning();
-        return result[0];
+        return this.db.transaction(async (tx) => {
+            const now = new Date();
+            const [createdMessage] = await tx.insert(message).values({
+                chatId: newMessage.chatId,
+                content: newMessage.content,
+                createdAt: now,
+            }).returning();
+
+            await tx.update(chat)
+                .set({
+                    lastMessage: newMessage.content,
+                    lastMessageAt: now,
+                })
+                .where(eq(chat.id, newMessage.chatId));
+
+            return createdMessage;
+        });
     }
 
     public async update(id: string, updates: Partial<NewMessage>): Promise<Message> {
