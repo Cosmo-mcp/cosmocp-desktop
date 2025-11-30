@@ -27,7 +27,10 @@ export class StreamingChatController implements Controller {
 
         const controller = new AbortController();
         this.activeStreams.set(args.streamChannel, controller);
-
+        this.messageService.createMessage({
+            content: modelMessages[modelMessages.length - 1].content as string,
+            chatId: args.chatId
+        });
         try {
 
             const result = streamText({

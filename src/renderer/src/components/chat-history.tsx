@@ -12,14 +12,13 @@ export function ChatHistory({
                                 chats,
                                 selectedChat,
                                 onChangeSelectedChat,
-                                onNewChat,
-                                onDeleteChat
+                                onNewChat
                             }: {
     chats: Chat[];
     selectedChat: Chat;
     onChangeSelectedChat: (chat: Chat) => void,
-    onNewChat: () => void,
-    onDeleteChat: (chat: Chat) => void
+    onNewChat: () => void
+
 }) {
 
     const searchFromChatHistory = (searchQuery: string) => {
