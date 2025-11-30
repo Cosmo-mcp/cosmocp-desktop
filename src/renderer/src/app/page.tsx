@@ -18,24 +18,23 @@ export default function Page(): JSX.Element {
             .catch((error) => console.log(error));
     }, [refreshHistory]);
     return (
-        <div className="flex flex flex-row flex-nowrap justify-start h-full">
-            <div className=" h-full w-48">
-                <ChatHistory
-                    chats={chatHistory}
-                    selectedChat={selectedChat as Chat}
-                    onChangeSelectedChat={(chat) => {
-                        setSelectedChat(chat)
-                    }}
-                    onNewChat={() => {
-                        window.api.chat.createChat({title: "New Chat"});
-                        setRefreshHistory(true);
-                    }}
-                    onDeleteChat={(chat) => {
-                        window.api.chat.deleteChat(chat.id);
-                        setRefreshHistory(true);
-                    }}
-                ></ChatHistory>
-            </div>
+        <div
+            className="h-full min-h-[600px] flex rounded-b-lg border-t-0 overflow-hidden bg-background">
+            <ChatHistory
+                chats={chatHistory}
+                selectedChat={selectedChat as Chat}
+                onChangeSelectedChat={(chat) => {
+                    setSelectedChat(chat)
+                }}
+                onNewChat={() => {
+                    window.api.chat.createChat({title: "New Chat"});
+                    setRefreshHistory(true);
+                }}
+                onDeleteChat={(chat) => {
+                    window.api.chat.deleteChat(chat.id);
+                    setRefreshHistory(true);
+                }}
+            ></ChatHistory>
             <div className="grow">
                 {
                     selectedChat !== undefined ? (
