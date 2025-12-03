@@ -39,15 +39,16 @@ export function ChatWindow({
 
     return (
         <>
-            <div className="max-w-4xl mx-auto p-6 relative size-full">
-                <div className="flex flex-col h-full">
-                    <Messages
-                        chatId={chat.id}
-                        status={status}
-                        messages={messages}
-                        regenerate={regenerate}
-                    />
+            <div className="overscroll-behavior-contain flex h-full min-w-0 touch-pan-y flex-col bg-background">
+                <Messages
+                    chatId={chat.id}
+                    status={status}
+                    messages={messages}
+                    regenerate={regenerate}
+                />
 
+                <div
+                    className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
                     <MultimodalInput
                         input={input}
                         setInput={setInput}

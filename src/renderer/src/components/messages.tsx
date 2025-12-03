@@ -8,10 +8,16 @@ import {
     ConversationEmptyState,
     ConversationScrollButton
 } from './ai-elements/conversation';
-import {Message, MessageContent} from "@/components/ai-elements/message";
-import {MessageSquare} from "lucide-react";
-import {Response} from '@/components/ai-elements/response';
+import {
+    Message,
+    MessageAction,
+    MessageActions,
+    MessageContent,
+    MessageResponse
+} from "@/components/ai-elements/message";
+import {CopyIcon, Loader, MessageSquare, RefreshCcwIcon} from "lucide-react";
 import {Reasoning, ReasoningContent, ReasoningTrigger} from "@/components/ai-elements/reasoning";
+import {Source, Sources, SourcesContent, SourcesTrigger} from "@/components/ai-elements/sources";
 
 
 interface MessagesProps {
@@ -29,7 +35,7 @@ function PureMessages({
                       }: MessagesProps) {
 
     return (
-        <Conversation className="relative size-full">
+        <Conversation>
             <ConversationContent>
                 {messages.length === 0 ? (
                     <ConversationEmptyState
@@ -39,35 +45,75 @@ function PureMessages({
                     />
                 ) : (
                     messages.map((message) => (
-                        <Message from={message.role} key={message.id}>
-                            <MessageContent>
-                                {message.parts.map((part, i) => {
-                                    switch (part.type) {
-                                        case 'text': // we don't use any reasoning or tool calls in this example
-                                            return (
-                                                <Response key={`${message.id}-${i}`}>
-                                                    {part.text}
-                                                </Response>
-                                            );
-                                        case 'reasoning':
-                                            return (
-                                                <Reasoning
-                                                    key={`${message.id}-${i}`}
-                                                    className="w-full"
-                                                    isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
-                                                >
-                                                    <ReasoningTrigger />
-                                                    <ReasoningContent>{part.text}</ReasoningContent>
-                                                </Reasoning>
-                                            );
-                                        default:
-                                            return null;
-                                    }
-                                })}
-                            </MessageContent>
-                        </Message>
-                    ))
-                )}
+                        <div key={message.id}>
+                            {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
+                                <Sources>
+                                    <SourcesTrigger
+                                        count={
+                                            message.parts.filter(
+                                                (part) => part.type === 'source-url',
+                                            ).length
+                                        }
+                                    />
+                                    {message.parts.filter((part) => part.type === 'source-url').map((part, i) => (
+                                        <SourcesContent key={`${message.id}-${i}`}>
+                                            <Source
+                                                key={`${message.id}-${i}`}
+                                                href={part.url}
+                                                title={part.url}
+                                            />
+                                        </SourcesContent>
+                                    ))}
+                                </Sources>
+                            )}
+                            {message.parts.map((part, i) => {
+                                switch (part.type) {
+                                    case 'text':
+                                        return (
+                                            <Message key={`${message.id}-${i}`} from={message.role}>
+                                                <MessageContent>
+                                                    <MessageResponse>
+                                                        {part.text}
+                                                    </MessageResponse>
+                                                </MessageContent>
+                                                {message.role === 'assistant' && i === messages.length - 1 && (
+                                                    <MessageActions>
+                                                        <MessageAction
+                                                            onClick={() => regenerate()}
+                                                            label="Retry"
+                                                        >
+                                                            <RefreshCcwIcon className="size-3"/>
+                                                        </MessageAction>
+                                                        <MessageAction
+                                                            onClick={() =>
+                                                                navigator.clipboard.writeText(part.text)
+                                                            }
+                                                            label="Copy"
+                                                        >
+                                                            <CopyIcon className="size-3"/>
+                                                        </MessageAction>
+                                                    </MessageActions>
+                                                )}
+                                            </Message>
+                                        );
+                                    case 'reasoning':
+                                        return (
+                                            <Reasoning
+                                                key={`${message.id}-${i}`}
+                                                className="w-full"
+                                                isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
+                                            >
+                                                <ReasoningTrigger/>
+                                                <ReasoningContent>{part.text}</ReasoningContent>
+                                            </Reasoning>
+                                        );
+                                    default:
+                                        return null;
+                                }
+                            })}
+                        </div>
+                    )))}
+                {status === 'submitted' && <Loader/>}
             </ConversationContent>
             <ConversationScrollButton/>
         </Conversation>

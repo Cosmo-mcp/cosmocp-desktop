@@ -1,7 +1,7 @@
 'use client'
 import {Button} from "@/components/ui/button";
 import {Fragment} from "react";
-import {Chat} from "../../../../packages/core/dto";
+import {Chat} from "core/dto";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Separator} from "@/components/ui/separator";
 import {Trash} from "lucide-react";
@@ -21,7 +21,7 @@ export function ChatHistory({
 }) {
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col">
             <ScrollArea className="flex-grow w-full">
                 <div className="p-4">
                     <h4 className="mb-4 text-sm leading-none font-medium">Chat History</h4>

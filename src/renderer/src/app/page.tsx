@@ -2,7 +2,7 @@
 import {JSX, useEffect, useState} from "react";
 import {ChatHistory} from "@/components/chat-history";
 import {ChatWindow} from "@/components/chat-window";
-import {Chat} from "../../../../packages/core/dto";
+import {Chat} from "core/dto";
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -18,8 +18,8 @@ export default function Page(): JSX.Element {
             .catch((error) => console.log(error));
     }, [refreshHistory]);
     return (
-        <div className="flex flex flex-row flex-nowrap justify-start h-full">
-            <div className=" h-full w-48">
+        <>
+            <div className="h-full w-48">
                 <ChatHistory
                     chats={chatHistory}
                     selectedChat={selectedChat as Chat}
@@ -46,6 +46,6 @@ export default function Page(): JSX.Element {
                     )
                 }
             </div>
-        </div>
+        </>
     );
 }
