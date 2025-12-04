@@ -25,6 +25,7 @@ export default function Page(): JSX.Element {
         status,
         stop,
         regenerate,
+        setMessages
     } = useChat<ChatMessage>({
         id: selectedChat?.id,
         transport: new IpcChatTransport(),
@@ -47,6 +48,19 @@ export default function Page(): JSX.Element {
             })
             .catch((error) => console.log(error));
     }, [refreshHistory]);
+
+    useEffect(() => {
+        if (selectedChat) {
+            window.api.chat.getChatById(selectedChat.id)
+                .then((chat) => {
+                    if (chat) {
+                        //setMessages(chat.messages);
+                    }
+                })
+                .catch((error) => console.log(error));
+        }
+
+    }, [selectedChat]);
 
     const handleNewChat = () => {
         window.api.chat.createChat({title: "New Chat", lastMessage: null, lastMessageAt: null})
@@ -91,7 +105,6 @@ export default function Page(): JSX.Element {
                                     chatId={selectedChat.id}
                                     status={status}
                                     messages={messages}
-                                    regenerate={regenerate}
                                 />
 
                                 <MultimodalInput
@@ -104,10 +117,10 @@ export default function Page(): JSX.Element {
                                 />
                             </div>
                         </>) : (
-                        <Empty >
+                        <Empty>
                             <EmptyHeader>
                                 <EmptyMedia variant="icon">
-                                    <MessageCirclePlus />
+                                    <MessageCirclePlus/>
                                 </EmptyMedia>
                                 <EmptyTitle>Start a new Chat</EmptyTitle>
                                 <EmptyDescription>

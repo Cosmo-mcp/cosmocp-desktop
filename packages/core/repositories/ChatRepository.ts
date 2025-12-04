@@ -3,7 +3,7 @@ import {eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {DatabaseManager} from "../database/DatabaseManager";
 import {chat} from "../database/schema/schema";
-import {Chat, NewChat} from "../dto";
+import {Chat, ChatWithMessages, NewChat} from "../dto";
 
 @injectable()
 export class ChatRepository {
@@ -17,9 +17,14 @@ export class ChatRepository {
         return this.db.select().from(chat);
     }
 
-    public async getById(id: string): Promise<Chat | undefined> {
-        const result = await this.db.select().from(chat).where(eq(chat.id, id));
-        return result[0];
+    public async getById(id: string): Promise<ChatWithMessages | undefined> {
+        const result = await this.db.query.chat.findFirst({
+            where: eq(chat.id, id),
+            with: {
+                messages: true
+            }
+        })
+        return result;
     }
 
     public async create(newChat: NewChat): Promise<Chat> {

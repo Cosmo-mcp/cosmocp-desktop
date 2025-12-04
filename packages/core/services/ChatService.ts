@@ -1,7 +1,7 @@
 import {inject, injectable} from "inversify";
 import {CORETYPES} from "../types/types";
 import {ChatRepository} from "../repositories/ChatRepository";
-import {Chat, NewChat} from "../dto";
+import {Chat, ChatWithMessages, NewChat} from "../dto";
 
 @injectable()
 export class ChatService {
@@ -14,7 +14,7 @@ export class ChatService {
         return this.chatRepository.getAll();
     }
 
-    public async getChatById(id: string): Promise<Chat | undefined> {
+    public async getChatById(id: string): Promise<ChatWithMessages | undefined> {
         return this.chatRepository.getById(id);
     }
 

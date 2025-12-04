@@ -34,6 +34,10 @@ export type ProviderWithModels = ModelProviderLite & {
     models: ModelLite[]
 }
 
+export type ChatWithMessages = Chat & {
+    messages: Message[]
+}
+
 export interface ChatSendMessageArgs {
     chatId: string;
     messages: ChatMessage[];
