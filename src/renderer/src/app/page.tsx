@@ -68,8 +68,11 @@ export default function Page(): JSX.Element {
                                         <ChatHeader
                                             chat={selectedChat || null}
                                             onDeleteChat={(chat) => {
-                                                window.api.chat.deleteChat(chat.id);
-                                                setRefreshHistory(true);
+                                                window.api.chat.deleteChat(chat.id).then(() => {
+                                                        setRefreshHistory(true);
+                                                    }
+                                                );
+
                                             }}
                                         />
                                     </div>

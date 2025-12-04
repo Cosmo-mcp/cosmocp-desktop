@@ -51,8 +51,7 @@ export function ChatHistory({
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            {/* Header - Hidden on mobile (handled by parent) */}
-            <div className="hidden lg:flex items-center justify-between h-16 px-4 border-b flex-shrink-0">
+            <div className="flex items-center justify-between h-16 px-4 border-b flex-shrink-0">
                 <h2 className="text-lg font-semibold">Chat History</h2>
                 <div className="flex items-center gap-1">
                     <TooltipProvider>

@@ -3,7 +3,7 @@
 import {Chat} from "core/dto";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {Button} from "@/components/ui/button";
-import {Delete, Search, Trash} from "lucide-react";
+import {Search, Trash} from "lucide-react";
 
 export function ChatHeader({chat, onDeleteChat}: {
     chat: Chat,
