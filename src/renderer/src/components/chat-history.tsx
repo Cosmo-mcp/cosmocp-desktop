@@ -52,7 +52,7 @@ export function ChatHistory({
     return (
         <div className="flex flex-col h-full overflow-hidden">
             <div className="flex items-center justify-between h-16 px-4 border-b border-r flex-shrink-0">
-                <h2 className="text-lg font-semibold">Chat History</h2>
+                <h2 className="text-lg font-semibold">Chat</h2>
                 <div className="flex items-center gap-1">
                     <TooltipProvider>
                         {/* Search */}
