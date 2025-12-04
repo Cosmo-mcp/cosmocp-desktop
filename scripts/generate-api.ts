@@ -114,7 +114,8 @@ import {
     NewMessage,
     Message,
     NewModel,
-    ProviderWithModels
+    ProviderWithModels,
+    ChatWithMessages
 } from '../../packages/core/dto';
 `;
 

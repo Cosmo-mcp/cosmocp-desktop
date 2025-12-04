@@ -18,14 +18,12 @@ interface MessagesProps {
     chatId: string;
     status: UseChatHelpers<ChatMessage>['status'];
     messages: ChatMessage[];
-    regenerate: UseChatHelpers<ChatMessage>['regenerate'];
 }
 
 function PureMessages({
                           chatId,
                           status,
                           messages,
-                          regenerate,
                       }: MessagesProps) {
 
     return (

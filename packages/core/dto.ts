@@ -9,7 +9,7 @@ export type Message = InferSelectModel<typeof message>;
 export type Chat = InferSelectModel<typeof chat>;
 
 // DTOs for new database entry
-export type NewChat = Omit<Chat, "id" | "createdAt">;
+export type NewChat = Omit<Chat, "id" | "createdAt" | "pinned">;
 export type NewMessage = Omit<Message, "id" | "createdAt">;
 
 // The full model, retrieved from the database with a decrypted apiKey.
@@ -32,6 +32,10 @@ export type ModelLite = Omit<Model, 'providerId'>;
 
 export type ProviderWithModels = ModelProviderLite & {
     models: ModelLite[]
+}
+
+export type ChatWithMessages = Chat & {
+    messages: Message[]
 }
 
 export interface ChatSendMessageArgs {

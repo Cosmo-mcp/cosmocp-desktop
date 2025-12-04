@@ -29,6 +29,27 @@
       "when": 1764117329707,
       "tag": "0003_classy_wilson_fisk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1764529149201,
+      "tag": "0004_tired_colleen_wing",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1764529949532,
+      "tag": "0005_premium_mad_thinker",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1764810163727,
+      "tag": "0006_nosy_lifeguard",
+      "breakpoints": true
     }
   ]
 }

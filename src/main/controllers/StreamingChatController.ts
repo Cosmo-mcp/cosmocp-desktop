@@ -6,6 +6,7 @@ import {ChatAbortArgs, ChatSendMessageArgs} from "core/dto";
 import {Controller} from "./Controller";
 import {CORETYPES} from "core/types/types";
 import {ModelProviderService} from "core/services/ModelProviderService";
+import {MessageService} from "core/services/MessageService";
 
 @injectable()
 @IpcController("streamingChat")
@@ -13,7 +14,9 @@ export class StreamingChatController implements Controller {
     private readonly activeStreams = new Map<string, AbortController>();
 
     constructor(@inject(CORETYPES.ModelProviderService)
-                private modelProviderService: ModelProviderService) {
+                private modelProviderService: ModelProviderService,
+                @inject(CORETYPES.MessageService)
+                private messageService: MessageService) {
     }
 
     @IpcOn("sendMessage")
@@ -24,7 +27,10 @@ export class StreamingChatController implements Controller {
 
         const controller = new AbortController();
         this.activeStreams.set(args.streamChannel, controller);
-
+        this.messageService.createMessage({
+            content: modelMessages[modelMessages.length - 1].content as string,
+            chatId: args.chatId
+        });
         try {
 
             const result = streamText({
@@ -33,7 +39,11 @@ export class StreamingChatController implements Controller {
                 messages: modelMessages,
                 abortSignal: controller.signal,
                 experimental_transform: smoothStream(),
-                onFinish: () => {
+                onFinish: (result) => {
+                    this.messageService.createMessage({
+                        content: result.text,
+                        chatId: args.chatId
+                    })
                     this.activeStreams.delete(args.streamChannel);
                     if (!webContents.isDestroyed()) {
                         webContents.send(`${args.streamChannel}-end`);

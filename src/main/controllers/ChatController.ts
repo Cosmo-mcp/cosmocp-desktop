@@ -3,7 +3,7 @@ import {CORETYPES} from "../../../packages/core/types/types";
 import {ChatService} from "../../../packages/core/services/ChatService";
 import {IpcController, IpcHandler} from "../ipc/Decorators";
 import {Controller} from "./Controller";
-import {Chat, NewChat} from "../../../packages/core/dto";
+import {Chat, ChatWithMessages, NewChat} from "../../../packages/core/dto";
 
 @injectable()
 @IpcController("chat")
@@ -17,7 +17,7 @@ export class ChatController implements Controller {
     }
 
     @IpcHandler("getChatById")
-    public async getChatById(id: string): Promise<Chat | undefined> {
+    public async getChatById(id: string): Promise<ChatWithMessages | undefined> {
         return this.chatService.getChatById(id);
     }
 

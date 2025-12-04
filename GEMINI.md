@@ -22,7 +22,7 @@ This guide is a checklist to help you write, test, and review code *specifically
     2.  Define the types for the exposed API in `src/preload/api.ts`.
     3.  Expose it to the renderer in the preload script: `src/preload/index.ts`.
 
-*   **Check Project Conventions:** Before creating a new component, look at existing ones like `src/renderer/src/components/chat-window.tsx`. We use Tailwind CSS for styling and `lucide-react` for icons. Match the existing style.
+*   **Check Project Conventions:** Before creating a new component, look at existing ones like `src/renderer/src/components/chat-header.tsx`. We use Tailwind CSS for styling and `lucide-react` for icons. Match the existing style.
 
 ---
 
