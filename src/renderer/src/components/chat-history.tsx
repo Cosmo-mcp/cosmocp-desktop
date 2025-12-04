@@ -51,7 +51,7 @@ export function ChatHistory({
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between h-16 px-4 border-b flex-shrink-0">
+            <div className="flex items-center justify-between h-16 px-4 border-b border-r flex-shrink-0">
                 <h2 className="text-lg font-semibold">Chat History</h2>
                 <div className="flex items-center gap-1">
                     <TooltipProvider>
@@ -69,7 +69,7 @@ export function ChatHistory({
                     </TooltipProvider>
                 </div>
             </div>
-            <div className="px-4 py-3 border-b flex-shrink-0">
+            <div className="px-4 py-3 border-b border-r flex-shrink-0">
                 <div className="relative">
                     <Search
                         className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
@@ -81,7 +81,7 @@ export function ChatHistory({
                     />
                 </div>
             </div>
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 border-r">
                 <div className="p-2">
                     {chats.map((chat) => (
                         <div
