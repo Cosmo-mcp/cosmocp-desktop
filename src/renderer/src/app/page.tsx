@@ -8,6 +8,9 @@ import {MultimodalInput} from "@/components/multimodal-input";
 import {Attachment, ChatMessage} from "@/lib/types";
 import {useChat} from "@ai-sdk/react";
 import {IpcChatTransport} from "@/chat-transport";
+import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty";
+import {MessageCirclePlus} from "lucide-react";
+import {Button} from "@/components/ui/button";
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -37,12 +40,20 @@ export default function Page(): JSX.Element {
                 setChatHistory(chats);
                 if (chats && chats.length > 0) {
                     setSelectedChat(chats[0]);
+                } else {
+                    setSelectedChat(null);
                 }
                 setRefreshHistory(false);
             })
             .catch((error) => console.log(error));
     }, [refreshHistory]);
 
+    const handleNewChat = () => {
+        window.api.chat.createChat({title: "New Chat", lastMessage: null, lastMessageAt: null})
+            .then(() => {
+                setRefreshHistory(true);
+            });
+    }
     return (
         <div
             className="h-full min-h-[600px] flex rounded-b-lg border-t-0 overflow-hidden bg-background">
@@ -52,10 +63,7 @@ export default function Page(): JSX.Element {
                 onChangeSelectedChat={(chat) => {
                     setSelectedChat(chat)
                 }}
-                onNewChat={() => {
-                    window.api.chat.createChat({title: "New Chat", lastMessage: null, lastMessageAt: null});
-                    setRefreshHistory(true);
-                }}
+                onNewChat={handleNewChat}
             ></ChatHistory>
             <div className="grow">
                 {
@@ -96,7 +104,22 @@ export default function Page(): JSX.Element {
                                 />
                             </div>
                         </>) : (
-                        <div>No chat selected</div>
+                        <Empty >
+                            <EmptyHeader>
+                                <EmptyMedia variant="icon">
+                                    <MessageCirclePlus />
+                                </EmptyMedia>
+                                <EmptyTitle>Start a new Chat</EmptyTitle>
+                                <EmptyDescription>
+                                    Click on the button below to Start a new Chat
+                                </EmptyDescription>
+                            </EmptyHeader>
+                            <EmptyContent>
+                                <Button variant="outline" size="sm" onClick={handleNewChat}>
+                                    New Chat
+                                </Button>
+                            </EmptyContent>
+                        </Empty>
                     )
                 }
             </div>
