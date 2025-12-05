@@ -50,6 +50,13 @@
       "when": 1764810163727,
       "tag": "0006_nosy_lifeguard",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1764955393150,
+      "tag": "0007_oval_killer_shrike",
+      "breakpoints": true
     }
   ]
 }

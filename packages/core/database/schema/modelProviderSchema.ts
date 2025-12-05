@@ -1,5 +1,5 @@
 import {relations} from "drizzle-orm";
-import {pgEnum, pgTable, text, timestamp, uuid} from "drizzle-orm/pg-core";
+import {boolean, pgEnum, pgTable, text, timestamp, uuid} from "drizzle-orm/pg-core";
 
 // --- ENUM and Base Fields ---
 export enum ModelProviderTypeEnum {
@@ -50,6 +50,9 @@ export const model = pgTable("Model", {
     modelId: text("modelId").notNull(),
     description: text("description"),
     providerId: uuid("providerId").references(() => modelProvider.id, {onDelete: 'cascade'}),
+    reasoning: boolean("reasoning").default(false),
+    releaseDate: timestamp("releaseDate"),
+    lastUpdatedByProvider: timestamp("lastUpdatedByProvider")
 });
 
 export const modelProviderRelations = relations(modelProvider, ({ many }) => ({

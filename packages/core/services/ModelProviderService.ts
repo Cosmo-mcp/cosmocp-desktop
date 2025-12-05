@@ -174,8 +174,14 @@ export class ModelProviderService {
                     name: key,
                     modelId: key,
                     description: m.name,
+                    reasoning: m.reasoning,
+                    releaseDate: new Date(m.release_date),
+                    lastUpdatedByProvider: new Date(m.last_updated)
                 });
             }
+            result.sort((a, b) => {
+                return b.lastUpdatedByProvider >= a.lastUpdatedByProvider ? 1 : -1;
+            })
 
         } catch (err) {
             console.error("Models.dev fetch error:", err);
