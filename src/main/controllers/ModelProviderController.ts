@@ -45,6 +45,6 @@ export class ModelProviderController implements Controller {
 
     @IpcHandler('getAvailableModelsFromProviders')
     public async getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<NewModel[]> {
-        return this.modelProviderService.getAvailableModelsFromProviders(provider);
+        return this.modelProviderService.getModelsForProviderUsingModelsDotDev(provider);
     }
 }

@@ -17,6 +17,7 @@ export class ModelProviderService {
 
     private static readonly GOOGLE_MODEL_LIST_URL: string = "https://generativelanguage.googleapis.com/v1beta/models";
     private modelProviderRegistry: ProviderRegistryProvider;
+    private static MODELS_DOT_DEV_URL = "https://models.dev/api.json";
 
     constructor(
         @inject(CORETYPES.ModelProviderRepository) repository: ModelProviderRepository
@@ -140,30 +141,42 @@ export class ModelProviderService {
         return safeStorage.decryptString(buffer);
     };
 
-    public async getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<NewModel[]> {
-        const apiKey = provider.apiKey;
+    public async getModelsForProviderUsingModelsDotDev(provider: ModelProviderCreateInput): Promise<NewModel[]> {
         const result: NewModel[] = [];
-        if (provider.type == ModelProviderTypeEnum.GOOGLE) {
-            try {
-                const response = await fetch(ModelProviderService.GOOGLE_MODEL_LIST_URL, {
-                    method: 'GET',
-                    headers: [["x-goog-api-key", apiKey],
-                        ["Content-Type", "application/json"]]
-                });
-                const data = await response.json();
-                const jsonArray = data.models;
-                jsonArray.forEach((model: { name: string, description: string }) => {
-                    const modelId = model.name.substring(7);
-                    result.push({
-                        name: model.name,
-                        modelId: modelId,
-                        description: model.description,
-                    })
-                })
-            } catch (error) {
-                console.error(error);
-            }
+
+        if (provider.type === ModelProviderTypeEnum.CUSTOM) {
+            console.warn(`Model listing is not supported for CUSTOM provider type.`);
+            return result;
         }
+
+        try {
+            const response = await fetch(ModelProviderService.MODELS_DOT_DEV_URL, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                console.error("Models.dev API Error:", await response.text());
+                return result;
+            }
+
+            const data = await response.json();
+            const modelsDict = data[provider.type]?.models ?? {};
+            for (const key in modelsDict) {
+                const m = modelsDict[key];
+                result.push({
+                    name: key,
+                    modelId: key,
+                    description: m.name,
+                });
+            }
+
+        } catch (err) {
+            console.error("Models.dev fetch error:", err);
+        }
+
         return result;
     }
 }
