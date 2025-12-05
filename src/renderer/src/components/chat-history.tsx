@@ -12,22 +12,16 @@ export function ChatHistory({
                                 chats,
                                 selectedChat,
                                 onChangeSelectedChat,
-                                onNewChat
+                                onNewChat,
+                                onSearch
                             }: {
     chats: Chat[];
     selectedChat: Chat;
     onChangeSelectedChat: (chat: Chat) => void,
-    onNewChat: () => void
+    onNewChat: () => void,
+    onSearch: (query: string) => void
 
 }) {
-
-    const searchFromChatHistory = (searchQuery: string) => {
-        if (searchQuery && searchQuery.trim()) {
-            chats.filter(chat => {
-                return chat.title.search(searchQuery) > 0;
-            })
-        }
-    }
 
     // Enhanced time formatting function
     function formatMessageTime(timestamp: Date | null): string {
@@ -76,7 +70,7 @@ export function ChatHistory({
                     <Input
                         type="text"
                         placeholder="Search history..."
-                        onChange={(e) => searchFromChatHistory(e.target.value)}
+                        onChange={(e) => onSearch(e.target.value)}
                         className="pl-9 cursor-text"
                     />
                 </div>

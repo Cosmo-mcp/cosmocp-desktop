@@ -12,8 +12,8 @@ export class ChatController implements Controller {
     }
 
     @IpcHandler("getAllChats")
-    public async getAllChats(): Promise<Chat[]> {
-        return this.chatService.getAllChats();
+    public async getAllChats(searchQuery: string | null): Promise<Chat[]> {
+        return this.chatService.getAllChats(searchQuery);
     }
 
     @IpcHandler("getChatById")

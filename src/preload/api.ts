@@ -1,22 +1,20 @@
 import {ipcRenderer} from 'electron';
 import {
-    NewChat,
-    ModelProvider,
-    ModelProviderLite,
+    Chat,
     ChatAbortArgs,
     ChatSendMessageArgs,
-    Model,
-    Chat,
-    ModelProviderCreateInput,
-    NewMessage,
+    ChatWithMessages,
     Message,
+    ModelProviderCreateInput,
+    ModelProviderLite,
+    NewChat,
+    NewMessage,
     NewModel,
-    ProviderWithModels,
-    ChatWithMessages
+    ProviderWithModels
 } from '../../packages/core/dto';
 
 export interface ChatApi {
-    getAllChats(): Promise<Chat[]>;
+    getAllChats(searchQuery: string | null): Promise<Chat[]>;
 
     getChatById(id: string): Promise<ChatWithMessages | undefined>;
 
@@ -73,7 +71,7 @@ export interface Api {
 
 export const api: Api = {
     chat: {
-        getAllChats: () => ipcRenderer.invoke('chat:getAllChats'),
+        getAllChats: (searchQuery: string | null) => ipcRenderer.invoke('chat:getAllChats', searchQuery),
         getChatById: (id: string) => ipcRenderer.invoke('chat:getChatById', id),
         createChat: (newChat: NewChat) => ipcRenderer.invoke('chat:createChat', newChat),
         updateChat: (id: string, updates: Partial<NewChat>) => ipcRenderer.invoke('chat:updateChat', id, updates),

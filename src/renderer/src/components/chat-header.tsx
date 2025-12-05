@@ -3,7 +3,7 @@
 import {Chat} from "core/dto";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {Button} from "@/components/ui/button";
-import {Search, Trash} from "lucide-react";
+import {Pin, Search, Trash} from "lucide-react";
 
 export function ChatHeader({chat, onDeleteChat}: {
     chat: Chat,
@@ -14,10 +14,21 @@ export function ChatHeader({chat, onDeleteChat}: {
         onDeleteChat(chat);
     }
     return (
-        <div className="flex items-center justify-between h-full">
+        <div className="flex items-center justify-end h-full flex-row">
             {/* Right side - Action buttons */}
             <div className="flex items-center gap-1">
                 <TooltipProvider>
+                    {/* Pin */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="cursor-pointer">
+                                <Pin className="h-4 w-4"/>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Pin Chat</p>
+                        </TooltipContent>
+                    </Tooltip>
                     {/* Search */}
                     <Tooltip>
                         <TooltipTrigger asChild>

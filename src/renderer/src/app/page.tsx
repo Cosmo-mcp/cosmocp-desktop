@@ -18,6 +18,7 @@ export default function Page(): JSX.Element {
     const [refreshHistory, setRefreshHistory] = useState(false);
     const [input, setInput] = useState<string>('');
     const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+    const [searchHistoryQuery, setSearchHistoryQuery] = useState<string | null>(null);
 
     const {
         messages,
@@ -36,7 +37,7 @@ export default function Page(): JSX.Element {
 
 
     useEffect(() => {
-        window.api.chat.getAllChats()
+        window.api.chat.getAllChats(searchHistoryQuery)
             .then((chats) => {
                 setChatHistory(chats);
                 if (chats && chats.length > 0) {
@@ -68,6 +69,12 @@ export default function Page(): JSX.Element {
                 setRefreshHistory(true);
             });
     }
+
+    const searchFromChatHistory = (searchQuery: string) => {
+        setSearchHistoryQuery(searchQuery);
+        setRefreshHistory(true);
+    }
+
     return (
         <div
             className="h-full min-h-[600px] flex rounded-b-lg border-t-0 overflow-hidden bg-background">
@@ -78,6 +85,7 @@ export default function Page(): JSX.Element {
                     setSelectedChat(chat)
                 }}
                 onNewChat={handleNewChat}
+                onSearch={searchFromChatHistory}
             ></ChatHistory>
             <div className="grow flex flex-col h-full overflow-hidden">
                 {
