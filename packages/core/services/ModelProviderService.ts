@@ -14,8 +14,6 @@ import {createProviderRegistry, ProviderRegistryProvider} from "ai";
 @injectable()
 export class ModelProviderService {
     private readonly repository: ModelProviderRepository;
-
-    private static readonly GOOGLE_MODEL_LIST_URL: string = "https://generativelanguage.googleapis.com/v1beta/models";
     private modelProviderRegistry: ProviderRegistryProvider;
     private static MODELS_DOT_DEV_URL = "https://models.dev/api.json";
 
@@ -109,8 +107,14 @@ export class ModelProviderService {
                         registryObject[provider.name] = createGoogleGenerativeAI({apiKey: provider.apiKey});
                     } else if (provider.type === ModelProviderTypeEnum.OPENAI) {
                         registryObject[provider.name] = createOpenAI({apiKey: provider.apiKey});
+                    } else if (provider.type === ModelProviderTypeEnum.CUSTOM) {
+                        registryObject[provider.name] = createOpenAI({
+                            name: provider.name,
+                            apiKey: provider.apiKey,
+                            baseURL: provider.apiUrl,
+                        });
                     } else {
-                        throw new Error(`Unknown provider provider: ${provider.type} , ${provider.name}`);
+                        throw new Error(`Unknown provider: ${provider.type} , ${provider.name}`);
                     }
                 }
                 this.modelProviderRegistry = createProviderRegistry(registryObject);
