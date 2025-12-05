@@ -67,7 +67,11 @@ function PureMultimodalInput({
                 setProviders(providers);
                 if (providers.length > 0) {
                     setSelectedProvider((providers[0]));
-                    setSelectedModel(providers[0].models[0]);
+                    if (providers[0].models.length > 0) {
+                        setSelectedModel(providers[0].models[0]);
+                    } else {
+                        console.error('No model found for provider ' + providers[0].name);
+                    }
                 }
             })
             .catch((error) => console.log(error));
@@ -135,11 +139,11 @@ function PureMultimodalInput({
                         >
                             <ModelSelectorTrigger asChild>
                                 <PromptInputButton className="w-max">
-                                    {selectedModel && (
+                                    {selectedModel ? (
                                         <ModelSelectorName>
                                             {selectedModel.modelId}
                                         </ModelSelectorName>
-                                    )}
+                                    ) : ('Select Model')}
                                 </PromptInputButton>
                             </ModelSelectorTrigger>
                             <ModelSelectorContent>

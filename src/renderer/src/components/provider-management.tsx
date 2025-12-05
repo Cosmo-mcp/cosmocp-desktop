@@ -326,7 +326,7 @@ export function ProviderManagement() {
                         {methods.when("step-3", () => (
                             //iterate over the models
                             <div className="space-y-4">
-                                <ScrollArea className="h-72 rounded-md border">
+                                <ScrollArea type="always" className="h-72 rounded-md border">
                                     {models.map((model) => (
                                         <div key={model.modelId} className="flex items-center space-x-2 p-2">
                                             <input

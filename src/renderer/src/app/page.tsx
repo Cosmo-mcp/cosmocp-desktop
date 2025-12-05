@@ -48,7 +48,7 @@ export default function Page(): JSX.Element {
                 setRefreshHistory(false);
             })
             .catch((error) => console.log(error));
-    }, [refreshHistory]);
+    }, [refreshHistory, searchHistoryQuery]);
 
     useEffect(() => {
         if (selectedChat) {
@@ -96,11 +96,7 @@ export default function Page(): JSX.Element {
                                     <ChatHeader
                                         chat={selectedChat || null}
                                         onDeleteChat={(chat) => {
-                                            window.api.chat.deleteChat(chat.id).then(() => {
-                                                    setRefreshHistory(true);
-                                                }
-                                            );
-
+                                            window.api.chat.deleteChat(chat.id).then(() => setRefreshHistory(true));
                                         }}
                                     />
                                 </div>

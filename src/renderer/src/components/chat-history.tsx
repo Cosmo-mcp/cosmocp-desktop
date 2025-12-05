@@ -75,7 +75,7 @@ export function ChatHistory({
                     />
                 </div>
             </div>
-            <ScrollArea className="flex-1 border-r">
+            <ScrollArea className="max-h-[calc(100dvh-200px)] flex-1 border-r">
                 <div className="p-2">
                     {chats.map((chat) => (
                         <div
@@ -97,9 +97,10 @@ export function ChatHistory({
                                             <Pin className="h-3 w-3 text-muted-foreground flex-shrink-0"/>
                                         )}
                                     </div>
-                                    <span className="text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
-                    {formatMessageTime(chat.lastMessageAt)}
-                  </span>
+                                    <span
+                                        className="text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
+                                        {formatMessageTime(chat.lastMessageAt)}
+                                    </span>
                                 </div>
 
                                 <div className="flex items-center justify-between gap-2 min-w-0">
@@ -113,6 +114,5 @@ export function ChatHistory({
                 </div>
             </ScrollArea>
         </div>
-
     );
 }
