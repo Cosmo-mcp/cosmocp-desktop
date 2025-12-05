@@ -1,5 +1,5 @@
 import {inject, injectable} from "inversify";
-import {eq} from "drizzle-orm";
+import {and, eq, ilike, SQL} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {DatabaseManager} from "../database/DatabaseManager";
 import {chat} from "../database/schema/schema";
@@ -13,8 +13,12 @@ export class ChatRepository {
         this.db = databaseManager.getInstance();
     }
 
-    public async getAll(): Promise<Chat[]> {
-        return this.db.select().from(chat);
+    public async getAll(searchQuery: string | null): Promise<Chat[]> {
+        const conditions: SQL[] = [];
+        if (searchQuery) {
+            conditions.push(ilike(chat.title, `%${searchQuery.trim()}%`))
+        }
+        return this.db.select().from(chat).where(and(...conditions));
     }
 
     public async getById(id: string): Promise<ChatWithMessages | undefined> {

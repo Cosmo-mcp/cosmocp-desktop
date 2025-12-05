@@ -10,8 +10,8 @@ export class ChatService {
     ) {
     }
 
-    public async getAllChats(): Promise<Chat[]> {
-        return this.chatRepository.getAll();
+    public async getAllChats(searchQuery: string | null): Promise<Chat[]> {
+        return this.chatRepository.getAll(searchQuery);
     }
 
     public async getChatById(id: string): Promise<ChatWithMessages | undefined> {
