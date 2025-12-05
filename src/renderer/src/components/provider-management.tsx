@@ -183,9 +183,10 @@ export function ProviderManagement() {
             </div>
 
             {providers.length > 0 ? (
-                <div className="grid gap-3">
-                    {providers.map((provider) => (
-                        <Card key={provider.id} className="p-4 justify-between flex-row">
+                <ScrollArea type="always" className="h-[50dvh]">
+                    <div className="space-y-3">
+                        {providers.map((provider) => (
+                            <Card key={provider.id} className="p-4 justify-between flex-row">
                             <div className="flex items-center gap-3">
                                 <ProviderIcon type={provider.type} theme={resolvedTheme} size={40}/>
                                 <div className="flex-1">
@@ -194,7 +195,8 @@ export function ProviderManagement() {
                                     {provider.models && provider.models.length > 0 && (
                                         <div className="mt-2 flex flex-wrap gap-1">
                                             {provider.models.map((model) => (
-                                                <span key={model.modelId} className="inline-block px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded">
+                                                <span key={model.modelId}
+                                                      className="inline-block px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded">
                                                     {model.name}
                                                 </span>
                                             ))}
@@ -223,8 +225,9 @@ export function ProviderManagement() {
                                 </Button>
                             </div>
                         </Card>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                </ScrollArea>
             ) : (
                 <Card className="p-6 text-center">
                     <p className="text-sm text-muted-foreground">No providers added yet.</p>
