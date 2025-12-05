@@ -1,6 +1,6 @@
 'use client'
 import {Button} from "@/components/ui/button";
-import {Chat} from "../../../../packages/core/dto";
+import {Chat} from "core/dto";
 import {MessageCirclePlus, Pin, Search} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {Input} from "@/components/ui/input";
@@ -50,7 +50,7 @@ export function ChatHistory({
     }
 
     return (
-        <div className="flex flex-col h-full overflow-hidden">
+        <div className="flex flex-col overflow-hidden">
             <div className="flex items-center justify-between h-16 px-4 border-b border-r flex-shrink-0">
                 <h2 className="text-lg font-semibold">Chat</h2>
                 <div className="flex items-center gap-1">
