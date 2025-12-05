@@ -113,7 +113,10 @@ function PureMessages({
                             })}
                         </div>
                     )))}
-                {status === 'submitted' && <Loader/>}
+                {status === 'submitted' &&
+                    <div className="self-start">
+                        <Loader/>
+                    </div>}
             </ConversationContent>
             <ConversationScrollButton/>
         </Conversation>

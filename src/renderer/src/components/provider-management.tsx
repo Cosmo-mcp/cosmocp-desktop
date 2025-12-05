@@ -12,6 +12,7 @@ import {useTheme} from 'next-themes';
 import {Edit, Trash2} from 'lucide-react';
 import {defineStepper} from "@stepperize/react";
 import {ScrollArea} from "@/components/ui/scroll-area";
+import {Loader} from "@/components/ai-elements/loader";
 
 export function ProviderManagement() {
     const {resolvedTheme} = useTheme();
@@ -327,21 +328,22 @@ export function ProviderManagement() {
                             //iterate over the models
                             <div className="space-y-4">
                                 <ScrollArea type="always" className="h-72 rounded-md border">
-                                    {models.map((model) => (
-                                        <div key={model.modelId} className="flex items-center space-x-2 p-2">
-                                            <input
-                                                type="checkbox"
-                                                id={model.modelId}
-                                                name={model.modelId}
-                                                checked={selectedModels.some(m => m.modelId === model.modelId)}
-                                                onChange={() => handleModelToggle(model.modelId)}
-                                            />
-                                            <label htmlFor={model.modelId}
-                                                   className="text-sm font-medium cursor-pointer">
-                                                {model.name}
-                                            </label>
-                                        </div>
-                                    ))}
+                                    {models.length === 0 ? (<Loader/>) :
+                                        models.map((model) => (
+                                            <div key={model.modelId} className="flex items-center space-x-2 p-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id={model.modelId}
+                                                    name={model.modelId}
+                                                    checked={selectedModels.some(m => m.modelId === model.modelId)}
+                                                    onChange={() => handleModelToggle(model.modelId)}
+                                                />
+                                                <label htmlFor={model.modelId}
+                                                       className="text-sm font-medium cursor-pointer">
+                                                    {model.name}
+                                                </label>
+                                            </div>
+                                        ))}
                                 </ScrollArea>
                                 {error && (
                                     <div
@@ -363,9 +365,10 @@ export function ProviderManagement() {
                                 Prev
                             </Button>
                         )}
-                        {!methods.isLast && (
+                        {!methods.isLast && !(selectedProviderType === ModelProviderTypeEnum.CUSTOM) && (
                             <Button
                                 type="button"
+                                disabled={(methods.current.id === 'step-1' && !selectedProviderType)}
                                 onClick={() => {
                                     if (methods.current.id === 'step-2') {
                                         methods.beforeNext(() => {
@@ -390,7 +393,7 @@ export function ProviderManagement() {
                                 Next
                             </Button>
                         )}
-                        {methods.isLast && (
+                        {(methods.isLast || (methods.current.id === 'step-2' && selectedProviderType === ModelProviderTypeEnum.CUSTOM)) && (
                             <Button
                                 type="button"
                                 onClick={handleAddProvider}>
