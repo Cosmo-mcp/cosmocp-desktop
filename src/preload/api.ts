@@ -12,6 +12,7 @@ import {
     NewModel,
     ProviderWithModels
 } from '../../packages/core/dto';
+import {UIMessage} from "ai";
 
 export interface ChatApi {
     getAllChats(searchQuery: string | null): Promise<Chat[]>;
@@ -42,7 +43,7 @@ export interface ModelProviderApi {
 }
 
 export interface MessageApi {
-    getByChat(chatId: string): Promise<Message[]>;
+    getByChat(chatId: string): Promise<UIMessage[]>;
 
     save(newMessage: NewMessage): Promise<Message>;
 

@@ -1,7 +1,8 @@
 import {inject, injectable} from "inversify";
 import {CORETYPES} from "../types/types";
 import {MessageRepository} from "../repositories/MessageRepository";
-import {Chat, Message, NewMessage} from "../dto";
+import {Message, NewMessage} from "../dto";
+import {UIMessage} from "ai";
 
 @injectable()
 export class MessageService {
@@ -10,11 +11,32 @@ export class MessageService {
     ) {
     }
 
-    public async getMessagesByChatId(chatId: string): Promise<Message[]> {
-        return this.messageRepository.getMessagesByChatId(chatId);
+    public async getMessagesByChatId(chatId: string): Promise<UIMessage[]> {
+        const messages = await this.messageRepository.getMessagesByChatId(chatId);
+        return this.convertToUiMessage(messages);
+    }
+
+    private convertToUiMessage(messages: Message[]) {
+        return messages.map((message) => {
+            const parts: { type: 'text' | 'reasoning', text: string }[] = [];
+
+            if (message.text) {
+                parts.push({type: 'text', text: message.text});
+            }
+            if (message.reasoning) {
+                parts.push({type: 'reasoning', text: message.reasoning});
+            }
+
+            return {
+                id: message.id,
+                role: message.role,
+                parts: parts
+            };
+        });
     }
 
     public async createMessage(newMessage: NewMessage): Promise<Message> {
+        console.log("createMessage", newMessage);
         return this.messageRepository.create(newMessage);
     }
 

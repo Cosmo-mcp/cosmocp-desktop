@@ -1,28 +1,5 @@
-import type {UIMessage} from 'ai';
-import {z} from "zod";
 import {ModelProviderTypeEnum} from "core/database/schema/modelProviderSchema";
 
-export const messageMetadataSchema = z.object({
-    createdAt: z.string().optional(),
-    modelId: z.string(),
-});
-
-export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
-
-export type CustomUIDataTypes = {
-    textDelta: string;
-    imageDelta: string;
-    sheetDelta: string;
-    codeDelta: string;
-    appendMessage: string;
-    id: string;
-    title: string;
-    clear: null;
-    finish: null;
-};
-
-
-export type ChatMessage = UIMessage<MessageMetadata, CustomUIDataTypes>;
 
 export interface Attachment {
     name: string;

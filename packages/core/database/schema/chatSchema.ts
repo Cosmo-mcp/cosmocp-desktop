@@ -1,5 +1,5 @@
 import {relations} from "drizzle-orm";
-import {pgTable, text, timestamp, uuid, boolean} from "drizzle-orm/pg-core";
+import {pgTable, text, timestamp, uuid, boolean, pgEnum} from "drizzle-orm/pg-core";
 
 export const chat = pgTable("Chat", {
     id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -14,12 +14,16 @@ export const chatRelations = relations(chat, ({many}) => ({
     messages: many(message),
 }));
 
+export const messageRole = pgEnum("message_role", ["user", "assistant", "system"]);
+
 export const message = pgTable("Message", {
     id: uuid("id").primaryKey().notNull().defaultRandom(),
     chatId: uuid("chatId")
         .notNull()
         .references(() => chat.id, {onDelete: 'cascade'}),
-    content: text("content").notNull(),
+    role: messageRole("role"),
+    text: text("text"),
+    reasoning: text("reasoning"),
     createdAt: timestamp("createdAt").notNull(),
 });
 
