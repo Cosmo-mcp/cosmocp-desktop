@@ -52,7 +52,7 @@ export default function Page(): JSX.Element {
 
     useEffect(() => {
         if (selectedChat) {
-            window.api.chat.getChatById(selectedChat.id)
+            window.api.message.getByChat(selectedChat.id)
                 .then((chat) => {
                     if (chat) {
                         console.log(`Retrieved chat for id ${selectedChat.id}`, chat);
