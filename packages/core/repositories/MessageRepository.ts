@@ -30,7 +30,7 @@ export class MessageRepository {
 
             await tx.update(chat)
                 .set({
-                    lastMessage: newMessage.text,
+                    lastMessage: newMessage.text.slice(0, 200),
                     lastMessageAt: now,
                 })
                 .where(eq(chat.id, newMessage.chatId));

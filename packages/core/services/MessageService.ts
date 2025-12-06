@@ -13,15 +13,18 @@ export class MessageService {
 
     public async getMessagesByChatId(chatId: string): Promise<UIMessage[]> {
         const messages = await this.messageRepository.getMessagesByChatId(chatId);
+        return this.convertToUiMessage(messages);
+    }
 
+    private convertToUiMessage(messages: Message[]) {
         return messages.map((message) => {
             const parts: { type: 'text' | 'reasoning', text: string }[] = [];
 
             if (message.text) {
-                parts.push({ type: 'text', text: message.text });
+                parts.push({type: 'text', text: message.text});
             }
             if (message.reasoning) {
-                parts.push({ type: 'reasoning', text: message.reasoning });
+                parts.push({type: 'reasoning', text: message.reasoning});
             }
 
             return {
