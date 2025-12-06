@@ -3,6 +3,7 @@ import {CORETYPES} from "../../../packages/core/types/types";
 import {MessageService} from "../../../packages/core/services/MessageService";
 import {Message, NewMessage} from "../../../packages/core/dto";
 import {IpcController, IpcHandler} from "../ipc/Decorators";
+import {UIMessage} from "ai";
 
 @injectable()
 @IpcController("message")
@@ -11,7 +12,7 @@ export class MessageController {
     }
 
     @IpcHandler("getByChat")
-    public async getByChat(chatId: string): Promise<Message[]> {
+    public async getByChat(chatId: string): Promise<UIMessage[]> {
         return this.messageService.getMessagesByChatId(chatId);
     }
 

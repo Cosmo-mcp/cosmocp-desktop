@@ -22,13 +22,15 @@ export class MessageRepository {
             const now = new Date();
             const [createdMessage] = await tx.insert(message).values({
                 chatId: newMessage.chatId,
-                content: newMessage.content,
+                role: newMessage.role,
+                text: newMessage.text,
+                reasoning: newMessage.reasoning,
                 createdAt: now,
             }).returning();
 
             await tx.update(chat)
                 .set({
-                    lastMessage: newMessage.content,
+                    lastMessage: newMessage.text,
                     lastMessageAt: now,
                 })
                 .where(eq(chat.id, newMessage.chatId));
