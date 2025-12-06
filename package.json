@@ -60,6 +60,7 @@
     "@ai-sdk/google": "2.0.17",
     "@ai-sdk/openai": "2.0.66",
     "@ai-sdk/anthropic": "2.0.44",
+    "ollama-ai-provider-v2": "1.5.5",
     "@electric-sql/pglite": "0.3.10",
     "@stepperize/react": "^5.1.9",
     "ai": "5.0.60",
