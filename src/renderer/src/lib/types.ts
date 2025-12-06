@@ -20,6 +20,10 @@ export const ProviderInfo: Record<ModelProviderTypeEnum, { name: string; descrip
         name: 'Google',
         description: 'Leverage the powerful Gemini family of models from Google AI.'
     },
+    [ModelProviderTypeEnum.OLLAMA]: {
+        name: 'Ollama',
+        description: 'Access a range of open-source and customizable language models for various AI tasks.'
+    },
     [ModelProviderTypeEnum.CUSTOM]: {
         name: 'Custom',
         description: 'Connect to any OpenAI-compatible API endpoint.'
