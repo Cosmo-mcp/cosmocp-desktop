@@ -8,6 +8,7 @@ import {ProviderV2} from "@ai-sdk/provider";
 import {createAnthropic} from "@ai-sdk/anthropic";
 import {createGoogleGenerativeAI} from "@ai-sdk/google";
 import {createOpenAI} from "@ai-sdk/openai";
+import {createOllama} from "ollama-ai-provider-v2";
 import {createProviderRegistry, ProviderRegistryProvider} from "ai";
 
 
@@ -101,20 +102,28 @@ export class ModelProviderService {
         this.getProviders({withApiKey: true})
             .then(providers => {
                 for (const provider of providers) {
-                    if (provider.type === ModelProviderTypeEnum.ANTHROPIC) {
-                        registryObject[provider.name] = createAnthropic({apiKey: provider.apiKey});
-                    } else if (provider.type === ModelProviderTypeEnum.GOOGLE) {
-                        registryObject[provider.name] = createGoogleGenerativeAI({apiKey: provider.apiKey});
-                    } else if (provider.type === ModelProviderTypeEnum.OPENAI) {
-                        registryObject[provider.name] = createOpenAI({apiKey: provider.apiKey});
-                    } else if (provider.type === ModelProviderTypeEnum.CUSTOM) {
-                        registryObject[provider.name] = createOpenAI({
-                            name: provider.name,
-                            apiKey: provider.apiKey,
-                            baseURL: provider.apiUrl,
-                        });
-                    } else {
-                        throw new Error(`Unknown provider: ${provider.type} , ${provider.name}`);
+                    switch (provider.type) {
+                        case ModelProviderTypeEnum.ANTHROPIC:
+                            registryObject[provider.name] = createAnthropic({ apiKey: provider.apiKey });
+                            break;
+                        case ModelProviderTypeEnum.GOOGLE:
+                            registryObject[provider.name] = createGoogleGenerativeAI({ apiKey: provider.apiKey });
+                            break;
+                        case ModelProviderTypeEnum.OPENAI:
+                            registryObject[provider.name] = createOpenAI({ apiKey: provider.apiKey });
+                            break;
+                        case ModelProviderTypeEnum.OLLAMA:
+                            registryObject[provider.name] = createOllama({ baseURL: provider.apiUrl });
+                            break;
+                        case ModelProviderTypeEnum.CUSTOM:
+                            registryObject[provider.name] = createOpenAI({
+                                name: provider.name,
+                                apiKey: provider.apiKey,
+                                baseURL: provider.apiUrl,
+                            });
+                            break;
+                        default:
+                            throw new Error(`Unknown provider: ${provider.type} , ${provider.name}`);
                     }
                 }
                 this.modelProviderRegistry = createProviderRegistry(registryObject);
