@@ -22,7 +22,7 @@ export const ProviderInfo: Record<ModelProviderTypeEnum, { name: string; descrip
     },
     [ModelProviderTypeEnum.OLLAMA]: {
         name: 'Ollama',
-        description: 'Access a range of open-source and customizable language models for various AI tasks.'
+        description: 'Chat & build with open models using Ollama.'
     },
     [ModelProviderTypeEnum.CUSTOM]: {
         name: 'Custom',
