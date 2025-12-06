@@ -27,10 +27,6 @@ export class StreamingChatController implements Controller {
 
         const controller = new AbortController();
         this.activeStreams.set(args.streamChannel, controller);
-        // this.messageService.createMessage({
-        //     content: modelMessages[modelMessages.length - 1].content as string,
-        //     chatId: args.chatId
-        // });
         const lastUserMsg = args.messages[args.messages.length - 1];
         const txtMsg = lastUserMsg.parts.find(part => part.type === 'text')?.text;
         const rsnMsg = lastUserMsg.parts.find(part => part.type === 'reasoning')?.text;
@@ -49,10 +45,6 @@ export class StreamingChatController implements Controller {
                 abortSignal: controller.signal,
                 experimental_transform: smoothStream(),
                 onFinish: (result) => {
-                    // this.messageService.createMessage({
-                    //     content: result.text,
-                    //     chatId: args.chatId
-                    // })
                     this.messageService.createMessage({
                         chatId: args.chatId,
                         role: 'assistant',
