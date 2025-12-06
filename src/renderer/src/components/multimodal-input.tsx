@@ -22,7 +22,7 @@ import {
 } from './ai-elements/prompt-input';
 import equal from 'fast-deep-equal';
 import type {UseChatHelpers} from '@ai-sdk/react';
-import type {Attachment, ChatMessage} from '@/lib/types';
+import type {Attachment} from '@/lib/types';
 import {ModelLite, ModelProviderLite, ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
@@ -47,10 +47,10 @@ function PureMultimodalInput({
                              }: {
     input: string;
     setInput: Dispatch<SetStateAction<string>>;
-    status: UseChatHelpers<ChatMessage>['status'];
+    status: UseChatHelpers<UIMessage>['status'];
     attachments: Array<Attachment>;
     messages: Array<UIMessage>;
-    sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
+    sendMessage: UseChatHelpers<UIMessage>['sendMessage'];
     className?: string;
     stillAnswering?: boolean,
     onModelChange?: (modelId: string) => void;
@@ -83,7 +83,6 @@ function PureMultimodalInput({
         const modelId = selectedProvider?.name + ":" + selectedModel.modelId
         sendMessage({
             role: 'user',
-            metadata: {modelId},
             parts: [
                 ...attachments.map((attachment) => ({
                     type: 'file' as const,
@@ -96,6 +95,8 @@ function PureMultimodalInput({
                     text: input,
                 },
             ],
+        }, {
+            metadata: {modelId}
         }).then(() => {
             // TODO: use if reqd
         }).catch((error) => {

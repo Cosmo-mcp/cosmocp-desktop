@@ -1,10 +1,9 @@
-import {ChatRequestOptions, ChatTransport, UIMessageChunk} from 'ai'
-import {ChatMessage} from '@/lib/types'
+import {ChatRequestOptions, ChatTransport, UIMessage, UIMessageChunk} from 'ai'
 
 // Note: The global AbortSignal type is used directly, no import needed for modern browsers/environments.
 // Note: The browser's native ReadableStream is used, no import needed.
 
-export class IpcChatTransport implements ChatTransport<ChatMessage> {
+export class IpcChatTransport implements ChatTransport<UIMessage> {
     reconnectToStream(
         options: {
             chatId: string
@@ -46,7 +45,7 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
             trigger: 'submit-message' | 'regenerate-message'
             chatId: string
             messageId: string | undefined
-            messages: ChatMessage[]
+            messages: UIMessage[]
             abortSignal: AbortSignal | undefined
         } & ChatRequestOptions
     ): Promise<ReadableStream<UIMessageChunk>> {
@@ -81,12 +80,13 @@ export class IpcChatTransport implements ChatTransport<ChatMessage> {
 
                 // QUICK HACK FOR NOW: Extract modelId from the last user message metadata
                 const lastUserMessage = [...messages].reverse().find(msg => msg.role === 'user');
-                const modelIdentifier = lastUserMessage?.metadata?.modelId as string;
+                const modelIdentifier = options?.metadata as {modelId: string};
+                const modelId = modelIdentifier.modelId as string;
 
                 console.log("Model Identifier:", modelIdentifier);
                 window.api.streaming.sendMessage({
                     chatId, messages, streamChannel,
-                    modelIdentifier,
+                    modelIdentifier: modelId,
                 });
 
                 if (options.abortSignal) {

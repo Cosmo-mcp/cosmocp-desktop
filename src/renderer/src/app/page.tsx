@@ -5,12 +5,13 @@ import {Chat} from "core/dto";
 import {ChatHeader} from "@/components/chat-header";
 import {Messages} from "@/components/messages";
 import {MultimodalInput} from "@/components/multimodal-input";
-import {Attachment, ChatMessage} from "@/lib/types";
+import {Attachment} from "@/lib/types";
 import {useChat} from "@ai-sdk/react";
 import {IpcChatTransport} from "@/chat-transport";
 import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty";
 import {MessageCirclePlus} from "lucide-react";
 import {Button} from "@/components/ui/button";
+import {UIMessage} from "ai";
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -27,7 +28,7 @@ export default function Page(): JSX.Element {
         stop,
         regenerate,
         setMessages
-    } = useChat<ChatMessage>({
+    } = useChat<UIMessage>({
         id: selectedChat?.id,
         transport: new IpcChatTransport(),
         onError: (error) => {
@@ -56,7 +57,7 @@ export default function Page(): JSX.Element {
                 .then((chat) => {
                     if (chat) {
                         console.log(`Retrieved chat for id ${selectedChat.id}`, chat);
-                        //setMessages(chat.messages);
+                        setMessages(chat);
                     }
                 })
                 .catch((error) => console.log(error));
