@@ -8,6 +8,7 @@ import {ProviderV2} from "@ai-sdk/provider";
 import {createAnthropic} from "@ai-sdk/anthropic";
 import {createGoogleGenerativeAI} from "@ai-sdk/google";
 import {createOpenAI} from "@ai-sdk/openai";
+import {createOllama} from "ollama-ai-provider-v2";
 import {createProviderRegistry, ProviderRegistryProvider} from "ai";
 
 
@@ -16,6 +17,7 @@ export class ModelProviderService {
     private readonly repository: ModelProviderRepository;
     private modelProviderRegistry: ProviderRegistryProvider;
     private static MODELS_DOT_DEV_URL = "https://models.dev/api.json";
+    private static MODELS_OLLAMA_URL = "http://127.0.0.1:11434/api";
 
     constructor(
         @inject(CORETYPES.ModelProviderRepository) repository: ModelProviderRepository
@@ -101,20 +103,32 @@ export class ModelProviderService {
         this.getProviders({withApiKey: true})
             .then(providers => {
                 for (const provider of providers) {
-                    if (provider.type === ModelProviderTypeEnum.ANTHROPIC) {
-                        registryObject[provider.name] = createAnthropic({apiKey: provider.apiKey});
-                    } else if (provider.type === ModelProviderTypeEnum.GOOGLE) {
-                        registryObject[provider.name] = createGoogleGenerativeAI({apiKey: provider.apiKey});
-                    } else if (provider.type === ModelProviderTypeEnum.OPENAI) {
-                        registryObject[provider.name] = createOpenAI({apiKey: provider.apiKey});
-                    } else if (provider.type === ModelProviderTypeEnum.CUSTOM) {
-                        registryObject[provider.name] = createOpenAI({
-                            name: provider.name,
-                            apiKey: provider.apiKey,
-                            baseURL: provider.apiUrl,
-                        });
-                    } else {
-                        throw new Error(`Unknown provider: ${provider.type} , ${provider.name}`);
+                    switch (provider.type) {
+                        case ModelProviderTypeEnum.ANTHROPIC:
+                            registryObject[provider.name] = createAnthropic({ apiKey: provider.apiKey });
+                            break;
+                        case ModelProviderTypeEnum.GOOGLE:
+                            registryObject[provider.name] = createGoogleGenerativeAI({ apiKey: provider.apiKey });
+                            break;
+                        case ModelProviderTypeEnum.OPENAI:
+                            registryObject[provider.name] = createOpenAI({ apiKey: provider.apiKey });
+                            break;
+                        case ModelProviderTypeEnum.OLLAMA:
+                            if (provider.apiUrl && provider.apiUrl.trim() !== "") {
+                                registryObject[provider.name] = createOllama({ baseURL: provider.apiUrl });
+                            } else {
+                                registryObject[provider.name] = createOllama({});
+                            }
+                            break;
+                        case ModelProviderTypeEnum.CUSTOM:
+                            registryObject[provider.name] = createOpenAI({
+                                name: provider.name,
+                                apiKey: provider.apiKey,
+                                baseURL: provider.apiUrl,
+                            });
+                            break;
+                        default:
+                            throw new Error(`Unknown provider: ${provider.type} , ${provider.name}`);
                     }
                 }
                 this.modelProviderRegistry = createProviderRegistry(registryObject);
@@ -145,7 +159,47 @@ export class ModelProviderService {
         return safeStorage.decryptString(buffer);
     };
 
+    private async getModelsFromOllama(provider: ModelProviderCreateInput): Promise<NewModel[]> {
+        let result: NewModel[] = [];
+        const ollamaUrl = (provider.apiUrl && provider.apiUrl.trim()) || ModelProviderService.MODELS_OLLAMA_URL;
+        try {
+            const response = await fetch(ollamaUrl + '/tags', {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                console.error("Models.dev API Error:", await response.text());
+                return result;
+            }
+
+            const data = await response.json();
+
+            result = data['models'].map((model: { name: string, model: string, modified_at: number }) => ({
+                name: model.name,
+                modelId: model.model,
+                reasoning: false,
+                releaseDate: new Date(model.modified_at),
+                lastUpdatedByProvider: new Date(model.modified_at)
+            }));
+
+            result.sort((a, b) => {
+                return b.lastUpdatedByProvider >= a.lastUpdatedByProvider ? 1 : -1;
+            });
+
+        } catch (err) {
+            console.error("Ollama Models fetch error:", err);
+        }
+
+        return result;
+    }
+
     public async getModelsForProviderUsingModelsDotDev(provider: ModelProviderCreateInput): Promise<NewModel[]> {
+        if (provider.type === ModelProviderTypeEnum.OLLAMA) {
+            return this.getModelsFromOllama(provider);
+        }
         const result: NewModel[] = [];
 
         if (provider.type === ModelProviderTypeEnum.CUSTOM) {
@@ -179,9 +233,10 @@ export class ModelProviderService {
                     lastUpdatedByProvider: new Date(m.last_updated)
                 });
             }
+
             result.sort((a, b) => {
                 return b.lastUpdatedByProvider >= a.lastUpdatedByProvider ? 1 : -1;
-            })
+            });
 
         } catch (err) {
             console.error("Models.dev fetch error:", err);

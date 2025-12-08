@@ -14,12 +14,14 @@ const iconMap = {
         [ModelProviderTypeEnum.OPENAI]: "providers/openai-black.webp",
         [ModelProviderTypeEnum.ANTHROPIC]: "providers/anthropic-black.webp",
         [ModelProviderTypeEnum.GOOGLE]: "providers/gemini.svg",
+        [ModelProviderTypeEnum.OLLAMA]: "providers/ollama-light.webp",
         [ModelProviderTypeEnum.CUSTOM]: "providers/custom-provider.webp",
     },
     dark: {
         [ModelProviderTypeEnum.OPENAI]: "providers/openai-white.webp",
         [ModelProviderTypeEnum.ANTHROPIC]: "providers/anthropic-white.webp",
         [ModelProviderTypeEnum.GOOGLE]: "providers/gemini.svg",
+        [ModelProviderTypeEnum.OLLAMA]: "providers/ollama-dark.webp",
         [ModelProviderTypeEnum.CUSTOM]: "providers/custom-provider.webp",
     },
 };

@@ -79,7 +79,6 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 const messages = options.messages;
 
                 // QUICK HACK FOR NOW: Extract modelId from the last user message metadata
-                const lastUserMessage = [...messages].reverse().find(msg => msg.role === 'user');
                 const modelIdentifier = options?.metadata as {modelId: string};
                 const modelId = modelIdentifier.modelId as string;
 
