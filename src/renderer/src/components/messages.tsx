@@ -1,7 +1,6 @@
 import {memo} from 'react';
 import equal from 'fast-deep-equal';
 import type {UseChatHelpers} from '@ai-sdk/react';
-import type {ChatMessage} from '@/lib/types';
 import {
     Conversation,
     ConversationContent,
@@ -19,13 +18,14 @@ import {CopyIcon, MessageSquare, RefreshCcwIcon} from "lucide-react";
 import {Reasoning, ReasoningContent, ReasoningTrigger} from "@/components/ai-elements/reasoning";
 import {Source, Sources, SourcesContent, SourcesTrigger} from "@/components/ai-elements/sources";
 import {Loader} from "@/components/ai-elements/loader";
+import {UIMessage} from "ai";
 
 
 interface MessagesProps {
     chatId: string;
-    status: UseChatHelpers<ChatMessage>['status'];
-    messages: ChatMessage[];
-    regenerate: UseChatHelpers<ChatMessage>['regenerate'];
+    status: UseChatHelpers<UIMessage>['status'];
+    messages: UIMessage[];
+    regenerate: UseChatHelpers<UIMessage>['regenerate'];
 }
 
 function PureMessages({
