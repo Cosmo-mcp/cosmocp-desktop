@@ -5,12 +5,19 @@ import {ModelProvider, ModelProviderCreateInput, ModelProviderLite, NewModel, Pr
 import {ModelProviderTypeEnum} from "../database/schema/modelProviderSchema";
 import {safeStorage} from "electron";
 import {ProviderV2} from "@ai-sdk/provider";
-import {createAnthropic} from "@ai-sdk/anthropic";
-import {createGoogleGenerativeAI} from "@ai-sdk/google";
-import {createOpenAI} from "@ai-sdk/openai";
-import {createOllama} from "ollama-ai-provider-v2";
+import {AnthropicProviderSettings, createAnthropic} from "@ai-sdk/anthropic";
+import {createGoogleGenerativeAI, GoogleGenerativeAIProviderSettings} from "@ai-sdk/google";
+import {createOpenAI, OpenAIProviderSettings} from "@ai-sdk/openai";
+import {createOllama, OllamaProviderSettings} from "ollama-ai-provider-v2";
 import {createProviderRegistry, ProviderRegistryProvider} from "ai";
 
+
+export type RemoteProviderOptions =
+    AnthropicProviderSettings
+    | GoogleGenerativeAIProviderSettings
+    | OpenAIProviderSettings;
+
+export type LocalProviderOptions = OllamaProviderSettings;
 
 @injectable()
 export class ModelProviderService {
@@ -41,22 +48,17 @@ export class ModelProviderService {
             throw new Error('Duplicate provider entry.');
         }
 
-        // 2. Business logic to determine final apiUrl
-        function getDefaultApiUrl(type: string) {
-            return `https://remotehost${type}.com/api/v1/chat`;
-        }
-
-        // 3. Map input data to the final Drizzle Insert type
+        // 2. Map input data to the final Drizzle Insert type
         const insertData: ModelProviderCreateInput = {
             name: providerData.name,
             apiKey: providerData.apiKey, // Key is plain text here
             type: providerData.type,
             apiUrl: providerData.type === ModelProviderTypeEnum.CUSTOM
                 ? providerData.apiUrl
-                : providerData.apiUrl ?? getDefaultApiUrl(providerData.type),
+                : providerData.apiUrl ?? "",
         };
 
-        // 4. Repository handles insertion and encryption
+        // 3. Repository handles insertion and encryption
         const result = await this.repository.addProvider(insertData, modelsData);
         this.updateModelProviderRegistry();
         return result;
@@ -105,20 +107,16 @@ export class ModelProviderService {
                 for (const provider of providers) {
                     switch (provider.type) {
                         case ModelProviderTypeEnum.ANTHROPIC:
-                            registryObject[provider.name] = createAnthropic({ apiKey: provider.apiKey });
+                            registryObject[provider.name] = createAnthropic(this.createRemoteOptions(provider));
                             break;
                         case ModelProviderTypeEnum.GOOGLE:
-                            registryObject[provider.name] = createGoogleGenerativeAI({ apiKey: provider.apiKey });
+                            registryObject[provider.name] = createGoogleGenerativeAI(this.createRemoteOptions(provider));
                             break;
                         case ModelProviderTypeEnum.OPENAI:
-                            registryObject[provider.name] = createOpenAI({ apiKey: provider.apiKey });
+                            registryObject[provider.name] = createOpenAI(this.createRemoteOptions(provider));
                             break;
                         case ModelProviderTypeEnum.OLLAMA:
-                            if (provider.apiUrl && provider.apiUrl.trim() !== "") {
-                                registryObject[provider.name] = createOllama({ baseURL: provider.apiUrl });
-                            } else {
-                                registryObject[provider.name] = createOllama({});
-                            }
+                            registryObject[provider.name] = createOllama(this.createLocalOptions(provider));
                             break;
                         case ModelProviderTypeEnum.CUSTOM:
                             registryObject[provider.name] = createOpenAI({
@@ -134,6 +132,25 @@ export class ModelProviderService {
                 this.modelProviderRegistry = createProviderRegistry(registryObject);
             })
             .catch(error => console.error(error));
+    }
+
+    private createLocalOptions(provider: ModelProviderLite): LocalProviderOptions {
+        const options: LocalProviderOptions = {};
+        if (provider.apiUrl && provider.apiUrl.trim() !== "") {
+            options.baseURL = provider.apiUrl;
+        }
+        return options;
+    }
+
+    private createRemoteOptions(provider: ModelProviderLite): RemoteProviderOptions {
+        const options: RemoteProviderOptions = {};
+        if (provider.apiUrl && provider.apiUrl.trim() !== "") {
+            options.baseURL = provider.apiUrl;
+        }
+        if (provider.apiKey.trim() !== "") {
+            options.apiKey = provider.apiKey;
+        }
+        return options;
     }
 
     /** Maps a DB record (encrypted key) to the application model (decrypted key). */
