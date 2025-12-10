@@ -26,6 +26,23 @@ const copyMigrationsPlugin = () => ({
     }
 });
 
+const copySplashPlugin = () => ({
+    name: 'copy-splash',
+    closeBundle() {
+        const sourceFile = path.resolve(__dirname, 'src/main/splash.html');
+        const targetFile = path.resolve(__dirname, '.vite/build', 'splash.html');
+
+        console.log(`[Vite Plugin] Copying splash.html from ${sourceFile} to ${targetFile}`);
+
+        try {
+            fs.cpSync(sourceFile, targetFile);
+            console.log('Splash screen copied successfully.');
+        } catch (e) {
+            console.error('Failed to copy splash screen:', e);
+        }
+    }
+});
+
 export default defineConfig({
     optimizeDeps: {
         exclude: ['@electric-sql/pglite']
@@ -47,6 +64,7 @@ export default defineConfig({
     // Add the custom plugin to the plugins array
     plugins: [
         tsconfigPaths(),
-        copyMigrationsPlugin()
+        copyMigrationsPlugin(),
+        copySplashPlugin()
     ],
 });
