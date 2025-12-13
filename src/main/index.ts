@@ -6,6 +6,7 @@ import 'reflect-metadata';
 import container from "./inversify.config";
 import {TYPES} from "./types";
 import {config} from "dotenv";
+import {updateElectronApp, UpdateSourceType} from "update-electron-app";
 
 export class Main {
     private mainWindow: BrowserWindow | null = null;
@@ -14,6 +15,13 @@ export class Main {
 
     constructor() {
         config();
+        updateElectronApp({
+            updateSource: {
+                type: UpdateSourceType.ElectronPublicUpdateService,
+                repo: 'cosmo-cp/cosmo-studio',
+            },
+            updateInterval: '1 hour'
+        })
         app.whenReady().then(async () => {
             await this.initializeDatabase();
             const ipcHandlerRegistry = container.get<IpcHandlerRegistry>(TYPES.IpcHandlerRegistry);
