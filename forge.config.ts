@@ -12,8 +12,8 @@ import fs from "fs";
 
 const config: ForgeConfig = {
         packagerConfig: {
-            name: "CosmoMCP",
-            executableName: "CosmoMCP", //Needed for linux
+            name: "Cosmo Studio",
+            executableName: "CosmoStudio", //Needed for linux
             asar: true,
         },
         rebuildConfig: {},
