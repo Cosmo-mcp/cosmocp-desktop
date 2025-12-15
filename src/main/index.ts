@@ -6,6 +6,7 @@ import 'reflect-metadata';
 import container from "./inversify.config";
 import {TYPES} from "./types";
 import {config} from "dotenv";
+import {updateElectronApp, UpdateSourceType} from "update-electron-app";
 
 export class Main {
     private mainWindow: BrowserWindow | null = null;
@@ -20,6 +21,17 @@ export class Main {
             ipcHandlerRegistry.registerIpcHandlers();
             await this.createWindow();
             this.registerAppEvents();
+            // updateElectronApp should be called after 10 seconds in windows
+            // read this doc: https://www.electronjs.org/docs/latest/api/auto-updater#windows
+            setTimeout(() => {
+                updateElectronApp({
+                    updateSource: {
+                        type: UpdateSourceType.ElectronPublicUpdateService,
+                        repo: 'cosmo-cp/cosmo-studio',
+                    },
+                    updateInterval: '1 hour'
+                })
+            }, 60000);
         });
     }
 
