@@ -15,6 +15,7 @@ const config: ForgeConfig = {
             name: "Cosmo Studio",
             executableName: "CosmoStudio", //Needed for linux
             asar: true,
+            osxSign: {} // object must exist even if empty
         },
         rebuildConfig: {},
         makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
@@ -61,8 +62,8 @@ const config: ForgeConfig = {
             config: {
                 authToken: process.env.GITHUB_TOKEN,
                 repository: {
-                    owner: 'Cosmo-mcp',
-                    name: 'cosmocp-desktop'
+                    owner: 'Cosmo-cp',
+                    name: 'cosmo-studio'
                 },
                 draft: true,
                 force: true,
