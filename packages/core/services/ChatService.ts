@@ -29,4 +29,8 @@ export class ChatService {
     public async deleteChat(id: string): Promise<void> {
         return this.chatRepository.delete(id);
     }
+
+    public async updatePinnedStatusForChat(id: string, pinned: boolean): Promise<void> {
+        return this.chatRepository.updatePinnedStatus(id, pinned);
+    }
 }

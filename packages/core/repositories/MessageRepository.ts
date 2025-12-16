@@ -1,5 +1,5 @@
 import {inject, injectable} from "inversify";
-import {eq} from "drizzle-orm";
+import {asc, eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {DatabaseManager} from "../database/DatabaseManager";
 import {Message, NewMessage} from "../dto";
@@ -14,7 +14,7 @@ export class MessageRepository {
     }
 
     public async getMessagesByChatId(chatId: string): Promise<Message[]> {
-        return this.db.select().from(message).where(eq(message.chatId, chatId));
+        return this.db.select().from(message).where(eq(message.chatId, chatId)).orderBy(asc(message.createdAt));
     }
 
     public async create(newMessage: NewMessage): Promise<Message> {
