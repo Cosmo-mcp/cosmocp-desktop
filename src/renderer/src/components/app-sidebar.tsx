@@ -33,7 +33,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/main">
+                            <Link href="./">
                                 <div className="flex items-start justify-center">
                                     <CosmoIcon size={48}/>
                                 </div>
@@ -68,7 +68,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
-                            <Link href="/main/settings">
+                            <Link href="./settings">
                                 <SettingsIcon/>
                                 <span>Settings</span>
                             </Link>
