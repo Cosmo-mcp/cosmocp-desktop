@@ -2,10 +2,7 @@
 import React from "react";
 import "./globals.css";
 import {ThemeProvider} from "next-themes";
-import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar";
-import {AppSidebar} from "@/components/app-sidebar";
 import {Toaster} from "sonner";
-import {SiteHeader} from "@/components/site-header";
 
 export default function RootLayout({
                                        children,
@@ -20,21 +17,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
-            <SidebarProvider
-                style={{
-                    "--sidebar-width-icon": "3rem",
-                    "--header-height": "calc(var(--spacing) * 14)",
-                } as React.CSSProperties}>
-                <AppSidebar/>
-                <SidebarInset>
-                    <SiteHeader/>
-                    <div className="flex flex-1 flex-col h-full w-full">
-                        <div className="@container/main flex flex-1 flex-col h-full w-full">
-                            {children}
-                        </div>
-                    </div>
-                </SidebarInset>
-            </SidebarProvider>
+            {children}
             <Toaster position="top-center"/>
         </ThemeProvider>
         </body>

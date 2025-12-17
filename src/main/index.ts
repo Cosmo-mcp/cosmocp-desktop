@@ -11,7 +11,7 @@ import {updateElectronApp, UpdateSourceType} from "update-electron-app";
 export class Main {
     private mainWindow: BrowserWindow | null = null;
     private readonly isDev = true;
-    private readonly MAIN_WINDOW_VITE_DEV_SERVER_URL = this.isDev ? 'http://localhost:3000' : undefined;
+    private readonly MAIN_WINDOW_VITE_DEV_SERVER_URL = this.isDev ? 'http://localhost:3000/splash' : undefined;
 
     constructor() {
         config();
@@ -71,7 +71,7 @@ export class Main {
         if (this.MAIN_WINDOW_VITE_DEV_SERVER_URL) {
             await this.mainWindow.loadURL(this.MAIN_WINDOW_VITE_DEV_SERVER_URL);
         } else {
-            await this.mainWindow.loadFile(path.join(__dirname, `../renderer/main_window/index.html`));
+            await this.mainWindow.loadFile(path.join(__dirname, `../renderer/main_window/splash.html`));
         }
         if (this.isDev) {
             this.mainWindow.webContents.openDevTools();
