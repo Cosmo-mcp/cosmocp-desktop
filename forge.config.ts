@@ -15,10 +15,18 @@ const config: ForgeConfig = {
             name: "Cosmo Studio",
             executableName: "CosmoStudio", //Needed for linux
             asar: true,
+            icon: './icons/cosmo',
             osxSign: {} // object must exist even if empty
         },
         rebuildConfig: {},
-        makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
+        makers: [new MakerSquirrel({}),
+            new MakerZIP({}, ['darwin']),
+            new MakerRpm({}),
+            new MakerDeb({
+                options: {
+                    icon: './icons/cosmo.png',
+                }
+            })],
 
         plugins: [
             new VitePlugin({
