@@ -35,4 +35,9 @@ export class ChatController implements Controller {
     public async deleteChat(id: string): Promise<void> {
         return this.chatService.deleteChat(id);
     }
+
+    @IpcHandler("updatePinnedStatusForChat")
+    public async updatePinnedStatusForChat(id: string, pinned: boolean): Promise<void> {
+        return this.chatService.updatePinnedStatusForChat(id, pinned);
+    }
 }

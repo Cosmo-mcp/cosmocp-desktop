@@ -6,6 +6,7 @@ export const chat = pgTable("Chat", {
     createdAt: timestamp("createdAt").notNull(),
     title: text("title").notNull(),
     pinned: boolean("pinned").default(false),
+    pinnedAt: timestamp("pinnedAt"),
     lastMessage: text("lastMessage"),
     lastMessageAt: timestamp("lastMessageAt"),
 });

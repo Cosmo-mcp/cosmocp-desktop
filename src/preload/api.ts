@@ -24,6 +24,8 @@ export interface ChatApi {
     updateChat(id: string, updates: Partial<NewChat>): Promise<Chat>;
 
     deleteChat(id: string): Promise<void>;
+
+    updatePinnedStatusForChat(id: string, pinned: boolean): Promise<void>;
 }
 
 export interface ModelProviderApi {
@@ -76,7 +78,8 @@ export const api: Api = {
         getChatById: (id: string) => ipcRenderer.invoke('chat:getChatById', id),
         createChat: (newChat: NewChat) => ipcRenderer.invoke('chat:createChat', newChat),
         updateChat: (id: string, updates: Partial<NewChat>) => ipcRenderer.invoke('chat:updateChat', id, updates),
-        deleteChat: (id: string) => ipcRenderer.invoke('chat:deleteChat', id)
+        deleteChat: (id: string) => ipcRenderer.invoke('chat:deleteChat', id),
+        updatePinnedStatusForChat: (id: string, pinned: boolean) => ipcRenderer.invoke('chat:updatePinnedStatusForChat', id, pinned)
     },
     modelProvider: {
         addProvider: (providerData: ModelProviderCreateInput, models: NewModel[]) => ipcRenderer.invoke('modelProvider:addProvider', providerData, models),
