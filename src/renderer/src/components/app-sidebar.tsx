@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import {MessageCircle, SettingsIcon} from "lucide-react";
-import {BotIcon} from "@/components/icons";
+import {CosmoIcon} from "@/components/icons";
 
 export function AppSidebar() {
     const context = useSidebar();
@@ -34,9 +34,8 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/">
-                                <div
-                                    className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                                    <BotIcon/>
+                                <div className="flex items-start justify-center">
+                                    <CosmoIcon size={48}/>
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-medium">Cosmo</span>
