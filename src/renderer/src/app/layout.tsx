@@ -1,21 +1,19 @@
 'use client'
 import React from "react";
 import "./globals.css";
-import {inter} from "@/lib/fonts";
 import {ThemeProvider} from "next-themes";
 import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar";
 import {AppSidebar} from "@/components/app-sidebar";
 import {Toaster} from "sonner";
 import {SiteHeader} from "@/components/site-header";
 
-export default async function RootLayout({
-                                             children,
-                                         }: Readonly<{
+export default function RootLayout({
+                                       children,
+                                   }: Readonly<{
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className={`${inter.variable} antialiased`}>
-        <body className={inter.className}>
+        <body>
         <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -40,6 +38,5 @@ export default async function RootLayout({
             <Toaster position="top-center"/>
         </ThemeProvider>
         </body>
-        </html>
     );
 }

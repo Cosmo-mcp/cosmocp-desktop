@@ -73,7 +73,6 @@ export class StreamingChatController implements Controller {
                 sendReasoning: true,
                 sendSources: true
             })) {
-                console.log(chunk);
                 if (webContents.isDestroyed()) {
                     console.log("WebContents destroyed, stopping stream.");
                     controller.abort();

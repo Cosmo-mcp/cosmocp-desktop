@@ -82,7 +82,6 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 const modelIdentifier = options?.metadata as {modelId: string};
                 const modelId = modelIdentifier.modelId as string;
 
-                console.log("Model Identifier:", modelIdentifier);
                 window.api.streaming.sendMessage({
                     chatId, messages, streamChannel,
                     modelIdentifier: modelId,
