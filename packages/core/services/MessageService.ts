@@ -36,7 +36,6 @@ export class MessageService {
     }
 
     public async createMessage(newMessage: NewMessage): Promise<Message> {
-        console.log("createMessage", newMessage);
         return this.messageRepository.create(newMessage);
     }
 

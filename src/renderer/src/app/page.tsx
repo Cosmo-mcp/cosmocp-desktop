@@ -56,7 +56,6 @@ export default function Page(): JSX.Element {
             window.api.message.getByChat(selectedChat.id)
                 .then((chat) => {
                     if (chat) {
-                        console.log(`Retrieved chat for id ${selectedChat.id}`, chat);
                         setMessages(chat);
                     }
                 })
