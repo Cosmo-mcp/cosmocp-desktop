@@ -40,7 +40,7 @@ export function AppSidebar() {
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-medium">Cosmo</span>
-                                    <span className="truncate text-xs">AI your way</span>
+                                    <span className="truncate text-xs">Studio</span>
                                 </div>
                             </Link>
                         </SidebarMenuButton>
