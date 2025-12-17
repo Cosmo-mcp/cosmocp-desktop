@@ -10,7 +10,7 @@ import {updateElectronApp, UpdateSourceType} from "update-electron-app";
 
 export class Main {
     private mainWindow: BrowserWindow | null = null;
-    private readonly isDev = true;
+    private readonly isDev = !app.isPackaged;
     private readonly MAIN_WINDOW_VITE_DEV_SERVER_URL = this.isDev ? 'http://localhost:3000/splash' : undefined;
 
     constructor() {

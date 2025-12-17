@@ -18,7 +18,7 @@ import {MessageCircle, SettingsIcon} from "lucide-react";
 import {CosmoIcon} from "@/components/icons";
 
 export function AppSidebar() {
-    const context = useSidebar();
+    useSidebar();
     useRouter();
     const menuItems = [
         {
@@ -33,7 +33,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/">
+                            <Link href="/main">
                                 <div className="flex items-start justify-center">
                                     <CosmoIcon size={48}/>
                                 </div>
@@ -68,7 +68,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
-                            <Link href="./settings">
+                            <Link href="/main/settings">
                                 <SettingsIcon/>
                                 <span>Settings</span>
                             </Link>

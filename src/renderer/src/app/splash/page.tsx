@@ -9,7 +9,7 @@ export default function SplashPage() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      router.push('/')
+      router.push('/main')
     }, 2000)
 
     return () => clearTimeout(timeout)

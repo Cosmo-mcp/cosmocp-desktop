@@ -10,6 +10,8 @@
   ],
   "scripts": {
     "generate-api": "ts-node -r tsconfig-paths/register scripts/generate-api.ts",
+    "next:dev": "cd src/renderer && npm run dev",
+    "dev": "concurrently -k \"npm run next:dev\" \"npm run start\"",
     "start": "cross-env NODE_ENV=development electron-forge start",
     "package": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge package",
     "make": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge make",
@@ -44,6 +46,7 @@
     "@electron/fuses": "^1.8.0",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
+    "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.5",
     "electron": "^38.2.0",
