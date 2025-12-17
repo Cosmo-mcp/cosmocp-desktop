@@ -23,7 +23,7 @@ export default function SplashPage() {
         </div>
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">Cosmo</h1>
-          <p className="text-sm text-muted-foreground">AI your way</p>
+          <p className="text-sm text-muted-foreground">Studio</p>
         </div>
         <div className="flex items-center gap-1 mt-4">
           <span
