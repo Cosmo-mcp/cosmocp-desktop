@@ -15,6 +15,7 @@ const config: ForgeConfig = {
             name: "Cosmo Studio",
             executableName: "CosmoStudio", //Needed for linux
             asar: true,
+            icon: './icons/cosmo',
             osxSign: {} // object must exist even if empty
         },
         rebuildConfig: {},
