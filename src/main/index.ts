@@ -58,6 +58,7 @@ export class Main {
         this.mainWindow = new BrowserWindow({
             height: 600,
             width: 800,
+            icon: path.join(__dirname, '../../icons/favicon.ico'),
             webPreferences: {
                 contextIsolation: true,
                 nodeIntegration: false,
@@ -77,7 +78,6 @@ export class Main {
             this.mainWindow.webContents.openDevTools();
             this.mainWindow.maximize();
         }
-
     }
 
     private registerAppEvents(): void {
