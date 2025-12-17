@@ -1,4 +1,4 @@
-import {convertToModelMessages, ModelMessage, smoothStream, streamText} from 'ai';
+import {convertToModelMessages, ModelMessage, RetryError, smoothStream, streamText} from 'ai';
 import {IpcMainEvent, WebContents} from "electron";
 import {inject, injectable} from "inversify";
 import {IpcController, IpcOn, IpcRendererOn} from "../ipc/Decorators";
@@ -62,10 +62,15 @@ export class StreamingChatController implements Controller {
                 },
                 onError: (error) => {
                     console.error("Stream error:", error);
-                    this.activeStreams.delete(args.streamChannel);
-                    if (!webContents.isDestroyed()) {
-                        webContents.send(`${args.streamChannel}-error`, error);
+                    let msg = error.error;
+                    if (RetryError.isInstance(error)) {
+                        msg = error.lastError;
                     }
+                    if (!webContents.isDestroyed()) {
+                        webContents.send(`${args.streamChannel}-error`, msg);
+                    }
+                    this.activeStreams.delete(args.streamChannel);
+
                 }
             });
 
