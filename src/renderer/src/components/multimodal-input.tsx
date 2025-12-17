@@ -131,6 +131,7 @@ function PureMultimodalInput({
                         <PromptInputActionMenu>
                             <PromptInputActionMenuTrigger/>
                             <PromptInputActionMenuContent>
+                                {selectedModel?.inputModalities.}
                                 <PromptInputActionAddAttachments/>
                             </PromptInputActionMenuContent>
                         </PromptInputActionMenu>

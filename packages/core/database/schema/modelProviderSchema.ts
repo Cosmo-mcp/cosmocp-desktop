@@ -55,7 +55,8 @@ export const model = pgTable("Model", {
     providerId: uuid("providerId").references(() => modelProvider.id, {onDelete: 'cascade'}),
     reasoning: boolean("reasoning").default(false),
     releaseDate: timestamp("releaseDate"),
-    lastUpdatedByProvider: timestamp("lastUpdatedByProvider")
+    lastUpdatedByProvider: timestamp("lastUpdatedByProvider"),
+    inputModalities: text("inputModalities").array(),
 });
 
 export const modelProviderRelations = relations(modelProvider, ({ many }) => ({

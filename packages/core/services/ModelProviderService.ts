@@ -247,7 +247,8 @@ export class ModelProviderService {
                     description: m.name,
                     reasoning: m.reasoning,
                     releaseDate: new Date(m.release_date),
-                    lastUpdatedByProvider: new Date(m.last_updated)
+                    lastUpdatedByProvider: new Date(m.last_updated),
+                    inputModalities: m.modalities.input,
                 });
             }
 

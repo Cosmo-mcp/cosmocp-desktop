@@ -1,0 +1,1 @@
+ALTER TABLE "Model" ADD COLUMN "inputModalities" text[];
