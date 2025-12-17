@@ -27,7 +27,8 @@ export default function Page(): JSX.Element {
         status,
         stop,
         regenerate,
-        setMessages
+        setMessages,
+        error
     } = useChat<UIMessage>({
         id: selectedChat?.id,
         transport: new IpcChatTransport(),
@@ -49,7 +50,7 @@ export default function Page(): JSX.Element {
                 setRefreshHistory(false);
             })
             .catch((error) => console.log(error));
-    }, [refreshHistory, searchHistoryQuery]);
+    }, [refreshHistory, searchHistoryQuery, messages]);
 
     useEffect(() => {
         if (selectedChat) {
