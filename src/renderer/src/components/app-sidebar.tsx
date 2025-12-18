@@ -33,7 +33,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="./">
+                            <Link href="./" prefetch={false}>
                                 <div className="flex items-start justify-center">
                                     <CosmoIcon size={48}/>
                                 </div>
@@ -53,7 +53,7 @@ export function AppSidebar() {
                             {menuItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild>
-                                        <Link href={item.url}>
+                                        <Link href={item.url} prefetch={false}>
                                             <item.icon/>
                                             <span>{item.title}</span>
                                         </Link>
@@ -68,7 +68,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
-                            <Link href="./settings">
+                            <Link href="./settings" prefetch={false}>
                                 <SettingsIcon/>
                                 <span>Settings</span>
                             </Link>
