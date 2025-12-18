@@ -12,6 +12,7 @@ import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTit
 import {MessageCirclePlus} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {UIMessage} from "ai";
+import { toast } from "sonner"
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -33,7 +34,9 @@ export default function Page(): JSX.Element {
         id: selectedChat?.id,
         transport: new IpcChatTransport(),
         onError: (error) => {
-            console.error(error);
+            toast.error("Failed to Stream Data", {
+                description: error.message,
+            })
         },
     });
 
