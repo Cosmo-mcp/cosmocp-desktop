@@ -4,15 +4,24 @@ import {Chat} from "core/dto";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {Button} from "@/components/ui/button";
 import {Pin, Search, Trash} from "lucide-react";
+import {useState} from "react";
+import {ConfirmDialog} from "@/components/confirm-dialog";
 
 export function ChatHeader({chat, onDeleteChat}: {
     chat: Chat,
     onDeleteChat: (chat: Chat) => void
 }) {
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-    const handleDeleteChat = () => {
-        onDeleteChat(chat);
+    const handleDeleteClick = () => {
+        setIsDeleteOpen(true);
     }
+
+    const handleConfirmDelete = () => {
+        onDeleteChat(chat);
+        setIsDeleteOpen(false);
+    }
+
     return (
         <div className="flex items-center justify-end h-full flex-row">
             {/* Right side - Action buttons */}
@@ -47,7 +56,7 @@ export function ChatHeader({chat, onDeleteChat}: {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={handleDeleteChat}
+                                onClick={handleDeleteClick}
                                 className="cursor-pointer"
                             >
                                 <Trash className="h-4 w-4"/>
@@ -59,6 +68,15 @@ export function ChatHeader({chat, onDeleteChat}: {
                     </Tooltip>
                 </TooltipProvider>
             </div>
+            <ConfirmDialog
+                open={isDeleteOpen}
+                onOpenChange={setIsDeleteOpen}
+                title="Delete Chat"
+                description="Are you sure you want to delete this chat? This action cannot be undone."
+                confirmText="Delete"
+                variant="destructive"
+                onConfirm={handleConfirmDelete}
+            />
         </div>
     );
 }

@@ -13,6 +13,7 @@ import {Edit, Trash2} from 'lucide-react';
 import {defineStepper} from "@stepperize/react";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Loader} from "@/components/ai-elements/loader";
+import {ConfirmDialog} from "@/components/confirm-dialog";
 
 export function ProviderManagement() {
     const {resolvedTheme} = useTheme();
@@ -23,6 +24,10 @@ export function ProviderManagement() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{isOpen: boolean, providerId: string | null}>({
+        isOpen: false,
+        providerId: null
+    });
 
     // Form state
     const [selectedProviderType, setSelectedProviderType] = useState<ModelProviderTypeEnum | null>(null);
@@ -134,8 +139,16 @@ export function ProviderManagement() {
         methods.goTo("step-2");
     };
 
-    const handleDeleteProvider = async (providerId: string) => {
+    const handleDeleteClick = (providerId: string) => {
+        setDeleteConfirmation({ isOpen: true, providerId });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteConfirmation.providerId) return;
+        const providerId = deleteConfirmation.providerId;
+
         setIsDeleting(providerId);
+        setDeleteConfirmation({ isOpen: false, providerId: null });
 
         try {
             await window.api.modelProvider.deleteProvider(providerId);
@@ -218,7 +231,7 @@ export function ProviderManagement() {
                                     type="button"
                                     variant="ghost"
                                     size="icon-sm"
-                                    onClick={() => handleDeleteProvider(provider.id)}
+                                    onClick={() => handleDeleteClick(provider.id)}
                                     disabled={isDeleting === provider.id}
                                     title="Delete provider"
                                     className="text-destructive hover:text-destructive hover:bg-destructive/10">
@@ -410,6 +423,15 @@ export function ProviderManagement() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <ConfirmDialog
+                open={deleteConfirmation.isOpen}
+                onOpenChange={(open) => setDeleteConfirmation(prev => ({ ...prev, isOpen: open }))}
+                title="Delete Provider"
+                description="Are you sure you want to delete this provider? This action cannot be undone."
+                confirmText="Delete"
+                variant="destructive"
+                onConfirm={handleConfirmDelete}
+            />
         </div>
     );
 }
