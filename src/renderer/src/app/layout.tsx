@@ -2,7 +2,6 @@
 import React from "react";
 import "./globals.css";
 import {ThemeProvider} from "next-themes";
-import {Toaster} from "sonner";
 
 export default function RootLayout({
                                        children,
@@ -18,7 +17,6 @@ export default function RootLayout({
             disableTransitionOnChange
         >
             {children}
-            <Toaster position="top-center"/>
         </ThemeProvider>
         </body>
     );

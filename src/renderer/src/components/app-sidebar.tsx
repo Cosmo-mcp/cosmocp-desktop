@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import {MessageCircle, SettingsIcon} from "lucide-react";
-import {CosmoIcon} from "@/components/icons";
+import {CosmoIcon} from "@/components/cosmo-icon";
 
 export function AppSidebar() {
     useSidebar();

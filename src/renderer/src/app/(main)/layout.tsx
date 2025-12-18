@@ -3,6 +3,7 @@ import React from "react";
 import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar";
 import {AppSidebar} from "@/components/app-sidebar";
 import {SiteHeader} from "@/components/site-header";
+import {Toaster} from "sonner";
 
 export default function MainLayout({
                                        children,
@@ -24,6 +25,7 @@ export default function MainLayout({
                         </div>
                     </div>
                 </SidebarInset>
+                <Toaster position="top-center"/>
             </SidebarProvider>
     );
 }

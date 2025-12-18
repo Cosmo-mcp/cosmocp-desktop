@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import {CosmoIcon} from "@/components/icons";
+import {CosmoIcon} from "@/components/cosmo-icon";
 
 export default function SplashPage() {
   const router = useRouter()
