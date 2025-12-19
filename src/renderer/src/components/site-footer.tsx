@@ -4,8 +4,8 @@ import Link from "next/link"
 export function SiteFooter() {
 
     return (
-        <footer className="fixed bottom-0 w-full border-t bg-background">
-            <div className="px-4 py-6 lg:px-6">
+        <footer>
+            <div className="px-2 py-3 lg:px-6">
                 <div className="flex flex-col items-center justify-center space-y-2 text-center">
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <span>Made with</span>
@@ -17,12 +17,9 @@ export function SiteFooter() {
                             rel="noopener noreferrer"
                             className="font-medium text-foreground hover:text-primary transition-colors"
                         >
-                            Cosmo Team
+                            Cosmo-CP Team
                         </Link>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                        Effortless Intelligence. Exceptional Results
-                    </p>
                 </div>
             </div>
         </footer>
