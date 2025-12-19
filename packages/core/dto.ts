@@ -9,7 +9,7 @@ export type Message = InferSelectModel<typeof message>;
 export type Chat = InferSelectModel<typeof chat>;
 
 // DTOs for new database entry
-export type NewChat = Omit<Chat, "id" | "createdAt" | "pinned" | "pinnedAt">;
+export type NewChat = InferInsertModel<typeof chat>;
 export type NewMessage = Omit<Message, "id" | "createdAt">;
 
 // The full model, retrieved from the database with a decrypted apiKey.

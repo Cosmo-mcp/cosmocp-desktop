@@ -3,13 +3,14 @@
 import {Chat} from "core/dto";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {Button} from "@/components/ui/button";
-import {Pin, Search, Trash} from "lucide-react";
+import {Pin, PinOff, Search, Trash} from "lucide-react";
 import {useState} from "react";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 
-export function ChatHeader({chat, onDeleteChat}: {
+export function ChatHeader({chat, onDeleteChat, onPinChat}: {
     chat: Chat,
     onDeleteChat: (chat: Chat) => void
+    onPinChat: (chat: Chat) => void
 }) {
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
@@ -22,6 +23,10 @@ export function ChatHeader({chat, onDeleteChat}: {
         setIsDeleteOpen(false);
     }
 
+    const handlePinChat = () => {
+        onPinChat(chat);
+    }
+
     return (
         <div className="flex items-center justify-end h-full flex-row">
             {/* Right side - Action buttons */}
@@ -30,12 +35,22 @@ export function ChatHeader({chat, onDeleteChat}: {
                     {/* Pin */}
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="cursor-pointer">
-                                <Pin className="h-4 w-4"/>
+                            <Button variant="ghost" size="icon" className="cursor-pointer"
+                                    onClick={handlePinChat}>
+                                {chat.pinned ? (
+                                    <PinOff className="h-4 w-4"/>
+                                ) : (
+                                    <Pin className="h-4 w-4"/>
+                                )}
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>Pin Chat</p>
+                            {chat.pinned ? (
+                                <p>Un-Pin Chat</p>
+                            ) : (
+                                <p>Pin Chat</p>
+                            )}
+
                         </TooltipContent>
                     </Tooltip>
                     {/* Search */}
