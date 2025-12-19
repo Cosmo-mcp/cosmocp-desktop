@@ -76,14 +76,14 @@ function PureMessages({
                                                         {part.text}
                                                     </MessageResponse>
                                                 </MessageContent>
-                                                {message.role === 'assistant' && i === messages.length - 1 && (
+                                                {message.role === 'assistant'&& (
                                                     <MessageActions>
-                                                        <MessageAction
+                                                        {/*<MessageAction
                                                             onClick={() => regenerate()}
                                                             label="Retry"
                                                         >
                                                             <RefreshCcwIcon className="size-3"/>
-                                                        </MessageAction>
+                                                        </MessageAction>*/}
                                                         <MessageAction
                                                             onClick={() =>
                                                                 navigator.clipboard.writeText(part.text)
