@@ -5,7 +5,7 @@ export function SiteFooter() {
 
     return (
         <footer>
-            <div className="px-2 py-3 lg:px-6">
+            <div className="px-2 py-3 lg:px-6 pb-0">
                 <div className="flex flex-col items-center justify-center space-y-2 text-center">
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <span>Made with</span>
@@ -15,8 +15,7 @@ export function SiteFooter() {
                             href="https://github.com/cosmo-cp/cosmo-studio"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-medium text-foreground hover:text-primary transition-colors"
-                        >
+                            className="font-medium hover:text-primary text-blue-600">
                             Cosmo-CP Team
                         </Link>
                     </div>
