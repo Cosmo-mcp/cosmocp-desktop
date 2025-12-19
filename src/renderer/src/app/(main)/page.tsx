@@ -106,6 +106,9 @@ export default function Page(): JSX.Element {
                                         onDeleteChat={(chat) => {
                                             window.api.chat.deleteChat(chat.id).then(() => setRefreshHistory(true));
                                         }}
+                                        onPinChat={(chat) => {
+                                            window.api.chat.updateChat(chat.id, {pinned: !chat.pinned}).then(() => setRefreshHistory(true));
+                                        }}
                                     />
                                 </div>
                             </div>
