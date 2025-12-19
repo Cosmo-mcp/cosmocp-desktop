@@ -85,6 +85,13 @@
       "when": 1766166087099,
       "tag": "0011_wild_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1766169220955,
+      "tag": "0012_cold_zarek",
+      "breakpoints": true
     }
   ]
 }
