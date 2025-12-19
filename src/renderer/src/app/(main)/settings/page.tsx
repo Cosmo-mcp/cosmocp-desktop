@@ -15,11 +15,11 @@ export default function SettingsPage() {
         },
     ]
     return (
-        <div className="flex flex-col p-2 md:p-4">
+        <div className="flex flex-col p-2 md:p-4 h-full w-full">
             <header className="mb-2">
                 <h3 className="text-2xl font-semibold">Settings</h3>
             </header>
-            <div className="flex flex-row flex-wrap justify-start gap-6">
+            <div className="flex flex-row flex-wrap justify-start gap-6 h-full w-full flex-1">
                 <Card className="w-48 h-full">
                     <CardContent>
                         {settingsItems.map((item) => (
@@ -35,7 +35,7 @@ export default function SettingsPage() {
                         ))}
                     </CardContent>
                 </Card>
-                <Card className="h-full">
+                <Card className="h-full flex-1">
                     <CardContent>
                         {selectedSetting === "Provider" && (
                             <ProviderManagement/>
