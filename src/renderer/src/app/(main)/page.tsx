@@ -33,6 +33,9 @@ export default function Page(): JSX.Element {
     } = useChat<UIMessage>({
         id: selectedChat?.id,
         transport: new IpcChatTransport(),
+        onFinish: () => {
+            setRefreshHistory(true);
+        },
         onError: (error) => {
             toast.error("Failed to Stream Data", {
                 description: error.message,
@@ -53,7 +56,7 @@ export default function Page(): JSX.Element {
                 setRefreshHistory(false);
             })
             .catch((error) => console.log(error));
-    }, [refreshHistory, searchHistoryQuery, messages]);
+    }, [refreshHistory, searchHistoryQuery]);
 
     useEffect(() => {
         if (selectedChat) {
