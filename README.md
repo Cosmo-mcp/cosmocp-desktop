@@ -1,6 +1,6 @@
 # Cosmo Studio
 
-Cosmo Studio is a desktop AI chat application built with Electron and Next.js. It provides a beautiful and intuitive interface for interacting with various AI models, including those from OpenAI, Anthropic, Google, and Ollama.
+Cosmo Studio is a desktop AI chat application. It provides a beautiful and intuitive interface for interacting with various AI models, including those from OpenAI, Anthropic, Google, and Ollama.
 
 ## Features
 
