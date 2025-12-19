@@ -7,6 +7,7 @@ import {Controller} from "./Controller";
 import {CORETYPES} from "core/types/types";
 import {ModelProviderService} from "core/services/ModelProviderService";
 import {MessageService} from "core/services/MessageService";
+import {ChatService} from "core/services/ChatService";
 
 @injectable()
 @IpcController("streamingChat")
@@ -16,7 +17,9 @@ export class StreamingChatController implements Controller {
     constructor(@inject(CORETYPES.ModelProviderService)
                 private modelProviderService: ModelProviderService,
                 @inject(CORETYPES.MessageService)
-                private messageService: MessageService) {
+                private messageService: MessageService,
+                @inject(CORETYPES.ChatService)
+                private chatService: ChatService) {
     }
 
     @IpcOn("sendMessage")
@@ -30,6 +33,12 @@ export class StreamingChatController implements Controller {
         const lastUserMsg = args.messages[args.messages.length - 1];
         const txtMsg = lastUserMsg.parts.find(part => part.type === 'text')?.text;
         const rsnMsg = lastUserMsg.parts.find(part => part.type === 'reasoning')?.text;
+
+        const existingMessages = await this.messageService.getMessagesByChatId(args.chatId);
+        if (existingMessages.length === 0 && txtMsg) {
+            await this.chatService.updateChat(args.chatId, {title: txtMsg.slice(0, 50)});
+        }
+
         await this.messageService.createMessage({
             chatId: args.chatId,
             role: lastUserMsg.role,

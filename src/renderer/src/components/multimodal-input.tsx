@@ -55,7 +55,6 @@ function PureMultimodalInput({
     stillAnswering?: boolean,
     onModelChange?: (modelId: string) => void;
 }) {
-    const [text, setText] = useState<string>('');
     const [selectedModel, setSelectedModel] = useState<ModelLite | undefined>(undefined);
     const [selectedProvider, setSelectedProvider] = useState<ModelProviderLite | undefined>(undefined);
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
@@ -103,9 +102,9 @@ function PureMultimodalInput({
             toast.error(error.message);
             // TODO: use if reqd
         }).finally(() => {
-            setText('');
+            setInput('');
         })
-    }, [sendMessage, attachments, input, selectedModel, selectedProvider]);
+    }, [selectedModel, selectedProvider, sendMessage, attachments, input, setInput]);
 
     const handlePromptSubmit = () => {
         submitForm();
@@ -123,7 +122,7 @@ function PureMultimodalInput({
                     <PromptInputTextarea
                         onChange={(e) => setInput(e.target.value)}
                         ref={textareaRef}
-                        value={text}
+                        value={input}
                     />
                 </PromptInputBody>
                 <PromptInputFooter>
@@ -184,7 +183,7 @@ function PureMultimodalInput({
                             </ModelSelectorContent>
                         </ModelSelector>
                     </PromptInputTools>
-                    <PromptInputSubmit disabled={!text && !status} status={status}/>
+                    <PromptInputSubmit disabled={!input && !status} status={status}/>
                 </PromptInputFooter>
             </PromptInput>
         </PromptInputProvider>
