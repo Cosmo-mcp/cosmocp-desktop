@@ -20,7 +20,7 @@ export default function SettingsPage() {
                 <h3 className="text-2xl font-semibold">Settings</h3>
             </header>
             <div className="flex flex-row flex-wrap justify-start gap-6 h-full w-full flex-1">
-                <Card className="w-48 h-full">
+                <Card className="w-1/5 h-full">
                     <CardContent>
                         {settingsItems.map((item) => (
                             <div key={item.name}
