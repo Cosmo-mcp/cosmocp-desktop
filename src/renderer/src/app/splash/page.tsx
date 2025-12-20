@@ -8,9 +8,11 @@ export default function SplashPage() {
   const router = useRouter()
 
   useEffect(() => {
+    router.prefetch('./')
+
     const timeout = setTimeout(() => {
       router.push('./')
-    }, 2000)
+    }, 1000)
 
     return () => clearTimeout(timeout)
   }, [router])

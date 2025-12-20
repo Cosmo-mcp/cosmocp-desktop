@@ -69,7 +69,7 @@ export default function Page(): JSX.Element {
                 .catch((error) => console.log(error));
         }
 
-    }, [selectedChat]);
+    }, [selectedChat, setMessages]);
 
     const handleNewChat = () => {
         window.api.chat.createChat({title: "New Chat", lastMessage: null, lastMessageAt: null})

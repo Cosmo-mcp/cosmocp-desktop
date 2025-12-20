@@ -30,6 +30,7 @@ export class StreamingChatController implements Controller {
         const lastUserMsg = args.messages[args.messages.length - 1];
         const txtMsg = lastUserMsg.parts.find(part => part.type === 'text')?.text;
         const rsnMsg = lastUserMsg.parts.find(part => part.type === 'reasoning')?.text;
+
         await this.messageService.createMessage({
             chatId: args.chatId,
             role: lastUserMsg.role,
