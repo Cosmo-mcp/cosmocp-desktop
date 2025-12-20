@@ -19,6 +19,8 @@ export class MessageRepository {
 
     public async create(newMessage: NewMessage): Promise<Message> {
         return this.db.transaction(async (tx) => {
+            const existingMessages = await tx.select().from(message).where(eq(message.chatId, newMessage.chatId)).limit(1);
+
             const now = new Date();
             const [createdMessage] = await tx.insert(message).values({
                 chatId: newMessage.chatId,
@@ -28,11 +30,18 @@ export class MessageRepository {
                 createdAt: now,
             }).returning();
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const chatUpdate: any = {
+                lastMessage: newMessage.text.slice(0, 200),
+                lastMessageAt: now,
+            };
+
+            if (existingMessages.length === 0 && newMessage.text) {
+                chatUpdate.title = newMessage.text.slice(0, 50);
+            }
+
             await tx.update(chat)
-                .set({
-                    lastMessage: newMessage.text.slice(0, 200),
-                    lastMessageAt: now,
-                })
+                .set(chatUpdate)
                 .where(eq(chat.id, newMessage.chatId));
 
             return createdMessage;
