@@ -12,7 +12,7 @@ import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTit
 import {MessageCirclePlus} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {UIMessage} from "ai";
-import { toast } from "sonner"
+import {toast} from "sonner"
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -49,7 +49,7 @@ export default function Page(): JSX.Element {
             .then((chats) => {
                 setChatHistory(chats);
                 if (chats && chats.length > 0) {
-                    setSelectedChat(chats[0]);
+                    setSelectedChat(chats.find(chat => chat.id === selectedChat?.id) ?? chats[0]);
                 } else {
                     setSelectedChat(null);
                 }
