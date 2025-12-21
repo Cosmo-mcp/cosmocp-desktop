@@ -81,4 +81,20 @@ export class ChatRepository {
             .where(eq(chat.id, id))
             .execute();
     }
+
+    public async getSelectedModelForChatId(chatId: string): Promise<string | null> {
+        const chatRecord = await this.db
+            .select({selectedModelId: chat.selectedModelId})
+            .from(chat)
+            .where(eq(chat.id, chatId))
+            .limit(1);
+        return chatRecord[0]?.selectedModelId ?? null;
+    }
+
+    public async updateSelectedModelForChatId(chatId: string, selectedModelId: string): Promise<void> {
+        await this.db
+            .update(chat)
+            .set({ selectedModelId })
+            .where(eq(chat.id, chatId));
+    }
 }
