@@ -44,6 +44,31 @@ export const modelProvider = pgTable("ModelProvider", {
     apiUrl: text("apiUrl"),
 });
 
+export enum ModelStatusEnum {
+    NOT_DEFINED = `not_defined`,
+    DEPRECATED = `deprecated`,
+}
+
+export const modelStatusEnum = pgEnum("model_status", [
+    ModelStatusEnum.NOT_DEFINED,
+    ModelStatusEnum.DEPRECATED
+]);
+
+export enum ModelModalityEnum {
+    TEXT = 'text',
+    IMAGE = 'image',
+    AUDIO = 'audio',
+    VIDEO = 'video',
+    PDF = 'pdf',
+}
+
+export const modelModalityEnum = pgEnum('model_modality', [
+    ModelModalityEnum.TEXT,
+    ModelModalityEnum.IMAGE,
+    ModelModalityEnum.AUDIO,
+    ModelModalityEnum.VIDEO,
+    ModelModalityEnum.PDF,
+]);
 
 export const model = pgTable("Model", {
     id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -54,6 +79,11 @@ export const model = pgTable("Model", {
     description: text("description"),
     providerId: uuid("providerId").references(() => modelProvider.id, {onDelete: 'cascade'}),
     reasoning: boolean("reasoning").default(false),
+    attachment: boolean("attachment").default(false),
+    toolCall: boolean("toolCall").default(false),
+    status: modelStatusEnum("status").default(ModelStatusEnum.NOT_DEFINED),
+    inputModalities: modelModalityEnum("input_modalities").array().notNull().default([]),
+    outputModalities: modelModalityEnum("output_modalities").array().notNull().default([]),
     releaseDate: timestamp("releaseDate"),
     lastUpdatedByProvider: timestamp("lastUpdatedByProvider")
 });
