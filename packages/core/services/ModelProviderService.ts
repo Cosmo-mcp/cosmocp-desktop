@@ -247,7 +247,12 @@ export class ModelProviderService {
                     description: m.name,
                     reasoning: m.reasoning,
                     releaseDate: new Date(m.release_date),
-                    lastUpdatedByProvider: new Date(m.last_updated)
+                    lastUpdatedByProvider: new Date(m.last_updated),
+                    attachment: m.attachment,
+                    toolCall: m.tool_call,
+                    inputModalities: m.modalities.input,
+                    outputModalities: m.modalities.output,
+                    ...(m.status !== undefined && { status: m.status }),
                 });
             }
 
