@@ -1,5 +1,5 @@
 {
-  "id": "8aee4f0b-be98-4690-a37c-3703a290ca37",
+  "id": "534ea047-4e86-43a5-a177-66d425874a78",
   "prevId": "7272ce3b-d007-458c-ab1e-7ac6e7b8edf5",
   "version": "7",
   "dialect": "postgresql",
@@ -38,12 +38,6 @@
         "pinnedAt": {
           "name": "pinnedAt",
           "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "selectedModelId": {
-          "name": "selectedModelId",
-          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -188,6 +182,44 @@
           "notNull": false,
           "default": false
         },
+        "attachment": {
+          "name": "attachment",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "toolCall": {
+          "name": "toolCall",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "status": {
+          "name": "status",
+          "type": "model_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'not_defined'"
+        },
+        "input_modalities": {
+          "name": "input_modalities",
+          "type": "model_modality[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "output_modalities": {
+          "name": "output_modalities",
+          "type": "model_modality[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
         "releaseDate": {
           "name": "releaseDate",
           "type": "timestamp",
@@ -298,6 +330,25 @@
         "user",
         "assistant",
         "system"
+      ]
+    },
+    "public.model_modality": {
+      "name": "model_modality",
+      "schema": "public",
+      "values": [
+        "text",
+        "image",
+        "audio",
+        "video",
+        "pdf"
+      ]
+    },
+    "public.model_status": {
+      "name": "model_status",
+      "schema": "public",
+      "values": [
+        "not_defined",
+        "deprecated"
       ]
     },
     "public.provider_type": {
