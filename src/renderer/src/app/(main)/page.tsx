@@ -1,5 +1,5 @@
 'use client'
-import {JSX, useEffect, useState} from "react";
+import {JSX, useCallback, useEffect, useState} from "react";
 import {ChatHistory} from "@/components/chat-history";
 import {Chat} from "core/dto";
 import {ChatHeader} from "@/components/chat-header";
@@ -21,6 +21,9 @@ export default function Page(): JSX.Element {
     const [input, setInput] = useState<string>('');
     const [attachments, setAttachments] = useState<Array<Attachment>>([]);
     const [searchHistoryQuery, setSearchHistoryQuery] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+    const [totalMatches, setTotalMatches] = useState(0);
 
     const {
         messages,
@@ -83,6 +86,45 @@ export default function Page(): JSX.Element {
         setRefreshHistory(true);
     }
 
+    const handleSearch = useCallback((query: string) => {
+        setSearchQuery(query);
+        if (!query) {
+            setCurrentMatchIndex(0);
+            setTotalMatches(0);
+        }
+    }, []);
+
+    const handleMatchesFound = useCallback((count: number) => {
+        setTotalMatches(count);
+        if (count > 0) {
+            setCurrentMatchIndex(prev => {
+                if (prev === 0) return 1;
+                if (prev > count) return count;
+                return prev;
+            });
+        } else {
+            setCurrentMatchIndex(0);
+        }
+    }, []);
+
+    const handleNextMatch = useCallback(() => {
+        if (totalMatches > 0) {
+            setCurrentMatchIndex(prev => (prev < totalMatches ? prev + 1 : 1));
+        }
+    }, [totalMatches]);
+
+    const handlePrevMatch = useCallback(() => {
+        if (totalMatches > 0) {
+            setCurrentMatchIndex(prev => (prev > 1 ? prev - 1 : totalMatches));
+        }
+    }, [totalMatches]);
+
+    const handleClearSearch = useCallback(() => {
+        setSearchQuery("");
+        setCurrentMatchIndex(0);
+        setTotalMatches(0);
+    }, []);
+
     return (
         <div
             className="h-full min-h-[600px] flex rounded-b-lg border-t-0 overflow-hidden bg-background">
@@ -109,6 +151,12 @@ export default function Page(): JSX.Element {
                                         onPinChat={(chat) => {
                                             window.api.chat.updateChat(chat.id, {pinned: !chat.pinned}).then(() => setRefreshHistory(true));
                                         }}
+                                        onSearch={handleSearch}
+                                        currentMatch={currentMatchIndex}
+                                        totalMatches={totalMatches}
+                                        onNextMatch={handleNextMatch}
+                                        onPrevMatch={handlePrevMatch}
+                                        onClearSearch={handleClearSearch}
                                     />
                                 </div>
                             </div>
@@ -118,6 +166,9 @@ export default function Page(): JSX.Element {
                                     status={status}
                                     messages={messages}
                                     regenerate={regenerate}
+                                    searchQuery={searchQuery}
+                                    currentMatchIndex={currentMatchIndex}
+                                    onMatchesFound={handleMatchesFound}
                                 />
 
                                 <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full">
