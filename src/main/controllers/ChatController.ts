@@ -40,4 +40,14 @@ export class ChatController implements Controller {
     public async updatePinnedStatusForChat(id: string, pinned: boolean): Promise<void> {
         return this.chatService.updatePinnedStatusForChat(id, pinned);
     }
+
+    @IpcHandler("getSelectedModelForChat")
+    public async getSelectedModelForChat(id: string): Promise<string | null> {
+        return this.chatService.getSelectedModelForChat(id);
+    }
+
+    @IpcHandler("updateSelectedModelForChat")
+    public async updateSelectedModelForChat(id: string, modelIdentifier: string): Promise<void> {
+        return this.chatService.updateSelectedModelForChat(id, modelIdentifier);
+    }
 }
