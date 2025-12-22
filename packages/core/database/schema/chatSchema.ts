@@ -3,10 +3,11 @@ import {pgTable, text, timestamp, uuid, boolean, pgEnum} from "drizzle-orm/pg-co
 
 export const chat = pgTable("Chat", {
     id: uuid("id").primaryKey().notNull().defaultRandom(),
-    createdAt: timestamp("createdAt").notNull().default(new Date()),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
     title: text("title").notNull(),
-    pinned: boolean("pinned").notNull().default(false),
-    pinnedAt: timestamp("pinnedAt").default(new Date()),
+    pinned: boolean("pinned").default(false),
+    pinnedAt: timestamp("pinnedAt"),
+    selectedModelId: text("selectedModelId"),
     lastMessage: text("lastMessage"),
     lastMessageAt: timestamp("lastMessageAt"),
 });

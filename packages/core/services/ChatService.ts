@@ -33,4 +33,12 @@ export class ChatService {
     public async updatePinnedStatusForChat(id: string, pinned: boolean): Promise<void> {
         return this.chatRepository.updatePinnedStatus(id, pinned);
     }
+
+    public async getSelectedModelForChat(id: string): Promise<string | null> {
+        return this.chatRepository.getSelectedModelForChatId(id);
+    }
+
+    public async updateSelectedModelForChat(id: string, modelIdentifier: string): Promise<void> {
+        return this.chatRepository.updateSelectedModelForChatId(id, modelIdentifier);
+    }
 }

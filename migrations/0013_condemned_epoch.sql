@@ -1,0 +1,1 @@
+ALTER TABLE "Chat" ALTER COLUMN "createdAt" SET DEFAULT now();
