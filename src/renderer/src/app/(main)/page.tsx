@@ -127,7 +127,7 @@ export default function Page(): JSX.Element {
 
     return (
         <div
-            className="h-full min-h-[600px] flex rounded-b-lg border-t-0 overflow-hidden bg-background">
+            className="flex-1 min-h-0 flex rounded-b-lg border-t-0 overflow-hidden bg-background">
             <ChatHistory
                 chats={chatHistory}
                 selectedChat={selectedChat as Chat}
@@ -137,7 +137,7 @@ export default function Page(): JSX.Element {
                 onNewChat={handleNewChat}
                 onSearch={searchFromChatHistory}
             ></ChatHistory>
-            <div className="grow flex flex-col h-full overflow-hidden">
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                 {
                     selectedChat !== null ? (
                         <>
@@ -160,7 +160,7 @@ export default function Page(): JSX.Element {
                                     />
                                 </div>
                             </div>
-                            <div className="flex-1 min-h-0 flex flex-col">
+                            <div className="flex-1 min-h-0">
                                 <Messages
                                     chatId={selectedChat.id}
                                     status={status}
@@ -170,17 +170,16 @@ export default function Page(): JSX.Element {
                                     currentMatchIndex={currentMatchIndex}
                                     onMatchesFound={handleMatchesFound}
                                 />
-
-                                <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full">
-                                    <MultimodalInput
-                                        input={input}
-                                        setInput={setInput}
-                                        status={status}
-                                        attachments={attachments}
-                                        messages={messages}
-                                        sendMessage={sendMessage}
-                                    />
-                                </div>
+                            </div>
+                            <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full border-t">
+                                <MultimodalInput
+                                    input={input}
+                                    setInput={setInput}
+                                    status={status}
+                                    attachments={attachments}
+                                    messages={messages}
+                                    sendMessage={sendMessage}
+                                />
                             </div>
                         </>) : (
                         <div className="h-full flex flex-col items-center justify-center">
