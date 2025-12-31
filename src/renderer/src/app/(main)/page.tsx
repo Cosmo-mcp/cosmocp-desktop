@@ -13,6 +13,7 @@ import {MessageCirclePlus} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {UIMessage} from "ai";
 import {toast} from "sonner"
+import {chat} from "core/database/schema/chatSchema";
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -128,6 +129,10 @@ export default function Page(): JSX.Element {
                                         attachments={attachments}
                                         messages={messages}
                                         sendMessage={sendMessage}
+                                        modelId={selectedChat.selectedModelId}
+                                        onModelChange={(modelId: string) => {
+                                            window.api.chat.updateChat(selectedChat.id, {selectedModelId: modelId})
+                                        }}
                                     />
                                 </div>
                             </div>

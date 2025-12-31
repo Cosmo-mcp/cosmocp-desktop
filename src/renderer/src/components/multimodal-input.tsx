@@ -44,6 +44,8 @@ function PureMultimodalInput({
                                  status,
                                  attachments,
                                  sendMessage,
+                                 onModelChange,
+                                 modelId
                              }: {
     input: string;
     setInput: Dispatch<SetStateAction<string>>;
@@ -53,9 +55,10 @@ function PureMultimodalInput({
     sendMessage: UseChatHelpers<UIMessage>['sendMessage'];
     className?: string;
     stillAnswering?: boolean,
-    onModelChange?: (modelId: string) => void;
+    modelId: string | null,
+    onModelChange: (modelId: string) => void;
 }) {
-    const [selectedModel, setSelectedModel] = useState<ModelLite | undefined>(undefined);
+    const [selectedModelId, setSelectedModelId] = useState<string | null>(modelId);
     const [selectedProvider, setSelectedProvider] = useState<ModelProviderLite | undefined>(undefined);
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
@@ -67,7 +70,7 @@ function PureMultimodalInput({
                 if (providers.length > 0) {
                     setSelectedProvider((providers[0]));
                     if (providers[0].models.length > 0) {
-                        setSelectedModel(providers[0].models[0]);
+                        setSelectedModelId(providers[0]?.models[0]?.modelId);
                     } else {
                         console.error('No model found for provider ' + providers[0].name);
                     }
@@ -76,10 +79,10 @@ function PureMultimodalInput({
             .catch((error) => console.log(error));
     }, []);
     const submitForm = useCallback(() => {
-        if (!selectedModel) {
+        if (!selectedModelId) {
             return;
         }
-        const modelId = selectedProvider?.name + ":" + selectedModel.modelId
+        const modelId = selectedProvider?.name + ":" + selectedModelId
         sendMessage({
             role: 'user',
             parts: [
@@ -104,10 +107,14 @@ function PureMultimodalInput({
         }).finally(() => {
             setInput('');
         })
-    }, [selectedModel, selectedProvider, sendMessage, attachments, input, setInput]);
+    }, [selectedModelId, selectedProvider, sendMessage, attachments, input, setInput]);
 
     const handlePromptSubmit = () => {
         submitForm();
+    }
+
+    function saveSelectedModelPreference(modelId: string) {
+        onModelChange(modelId);
     }
 
     return (
@@ -139,9 +146,9 @@ function PureMultimodalInput({
                         >
                             <ModelSelectorTrigger asChild>
                                 <PromptInputButton className="w-max">
-                                    {selectedModel ? (
+                                    {selectedModelId ? (
                                         <ModelSelectorName>
-                                            {selectedModel.modelId}
+                                            {selectedModelId}
                                         </ModelSelectorName>
                                     ) : ('Select Model')}
                                 </PromptInputButton>
@@ -159,8 +166,9 @@ function PureMultimodalInput({
                                                         key={m.modelId}
                                                         onSelect={() => {
                                                             setSelectedProvider(provider);
-                                                            setSelectedModel(m);
+                                                            setSelectedModelId(m.modelId);
                                                             setModelSelectorOpen(false);
+                                                            saveSelectedModelPreference(m.modelId);
                                                         }}
                                                         value={m.modelId}
                                                     >
@@ -170,7 +178,7 @@ function PureMultimodalInput({
                                                             provider={provider.type.toString()}
                                                         />
                                                         {selectedProvider?.name === provider.name &&
-                                                        selectedModel?.modelId === m.modelId ? (
+                                                        selectedModelId === m.modelId ? (
                                                             <CheckIcon className="ml-auto size-4"/>
                                                         ) : (
                                                             <div className="ml-auto size-4"/>
