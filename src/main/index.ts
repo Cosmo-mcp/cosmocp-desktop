@@ -7,6 +7,9 @@ import container from "./inversify.config";
 import {TYPES} from "./types";
 import {config} from "dotenv";
 import {updateElectronApp, UpdateSourceType} from "update-electron-app";
+import log from "electron-log/main";
+
+log.initialize();
 
 export class Main {
     private mainWindow: BrowserWindow | null = null;
@@ -46,7 +49,7 @@ export class Main {
         try {
             const userDataPath = app.getPath('userData');
             const absoluteDbPath = path.join(userDataPath, dbFolderName);
-            console.log("Database Dir:" + absoluteDbPath);
+            log.info("Database Dir:" + absoluteDbPath);
             await DatabaseManager.initialize(absoluteDbPath);
         } catch (error) {
             console.error('FATAL ERROR: Failed to initialize database connection.', error);

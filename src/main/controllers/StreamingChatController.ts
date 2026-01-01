@@ -7,6 +7,7 @@ import {Controller} from "./Controller";
 import {CORETYPES} from "core/types/types";
 import {ModelProviderService} from "core/services/ModelProviderService";
 import {MessageService} from "core/services/MessageService";
+import log from 'electron-log/main';
 
 @injectable()
 @IpcController("streamingChat")
@@ -80,7 +81,7 @@ export class StreamingChatController implements Controller {
                 sendSources: true
             })) {
                 if (webContents.isDestroyed()) {
-                    console.log("WebContents destroyed, stopping stream.");
+                    log.info("WebContents destroyed, stopping stream.");
                     controller.abort();
                     break;
                 }
@@ -102,7 +103,7 @@ export class StreamingChatController implements Controller {
         if (controller) {
             controller.abort();
             this.activeStreams.delete(args.streamChannel);
-            console.log(`Aborted stream for channel: ${args.streamChannel}`);
+            log.info(`Aborted stream for channel: ${args.streamChannel}`);
         }
     }
 
