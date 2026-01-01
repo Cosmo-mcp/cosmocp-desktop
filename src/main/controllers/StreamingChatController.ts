@@ -63,7 +63,7 @@ export class StreamingChatController implements Controller {
                     this.activeStreams.delete(args.streamChannel);
                 },
                 onError: (error) => {
-                    console.error("Stream error:", error);
+                    log.error("Stream error:", error);
                     let msg = error.error;
                     if (RetryError.isInstance(error)) {
                         msg = error.lastError;
@@ -89,7 +89,7 @@ export class StreamingChatController implements Controller {
 
             }
         } catch (error) {
-            console.error("Failed to start streamText:", error);
+            log.error("Failed to start streamText:", error);
             this.activeStreams.delete(args.streamChannel);
             if (!webContents.isDestroyed()) {
                 webContents.send(`${args.streamChannel}-error`, error);

@@ -69,6 +69,7 @@ import {
   useRef,
   useState,
 } from "react";
+import log from 'electron-log/renderer';
 
 // ============================================================================
 // Provider Context & Types
@@ -1162,7 +1163,7 @@ export const PromptInputSpeechButton = ({
       };
 
       speechRecognition.onerror = (event) => {
-        console.error("Speech recognition error:", event.error);
+        log.error("Speech recognition error:", event.error);
         setIsListening(false);
       };
 

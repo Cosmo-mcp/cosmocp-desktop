@@ -21,7 +21,7 @@ export async function runMigrations(db: PgliteDatabase<typeof schema>) {
         log.info(`Migrations checked/applied successfully in ${end - start} ms.`);
 
     } catch (error) {
-        console.error('FATAL: Database migration failed during application startup.', error);
+        log.error('FATAL: Database migration failed during application startup.', error);
         throw new Error('Database initialization failed due to migration error.');
     }
 }

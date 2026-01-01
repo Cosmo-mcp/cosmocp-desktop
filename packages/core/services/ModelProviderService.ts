@@ -10,6 +10,7 @@ import {createGoogleGenerativeAI, GoogleGenerativeAIProviderSettings} from "@ai-
 import {createOpenAI, OpenAIProviderSettings} from "@ai-sdk/openai";
 import {createOllama, OllamaProviderSettings} from "ollama-ai-provider-v2";
 import {createProviderRegistry, ProviderRegistryProvider} from "ai";
+import log from "electron-log/main";
 
 
 export type RemoteProviderOptions =
@@ -82,7 +83,7 @@ export class ModelProviderService {
             await this.repository.deleteProviderById(providerId);
             this.updateModelProviderRegistry();
         } catch (error) {
-            console.error(error);
+            log.error(error);
         }
 
     }
@@ -131,7 +132,7 @@ export class ModelProviderService {
                 }
                 this.modelProviderRegistry = createProviderRegistry(registryObject);
             })
-            .catch(error => console.error(error));
+            .catch(error => log.error(error));
     }
 
     private createLocalOptions(provider: ModelProviderLite): LocalProviderOptions {
@@ -188,7 +189,7 @@ export class ModelProviderService {
             });
 
             if (!response.ok) {
-                console.error("Models.dev API Error:", await response.text());
+                log.error("Models.dev API Error:", await response.text());
                 return result;
             }
 
@@ -207,7 +208,7 @@ export class ModelProviderService {
             });
 
         } catch (err) {
-            console.error("Ollama Models fetch error:", err);
+            log.error("Ollama Models fetch error:", err);
         }
 
         return result;
@@ -220,7 +221,7 @@ export class ModelProviderService {
         const result: NewModel[] = [];
 
         if (provider.type === ModelProviderTypeEnum.CUSTOM) {
-            console.warn(`Model listing is not supported for CUSTOM provider type.`);
+            log.warn(`Model listing is not supported for CUSTOM provider type.`);
             return result;
         }
 
@@ -233,7 +234,7 @@ export class ModelProviderService {
             });
 
             if (!response.ok) {
-                console.error("Models.dev API Error:", await response.text());
+                log.error("Models.dev API Error:", await response.text());
                 return result;
             }
 
@@ -261,7 +262,7 @@ export class ModelProviderService {
             });
 
         } catch (err) {
-            console.error("Models.dev fetch error:", err);
+            log.error("Models.dev fetch error:", err);
         }
 
         return result;

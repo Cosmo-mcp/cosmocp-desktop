@@ -33,7 +33,7 @@ export class DatabaseManager {
             await runMigrations(this.instance);
 
         } catch (error) {
-            console.error('[DB INIT] Failed to initialize database client and run migrations:', error);
+            log.error('[DB INIT] Failed to initialize database client and run migrations:', error);
             this.initPromise = null; // Allow initialization to be re-attempted
             throw error;
         }
