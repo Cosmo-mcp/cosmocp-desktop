@@ -1,6 +1,7 @@
 import {contextBridge} from 'electron';
 import {api} from './api';
+import log from 'electron-log/renderer';
 
 contextBridge.exposeInMainWorld('api', api);
 
-console.log('Preload script loaded and API exposed!');
+log.info('Preload script loaded and API exposed!');
