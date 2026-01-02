@@ -22,7 +22,7 @@ import {
 } from './ai-elements/prompt-input';
 import type {UseChatHelpers} from '@ai-sdk/react';
 import type {Attachment} from '@/lib/types';
-import {Chat, ProviderWithModels} from "core/dto";
+import {Chat, ModelLite, ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -37,6 +37,8 @@ import {
 } from "@/components/ai-elements/model-selector";
 import {CheckIcon} from "lucide-react";
 import log from 'electron-log/renderer';
+import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 
 export function MultimodalInput({
                                     chat,
@@ -58,6 +60,7 @@ export function MultimodalInput({
     stillAnswering?: boolean,
     onModelChange: (providerName: string, modelId: string) => void;
 }) {
+    const [selectedModelInfo, setSelectedModelInfo] = useState<ModelLite | undefined>(undefined);
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -65,6 +68,12 @@ export function MultimodalInput({
         window.api.modelProvider.getProvidersWithModels()
             .then((providers) => {
                 setProviders(providers);
+                if (chat.selectedProvider) {
+                    const provider = providers.find(provider => provider.name === chat.selectedProvider);
+                    if (provider) {
+                        setSelectedModelInfo(provider.models.find((model) => model.modelId === chat.selectedModelId));
+                    }
+                }
             })
             .catch((error) => log.error(error));
     }, [chat]);
@@ -125,9 +134,26 @@ export function MultimodalInput({
                 <PromptInputFooter>
                     <PromptInputTools>
                         <PromptInputActionMenu>
-                            <PromptInputActionMenuTrigger/>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span>
+                                        <PromptInputActionMenuTrigger disabled={!selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE)}>
+                                        </PromptInputActionMenuTrigger>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE) ? (
+                                        <p>Attach Images</p>
+                                    ) : (
+                                        <p>Images not supported my selected Model</p>
+                                    )}
+
+                                </TooltipContent>
+                            </Tooltip>
                             <PromptInputActionMenuContent>
-                                <PromptInputActionAddAttachments/>
+                                <PromptInputActionAddAttachments label="Add Photos"
+
+                                />
                             </PromptInputActionMenuContent>
                         </PromptInputActionMenu>
                         <ModelSelector

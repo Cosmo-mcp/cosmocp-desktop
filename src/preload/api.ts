@@ -1,11 +1,9 @@
 import { ipcRenderer } from 'electron';
 import {
     NewChat,
-    ModelProvider,
     ModelProviderLite,
     ChatAbortArgs,
     ChatSendMessageArgs,
-    Model,
     Chat,
     ModelProviderCreateInput,
     NewMessage,
@@ -14,6 +12,7 @@ import {
     ProviderWithModels,
     ChatWithMessages
 } from '../../packages/core/dto';
+import {UIMessage} from "ai";
 export interface ChatApi {
     getAllChats(searchQuery: string | null): Promise<Chat[]>;
     getChatById(id: string): Promise<ChatWithMessages | undefined>;
@@ -32,7 +31,7 @@ export interface ModelProviderApi {
     getProviders(): Promise<ModelProviderLite[]>;
     getProvidersWithModels(): Promise<ProviderWithModels[]>;
     deleteProvider(providerId: string): Promise<void>;
-    updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData?: NewModel[]): Promise<ProviderWithModels>;
+    updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData: NewModel[]): Promise<ProviderWithModels>;
     getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<NewModel[]>;
 }
 
@@ -77,7 +76,7 @@ export const api: Api = {
     getProviders: () => ipcRenderer.invoke('modelProvider:getProviders'),
     getProvidersWithModels: () => ipcRenderer.invoke('modelProvider:getProvidersWithModels'),
     deleteProvider: (providerId: string) => ipcRenderer.invoke('modelProvider:deleteProvider', providerId),
-    updateProvider: (providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData?: NewModel[]) => ipcRenderer.invoke('modelProvider:updateProvider', providerId, updateObject, modelsData),
+    updateProvider: (providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData: NewModel[]) => ipcRenderer.invoke('modelProvider:updateProvider', providerId, updateObject, modelsData),
     getAvailableModelsFromProviders: (provider: ModelProviderCreateInput) => ipcRenderer.invoke('modelProvider:getAvailableModelsFromProviders', provider)
   },
   message: {
