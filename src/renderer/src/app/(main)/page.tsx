@@ -130,8 +130,13 @@ export default function Page(): JSX.Element {
                                         messages={messages}
                                         sendMessage={sendMessage}
                                         modelId={selectedChat.selectedModelId}
-                                        onModelChange={(modelId: string) => {
-                                            window.api.chat.updateChat(selectedChat.id, {selectedModelId: modelId})
+                                        providerName={selectedChat.selectedProvider}
+                                        onModelChange={(providerName, modelId) => {
+                                            window.api.chat.updateChat(selectedChat.id,
+                                                {
+                                                    selectedProvider: providerName,
+                                                    selectedModelId: modelId
+                                                })
                                         }}
                                     />
                                 </div>

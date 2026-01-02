@@ -23,7 +23,7 @@ import {
 import equal from 'fast-deep-equal';
 import type {UseChatHelpers} from '@ai-sdk/react';
 import type {Attachment} from '@/lib/types';
-import {ModelLite, ModelProviderLite, ProviderWithModels} from "core/dto";
+import {ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -45,7 +45,8 @@ function PureMultimodalInput({
                                  attachments,
                                  sendMessage,
                                  onModelChange,
-                                 modelId
+                                 modelId,
+                                 providerName
                              }: {
     input: string;
     setInput: Dispatch<SetStateAction<string>>;
@@ -56,10 +57,11 @@ function PureMultimodalInput({
     className?: string;
     stillAnswering?: boolean,
     modelId: string | null,
-    onModelChange: (modelId: string) => void;
+    providerName: string | null
+    onModelChange: (providerName: string, modelId: string) => void;
 }) {
     const [selectedModelId, setSelectedModelId] = useState<string | null>(modelId);
-    const [selectedProvider, setSelectedProvider] = useState<ModelProviderLite | undefined>(undefined);
+    const [selectedProviderName, setSelectedProviderName] = useState<string | null>(providerName);
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -67,14 +69,15 @@ function PureMultimodalInput({
         window.api.modelProvider.getProvidersWithModels()
             .then((providers) => {
                 setProviders(providers);
-                if (providers.length > 0) {
-                    setSelectedProvider((providers[0]));
+                if (!selectedProviderName && !selectedModelId && providers.length > 0) {
+                    setSelectedProviderName((providers[0].name));
                     if (providers[0].models.length > 0) {
                         setSelectedModelId(providers[0]?.models[0]?.modelId);
                     } else {
                         console.error('No model found for provider ' + providers[0].name);
                     }
                 }
+
             })
             .catch((error) => console.log(error));
     }, []);
@@ -82,7 +85,7 @@ function PureMultimodalInput({
         if (!selectedModelId) {
             return;
         }
-        const modelId = selectedProvider?.name + ":" + selectedModelId
+        const modelId = selectedProviderName + ":" + selectedModelId
         sendMessage({
             role: 'user',
             parts: [
@@ -107,14 +110,14 @@ function PureMultimodalInput({
         }).finally(() => {
             setInput('');
         })
-    }, [selectedModelId, selectedProvider, sendMessage, attachments, input, setInput]);
+    }, [selectedModelId, selectedProviderName, sendMessage, attachments, input, setInput]);
 
     const handlePromptSubmit = () => {
         submitForm();
     }
 
-    function saveSelectedModelPreference(modelId: string) {
-        onModelChange(modelId);
+    function saveSelectedModelPreference(providerName: string, modelId: string) {
+        onModelChange(providerName, modelId);
     }
 
     return (
@@ -165,19 +168,19 @@ function PureMultimodalInput({
                                                     <ModelSelectorItem
                                                         key={m.modelId}
                                                         onSelect={() => {
-                                                            setSelectedProvider(provider);
+                                                            setSelectedProviderName(provider.name);
                                                             setSelectedModelId(m.modelId);
                                                             setModelSelectorOpen(false);
-                                                            saveSelectedModelPreference(m.modelId);
+                                                            saveSelectedModelPreference(provider.name, m.modelId);
                                                         }}
                                                         value={m.modelId}
                                                     >
                                                         <ModelSelectorName>{m.name}</ModelSelectorName>
                                                         <ModelSelectorLogo
-                                                                key={provider.type.toString()}
+                                                            key={provider.type.toString()}
                                                             provider={provider.type.toString()}
                                                         />
-                                                        {selectedProvider?.name === provider.name &&
+                                                        {selectedProviderName === provider.name &&
                                                         selectedModelId === m.modelId ? (
                                                             <CheckIcon className="ml-auto size-4"/>
                                                         ) : (
