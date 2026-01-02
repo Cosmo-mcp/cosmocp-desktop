@@ -104,11 +104,9 @@ for (const controller of controllers) {
 let apiContent = `import { ipcRenderer } from 'electron';
 import {
     NewChat,
-    ModelProvider,
     ModelProviderLite,
     ChatAbortArgs,
     ChatSendMessageArgs,
-    Model,
     Chat,
     ModelProviderCreateInput,
     NewMessage,
@@ -117,6 +115,7 @@ import {
     ProviderWithModels,
     ChatWithMessages
 } from '../../packages/core/dto';
+import {UIMessage} from "ai";
 `;
 
 const mainApiInterfaceMembers: string[] = [];
