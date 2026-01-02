@@ -1,5 +1,5 @@
 'use client'
-import {JSX, useEffect, useState} from "react";
+import {JSX, useCallback, useEffect, useState} from "react";
 import {ChatHistory} from "@/components/chat-history";
 import {Chat} from "core/dto";
 import {ChatHeader} from "@/components/chat-header";
@@ -14,7 +14,6 @@ import {Button} from "@/components/ui/button";
 import {UIMessage} from "ai";
 import {toast} from "sonner"
 import log from 'electron-log/renderer';
-import {chat} from "core/database/schema/chatSchema";
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -192,16 +191,6 @@ export default function Page(): JSX.Element {
                                         }}
                                     />
                                 </div>
-                            </div>
-                            <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full border-t">
-                                <MultimodalInput
-                                    input={input}
-                                    setInput={setInput}
-                                    status={status}
-                                    attachments={attachments}
-                                    messages={messages}
-                                    sendMessage={sendMessage}
-                                />
                             </div>
                         </>) : (
                         <div className="h-full flex flex-col items-center justify-center">
