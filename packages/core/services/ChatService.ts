@@ -18,7 +18,7 @@ export class ChatService {
         return this.chatRepository.getById(id);
     }
 
-    public async createChat(newChat: NewChat): Promise<Chat> {
+    public async createChat(newChat: NewChat): Promise<void> {
         return this.chatRepository.create(newChat);
     }
 

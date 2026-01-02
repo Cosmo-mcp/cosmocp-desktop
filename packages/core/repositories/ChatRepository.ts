@@ -53,12 +53,19 @@ export class ChatRepository {
         });
     }
 
-    public async create(newChat: NewChat): Promise<Chat> {
-        const result = await this.db.insert(chat).values({
-            createdAt: new Date(),
-            title: newChat.title
-        }).returning();
-        return result[0];
+    public async create(newChat: NewChat): Promise<void> {
+        await this.db.transaction(async (tx) => {
+            // 1. Set all rows to unselected
+            await tx
+                .update(chat)
+                .set({selected: false});
+
+            await tx.insert(chat).values({
+                createdAt: new Date(),
+                title: newChat.title,
+                selected: true
+            });
+        });
     }
 
     public async update(id: string, updates: Partial<NewChat>): Promise<Chat> {

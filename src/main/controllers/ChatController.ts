@@ -22,7 +22,7 @@ export class ChatController implements Controller {
     }
 
     @IpcHandler("createChat")
-    public async createChat(newChat: NewChat): Promise<Chat> {
+    public async createChat(newChat: NewChat): Promise<void> {
         return this.chatService.createChat(newChat);
     }
 
