@@ -50,4 +50,9 @@ export class ChatController implements Controller {
     public async updateSelectedModelForChat(id: string, modelIdentifier: string): Promise<void> {
         return this.chatService.updateSelectedModelForChat(id, modelIdentifier);
     }
+
+    @IpcHandler("updateSelectedChat")
+    public async updateSelectedChat(id: string): Promise<void> {
+        return this.chatService.updateSelectedChat(id);
+    }
 }

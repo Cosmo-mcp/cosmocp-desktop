@@ -25,7 +25,7 @@ export class ChatRepository {
     public async getById(id: string): Promise<ChatWithMessages | undefined> {
         const result = await this.db.query.chat.findFirst({
             where: eq(chat.id, id),
-            with: { messages: { orderBy: asc(message.createdAt) } }
+            with: {messages: {orderBy: asc(message.createdAt)}}
         });
 
         return result ? {
@@ -94,7 +94,22 @@ export class ChatRepository {
     public async updateSelectedModelForChatId(chatId: string, selectedModelId: string): Promise<void> {
         await this.db
             .update(chat)
-            .set({ selectedModelId })
+            .set({selectedModelId})
             .where(eq(chat.id, chatId));
+    }
+
+    public async updateSelectedChat(chatId: string): Promise<void> {
+        await this.db.transaction(async (tx) => {
+            // 1. Set all rows to false
+            await tx
+                .update(chat)
+                .set({selected: false});
+
+            // 2. Set the chosen row to true
+            await tx
+                .update(chat)
+                .set({selected: true})
+                .where(eq(chat.id, chatId));
+        });
     }
 }

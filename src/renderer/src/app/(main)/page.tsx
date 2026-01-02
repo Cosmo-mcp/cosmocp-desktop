@@ -47,13 +47,12 @@ export default function Page(): JSX.Element {
         },
     });
 
-
     useEffect(() => {
         window.api.chat.getAllChats(searchHistoryQuery)
             .then((chats) => {
                 setChatHistory(chats);
                 if (chats && chats.length > 0) {
-                    setSelectedChat(chats.find(chat => chat.id === selectedChat?.id) ?? chats[0]);
+                    setSelectedChat(chats.find(chat => chat.selected) ?? chats[0]);
                 } else {
                     setSelectedChat(null);
                 }
@@ -76,8 +75,8 @@ export default function Page(): JSX.Element {
     }, [selectedChat, setMessages]);
 
     const handleNewChat = () => {
-        window.api.chat.createChat({title: "New Chat", lastMessage: null, lastMessageAt: null})
-            .then(() => {
+        window.api.chat.createChat({title: "New Chat", lastMessage: null, lastMessageAt: null, selected: true})
+            .then((chat) => {
                 setRefreshHistory(true);
             });
     }
@@ -133,7 +132,11 @@ export default function Page(): JSX.Element {
                 chats={chatHistory}
                 selectedChat={selectedChat as Chat}
                 onChangeSelectedChat={(chat) => {
-                    setSelectedChat(chat)
+                    window.api.chat.updateSelectedChat(chat.id).then(() => {
+                        setRefreshHistory(true);
+                    }).catch((error) => {
+                        console.log(error);
+                    })
                 }}
                 onNewChat={handleNewChat}
                 onSearch={searchFromChatHistory}
@@ -171,26 +174,25 @@ export default function Page(): JSX.Element {
                                     currentMatchIndex={currentMatchIndex}
                                     onMatchesFound={handleMatchesFound}
                                 />
-
-                                <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full">
-                                    <MultimodalInput
-                                        input={input}
-                                        setInput={setInput}
-                                        status={status}
-                                        attachments={attachments}
-                                        messages={messages}
-                                        sendMessage={sendMessage}
-                                        modelId={selectedChat.selectedModelId}
-                                        providerName={selectedChat.selectedProvider}
-                                        onModelChange={(providerName, modelId) => {
-                                            window.api.chat.updateChat(selectedChat.id,
-                                                {
-                                                    selectedProvider: providerName,
-                                                    selectedModelId: modelId
-                                                })
-                                        }}
-                                    />
-                                </div>
+                            </div>
+                            <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full border-t">
+                                <MultimodalInput
+                                    input={input}
+                                    setInput={setInput}
+                                    status={status}
+                                    attachments={attachments}
+                                    messages={messages}
+                                    sendMessage={sendMessage}
+                                    modelId={selectedChat.selectedModelId}
+                                    providerName={selectedChat.selectedProvider}
+                                    onModelChange={(providerName, modelId) => {
+                                        window.api.chat.updateChat(selectedChat.id,
+                                            {
+                                                selectedProvider: providerName,
+                                                selectedModelId: modelId
+                                            })
+                                    }}
+                                />
                             </div>
                         </>) : (
                         <div className="h-full flex flex-col items-center justify-center">

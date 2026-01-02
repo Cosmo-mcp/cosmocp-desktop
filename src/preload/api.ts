@@ -14,7 +14,6 @@ import {
     ProviderWithModels,
     ChatWithMessages
 } from '../../packages/core/dto';
-import {UIMessage} from "ai";
 export interface ChatApi {
     getAllChats(searchQuery: string | null): Promise<Chat[]>;
     getChatById(id: string): Promise<ChatWithMessages | undefined>;
@@ -24,6 +23,7 @@ export interface ChatApi {
     updatePinnedStatusForChat(id: string, pinned: boolean): Promise<void>;
     getSelectedModelForChat(id: string): Promise<string | null>;
     updateSelectedModelForChat(id: string, modelIdentifier: string): Promise<void>;
+    updateSelectedChat(id: string): Promise<void>;
 }
 
 export interface ModelProviderApi {
@@ -68,7 +68,8 @@ export const api: Api = {
     deleteChat: (id: string) => ipcRenderer.invoke('chat:deleteChat', id),
     updatePinnedStatusForChat: (id: string, pinned: boolean) => ipcRenderer.invoke('chat:updatePinnedStatusForChat', id, pinned),
     getSelectedModelForChat: (id: string) => ipcRenderer.invoke('chat:getSelectedModelForChat', id),
-    updateSelectedModelForChat: (id: string, modelIdentifier: string) => ipcRenderer.invoke('chat:updateSelectedModelForChat', id, modelIdentifier)
+    updateSelectedModelForChat: (id: string, modelIdentifier: string) => ipcRenderer.invoke('chat:updateSelectedModelForChat', id, modelIdentifier),
+    updateSelectedChat: (id: string) => ipcRenderer.invoke('chat:updateSelectedChat', id)
   },
   modelProvider: {
     addProvider: (providerData: ModelProviderCreateInput, models: NewModel[]) => ipcRenderer.invoke('modelProvider:addProvider', providerData, models),

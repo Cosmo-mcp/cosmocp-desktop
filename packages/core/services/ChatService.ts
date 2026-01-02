@@ -41,4 +41,8 @@ export class ChatService {
     public async updateSelectedModelForChat(id: string, modelIdentifier: string): Promise<void> {
         return this.chatRepository.updateSelectedModelForChatId(id, modelIdentifier);
     }
+
+    public async updateSelectedChat(id: string): Promise<void> {
+        return this.chatRepository.updateSelectedChat(id);
+    }
 }
