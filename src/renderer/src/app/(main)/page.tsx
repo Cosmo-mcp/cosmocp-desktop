@@ -1,5 +1,5 @@
 'use client'
-import {JSX, useEffect, useState} from "react";
+import {JSX, useCallback, useEffect, useState} from "react";
 import {ChatHistory} from "@/components/chat-history";
 import {Chat} from "core/dto";
 import {ChatHeader} from "@/components/chat-header";
@@ -21,6 +21,9 @@ export default function Page(): JSX.Element {
     const [input, setInput] = useState<string>('');
     const [attachments, setAttachments] = useState<Array<Attachment>>([]);
     const [searchHistoryQuery, setSearchHistoryQuery] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+    const [totalMatches, setTotalMatches] = useState(0);
 
     const {
         messages,
@@ -83,9 +86,48 @@ export default function Page(): JSX.Element {
         setRefreshHistory(true);
     }
 
+    const handleSearch = useCallback((query: string) => {
+        setSearchQuery(query);
+        if (!query) {
+            setCurrentMatchIndex(0);
+            setTotalMatches(0);
+        }
+    }, []);
+
+    const handleMatchesFound = useCallback((count: number) => {
+        setTotalMatches(count);
+        if (count > 0) {
+            setCurrentMatchIndex(prev => {
+                if (prev === 0) return 1;
+                if (prev > count) return count;
+                return prev;
+            });
+        } else {
+            setCurrentMatchIndex(0);
+        }
+    }, []);
+
+    const handleNextMatch = useCallback(() => {
+        if (totalMatches > 0) {
+            setCurrentMatchIndex(prev => (prev < totalMatches ? prev + 1 : 1));
+        }
+    }, [totalMatches]);
+
+    const handlePrevMatch = useCallback(() => {
+        if (totalMatches > 0) {
+            setCurrentMatchIndex(prev => (prev > 1 ? prev - 1 : totalMatches));
+        }
+    }, [totalMatches]);
+
+    const handleClearSearch = useCallback(() => {
+        setSearchQuery("");
+        setCurrentMatchIndex(0);
+        setTotalMatches(0);
+    }, []);
+
     return (
         <div
-            className="h-full min-h-[600px] flex rounded-b-lg border-t-0 overflow-hidden bg-background">
+            className="flex-1 min-h-0 flex rounded-b-lg border-t-0 overflow-hidden bg-background">
             <ChatHistory
                 chats={chatHistory}
                 selectedChat={selectedChat as Chat}
@@ -95,7 +137,7 @@ export default function Page(): JSX.Element {
                 onNewChat={handleNewChat}
                 onSearch={searchFromChatHistory}
             ></ChatHistory>
-            <div className="grow flex flex-col h-full overflow-hidden">
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                 {
                     selectedChat !== null ? (
                         <>
@@ -109,27 +151,35 @@ export default function Page(): JSX.Element {
                                         onPinChat={(chat) => {
                                             window.api.chat.updateChat(chat.id, {pinned: !chat.pinned}).then(() => setRefreshHistory(true));
                                         }}
+                                        onSearch={handleSearch}
+                                        currentMatch={currentMatchIndex}
+                                        totalMatches={totalMatches}
+                                        onNextMatch={handleNextMatch}
+                                        onPrevMatch={handlePrevMatch}
+                                        onClearSearch={handleClearSearch}
                                     />
                                 </div>
                             </div>
-                            <div className="flex-1 min-h-0 flex flex-col">
+                            <div className="flex-1 min-h-0">
                                 <Messages
                                     chatId={selectedChat.id}
                                     status={status}
                                     messages={messages}
                                     regenerate={regenerate}
+                                    searchQuery={searchQuery}
+                                    currentMatchIndex={currentMatchIndex}
+                                    onMatchesFound={handleMatchesFound}
                                 />
-
-                                <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full">
-                                    <MultimodalInput
-                                        input={input}
-                                        setInput={setInput}
-                                        status={status}
-                                        attachments={attachments}
-                                        messages={messages}
-                                        sendMessage={sendMessage}
-                                    />
-                                </div>
+                            </div>
+                            <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full border-t">
+                                <MultimodalInput
+                                    input={input}
+                                    setInput={setInput}
+                                    status={status}
+                                    attachments={attachments}
+                                    messages={messages}
+                                    sendMessage={sendMessage}
+                                />
                             </div>
                         </>) : (
                         <div className="h-full flex flex-col items-center justify-center">
