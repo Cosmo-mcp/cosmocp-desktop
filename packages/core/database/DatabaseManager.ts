@@ -3,6 +3,7 @@ import {drizzle, PgliteDatabase} from 'drizzle-orm/pglite';
 import * as schema from './schema/schema';
 import {injectable} from 'inversify';
 import {runMigrations} from './migrator';
+import log from 'electron-log/main';
 
 @injectable()
 export class DatabaseManager {
@@ -23,16 +24,16 @@ export class DatabaseManager {
 
     private static async createInstance(absoluteDbPath: string): Promise<void> {
         try {
-            console.log(`[DB INIT] Attempting to connect PGlite to absolute path: ${absoluteDbPath}`);
+            log.info(`[DB INIT] Attempting to connect PGlite to absolute path: ${absoluteDbPath}`);
             const connection = await PGlite.create(absoluteDbPath);
             this.instance = drizzle(connection, {schema});
-            console.log('[DB INIT] Drizzle client successfully initialized.');
+            log.info('[DB INIT] Drizzle client successfully initialized.');
 
             // Run migrations automatically after initialization
             await runMigrations(this.instance);
 
         } catch (error) {
-            console.error('[DB INIT] Failed to initialize database client and run migrations:', error);
+            log.error('[DB INIT] Failed to initialize database client and run migrations:', error);
             this.initPromise = null; // Allow initialization to be re-attempted
             throw error;
         }

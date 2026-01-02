@@ -37,6 +37,7 @@ import {
     ModelSelectorTrigger
 } from "@/components/ai-elements/model-selector";
 import {CheckIcon} from "lucide-react";
+import log from 'electron-log/renderer';
 
 function PureMultimodalInput({
                                  input,
@@ -74,12 +75,12 @@ function PureMultimodalInput({
                     if (providers[0].models.length > 0) {
                         setSelectedModelId(providers[0]?.models[0]?.modelId);
                     } else {
-                        console.error('No model found for provider ' + providers[0].name);
+                        log.error('No model found for provider ' + providers[0].name);
                     }
                 }
 
             })
-            .catch((error) => console.log(error));
+            .catch((error) => log.error(error));
     }, []);
     const submitForm = useCallback(() => {
         if (!selectedModelId) {

@@ -12,7 +12,7 @@
     "generate-api": "ts-node -r tsconfig-paths/register scripts/generate-api.ts",
     "next:dev": "cd src/renderer && npm run dev",
     "dev": "concurrently -k \"npm run next:dev\" \"npm run start\"",
-    "start": "cross-env NODE_ENV=development electron-forge start",
+    "start": "npm i && cross-env NODE_ENV=development electron-forge start",
     "package": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge package",
     "make": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge make",
     "publish": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge publish",
@@ -74,6 +74,7 @@
     "ollama-ai-provider-v2": "1.5.5",
     "reflect-metadata": "0.2.2",
     "update-electron-app": "^3.1.2",
-    "zod": "4.1.12"
+    "zod": "4.1.12",
+    "electron-log": "5.4.3"
   }
 }

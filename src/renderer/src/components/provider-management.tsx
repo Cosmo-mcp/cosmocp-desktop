@@ -14,6 +14,7 @@ import {defineStepper} from "@stepperize/react";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Loader} from "@/components/ai-elements/loader";
 import {ConfirmDialog} from "@/components/confirm-dialog";
+import log from 'electron-log/renderer';
 
 export function ProviderManagement() {
     const {resolvedTheme} = useTheme();
@@ -52,7 +53,7 @@ export function ProviderManagement() {
                 const list = await window.api.modelProvider.getProvidersWithModels();
                 setProviders(list);
             } catch (e) {
-                console.error('Failed to load providers', e);
+                log.error('Failed to load providers', e);
                 setError('Failed to load providers');
             } finally {
                 setLoading(false);
@@ -120,7 +121,7 @@ export function ProviderManagement() {
             }
         } catch (err) {
             const errorMessage = `Failed to ${editingProvider ? 'update' : 'add'} provider`;
-            console.error(`Failed to ${editingProvider ? 'update' : 'add'} provider:`, err);
+            log.error(`Failed to ${editingProvider ? 'update' : 'add'} provider:`, err);
             setError(errorMessage);
         } finally {
             setIsSubmitting(false);
@@ -155,7 +156,7 @@ export function ProviderManagement() {
             setProviders(providers.filter(p => p.id !== providerId));
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to delete provider';
-            console.error('Failed to delete provider:', err);
+            log.error('Failed to delete provider:', err);
             setError(errorMessage);
         } finally {
             setIsDeleting(null);
@@ -395,7 +396,7 @@ export function ProviderManagement() {
                                                 // If editing and already have selected models, they'll stay selected
                                                 // because we set them in handleEditProvider
                                             }).catch(error => {
-                                                console.log(error);
+                                                log.error(error);
                                             });
                                             return true;
                                         });

@@ -7,6 +7,13 @@ import container from "./inversify.config";
 import {TYPES} from "./types";
 import {config} from "dotenv";
 import {updateElectronApp, UpdateSourceType} from "update-electron-app";
+import log from "electron-log/main";
+
+log.initialize();
+log.transports.file.level = 'info';
+log.transports.file.maxSize = 5 * 1024 * 1024; // 5MB
+log.transports.file.resolvePathFn = () =>
+    path.join(app.getPath("userData"), "logs", "main.log");
 
 export class Main {
     private mainWindow: BrowserWindow | null = null;
@@ -38,7 +45,7 @@ export class Main {
     private async initializeDatabase(): Promise<void> {
         const dbFolderName = this.isDev ? process.env.DATABASE_NAME : "database";
         if (!dbFolderName) {
-            console.error('FATAL ERROR: DATABASE_NAME environment variable is not set. Cannot initialize database.');
+            log.error('FATAL ERROR: DATABASE_NAME environment variable is not set. Cannot initialize database.');
             app.quit();
             return;
         }
@@ -46,10 +53,10 @@ export class Main {
         try {
             const userDataPath = app.getPath('userData');
             const absoluteDbPath = path.join(userDataPath, dbFolderName);
-            console.log("Database Dir:" + absoluteDbPath);
+            log.info("Database Dir:" + absoluteDbPath);
             await DatabaseManager.initialize(absoluteDbPath);
         } catch (error) {
-            console.error('FATAL ERROR: Failed to initialize database connection.', error);
+            log.error('FATAL ERROR: Failed to initialize database connection.', error);
             app.quit(); // Stop execution if we cannot connect
         }
     }

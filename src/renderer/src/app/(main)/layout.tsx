@@ -17,12 +17,10 @@ export default function MainLayout({
                     "--header-height": "calc(var(--spacing) * 14)",
                 } as React.CSSProperties}>
                 <AppSidebar/>
-                <SidebarInset>
+                <SidebarInset className="h-[calc(100svh-var(--header-height))] max-h-[calc(100svh-var(--header-height))] overflow-hidden">
                     <SiteHeader/>
-                    <div className="flex flex-1 flex-col h-full w-full">
-                        <div className="@container/main flex flex-1 flex-col h-full w-full">
-                            {children}
-                        </div>
+                    <div className="@container/main flex flex-1 flex-col min-h-0 w-full overflow-hidden">
+                        {children}
                     </div>
                 </SidebarInset>
                 <Toaster position="top-center"/>
