@@ -14,7 +14,7 @@ import {
     MessageContent,
     MessageResponse
 } from "@/components/ai-elements/message";
-import {CopyIcon, MessageSquare, RefreshCcwIcon} from "lucide-react";
+import {CopyIcon, MessageSquare} from "lucide-react";
 import {Reasoning, ReasoningContent, ReasoningTrigger} from "@/components/ai-elements/reasoning";
 import {Source, Sources, SourcesContent, SourcesTrigger} from "@/components/ai-elements/sources";
 import {Loader} from "@/components/ai-elements/loader";
@@ -76,7 +76,7 @@ function PureMessages({
         setMatches(newMatches);
         setMatchStartIndexMap(newMatchStartIndexMap);
         if (onMatchesFound) onMatchesFound(newMatches.length);
-    }, [searchQuery, messages]);
+    }, [searchQuery, messages, onMatchesFound]);
 
     useEffect(() => {
         // Reset previous match style
@@ -240,8 +240,10 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
     if (prevProps.searchQuery !== nextProps.searchQuery) return false;
     if (prevProps.currentMatchIndex !== nextProps.currentMatchIndex) return false;
     if (prevProps.status !== nextProps.status) return false;
-    if (prevProps.messages.length !== nextProps.messages.length) return false;
-    if (!equal(prevProps.messages, nextProps.messages)) return false;
 
-    return true;
+    // Always re-render when streaming to ensure token updates are reflected immediately
+    if (nextProps.status === 'streaming') return false;
+
+    // Use deep comparison for static states to avoid unnecessary re-renders
+    return equal(prevProps.messages, nextProps.messages);
 });

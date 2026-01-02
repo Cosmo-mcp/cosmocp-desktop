@@ -12,7 +12,7 @@
     "generate-api": "ts-node -r tsconfig-paths/register scripts/generate-api.ts",
     "next:dev": "cd src/renderer && npm run dev",
     "dev": "concurrently -k \"npm run next:dev\" \"npm run start\"",
-    "start": "cross-env NODE_ENV=development electron-forge start",
+    "start": "npm i && cross-env NODE_ENV=development electron-forge start",
     "package": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge package",
     "make": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge make",
     "publish": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge publish",
