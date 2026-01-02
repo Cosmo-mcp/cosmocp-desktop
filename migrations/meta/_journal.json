@@ -113,6 +113,20 @@
       "when": 1766397822468,
       "tag": "0015_neat_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1767145094338,
+      "tag": "0016_whole_joseph",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1767334318034,
+      "tag": "0017_black_wasp",
+      "breakpoints": true
     }
   ]
 }
