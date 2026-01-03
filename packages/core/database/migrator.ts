@@ -2,14 +2,14 @@ import {migrate} from "drizzle-orm/pglite/migrator";
 import path from "path";
 import {PgliteDatabase} from "drizzle-orm/pglite";
 import * as schema from './schema/schema';
-import log from 'electron-log/main';
+import {logger} from "../../../src/main/logger";
 
 /**
  * Executes pending database migrations against the initialized PGlite client.
  * @param db The Drizzle PGlite database instance.
  */
 export async function runMigrations(db: PgliteDatabase<typeof schema>) {
-    log.info('Checking and running application migrations...');
+    logger.info('Checking and running application migrations...');
 
     try {
         const start = Date.now();
@@ -18,10 +18,10 @@ export async function runMigrations(db: PgliteDatabase<typeof schema>) {
         await migrate(db, {migrationsFolder: migrationDir});
 
         const end = Date.now();
-        log.info(`Migrations checked/applied successfully in ${end - start} ms.`);
+        logger.info(`Migrations checked/applied successfully in ${end - start} ms.`);
 
     } catch (error) {
-        log.error('FATAL: Database migration failed during application startup.', error);
+        logger.error('FATAL: Database migration failed during application startup.', error);
         throw new Error('Database initialization failed due to migration error.');
     }
 }
