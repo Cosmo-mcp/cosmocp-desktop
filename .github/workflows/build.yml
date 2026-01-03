@@ -34,6 +34,8 @@ jobs:
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
+          echo -n "$BUILD_CERTIFICATE_BASE64"
+          echo -n "INSTALL_CERTIFICATE_BASE64"
           # create variables
           BUILD_CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           INSTALL_CERTIFICATE_PATH=$RUNNER_TEMP/install_certificate.p12
