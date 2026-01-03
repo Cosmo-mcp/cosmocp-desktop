@@ -23,7 +23,6 @@ jobs:
           node-version: '22.19.0'
 
       - name: Install dependencies
-        if: runner.os != 'macOS'
         run: |
           npm install
 
