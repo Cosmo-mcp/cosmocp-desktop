@@ -1,7 +1,7 @@
 'use client';
 
 import type {UIMessage} from 'ai';
-import {type Dispatch, memo, type SetStateAction, useCallback, useEffect, useRef, useState,} from 'react';
+import {type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState,} from 'react';
 import {toast} from 'sonner';
 import {
     PromptInput,
@@ -20,10 +20,9 @@ import {
     PromptInputTextarea,
     PromptInputTools,
 } from './ai-elements/prompt-input';
-import equal from 'fast-deep-equal';
 import type {UseChatHelpers} from '@ai-sdk/react';
 import type {Attachment} from '@/lib/types';
-import {ModelLite, ModelProviderLite, ProviderWithModels} from "core/dto";
+import {Chat, ModelLite, ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -37,15 +36,22 @@ import {
     ModelSelectorTrigger
 } from "@/components/ai-elements/model-selector";
 import {CheckIcon} from "lucide-react";
-import log from 'electron-log/renderer';
+import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
+import {logger} from "../../logger";
 
-function PureMultimodalInput({
-                                 input,
-                                 setInput,
-                                 status,
-                                 attachments,
-                                 sendMessage,
-                             }: {
+
+
+export function MultimodalInput({
+                                    chat,
+                                    input,
+                                    setInput,
+                                    status,
+                                    attachments,
+                                    sendMessage,
+                                    onModelChange,
+                                }: {
+    chat: Chat;
     input: string;
     setInput: Dispatch<SetStateAction<string>>;
     status: UseChatHelpers<UIMessage>['status'];
@@ -54,10 +60,9 @@ function PureMultimodalInput({
     sendMessage: UseChatHelpers<UIMessage>['sendMessage'];
     className?: string;
     stillAnswering?: boolean,
-    onModelChange?: (modelId: string) => void;
+    onModelChange: (providerName: string, modelId: string) => void;
 }) {
-    const [selectedModel, setSelectedModel] = useState<ModelLite | undefined>(undefined);
-    const [selectedProvider, setSelectedProvider] = useState<ModelProviderLite | undefined>(undefined);
+    const [selectedModelInfo, setSelectedModelInfo] = useState<ModelLite | undefined>(undefined);
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -65,22 +70,20 @@ function PureMultimodalInput({
         window.api.modelProvider.getProvidersWithModels()
             .then((providers) => {
                 setProviders(providers);
-                if (providers.length > 0) {
-                    setSelectedProvider((providers[0]));
-                    if (providers[0].models.length > 0) {
-                        setSelectedModel(providers[0].models[0]);
-                    } else {
-                        log.error('No model found for provider ' + providers[0].name);
+                if (chat.selectedProvider) {
+                    const provider = providers.find(provider => provider.name === chat.selectedProvider);
+                    if (provider) {
+                        setSelectedModelInfo(provider.models.find((model) => model.modelId === chat.selectedModelId));
                     }
                 }
             })
-            .catch((error) => log.error(error));
-    }, []);
+            .catch((error) => logger.error(error));
+    }, [chat]);
     const submitForm = useCallback(() => {
-        if (!selectedModel) {
+        if (!chat.selectedModelId) {
             return;
         }
-        const modelId = selectedProvider?.name + ":" + selectedModel.modelId
+        const modelId = chat.selectedProvider + ":" + chat.selectedModelId
         sendMessage({
             role: 'user',
             parts: [
@@ -105,10 +108,14 @@ function PureMultimodalInput({
         }).finally(() => {
             setInput('');
         })
-    }, [selectedModel, selectedProvider, sendMessage, attachments, input, setInput]);
+    }, [chat.selectedModelId, chat.selectedProvider, sendMessage, attachments, input, setInput]);
 
     const handlePromptSubmit = () => {
         submitForm();
+    }
+
+    function saveSelectedModelPreference(providerName: string, modelId: string) {
+        onModelChange(providerName, modelId);
     }
 
     return (
@@ -129,9 +136,26 @@ function PureMultimodalInput({
                 <PromptInputFooter>
                     <PromptInputTools>
                         <PromptInputActionMenu>
-                            <PromptInputActionMenuTrigger/>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span>
+                                        <PromptInputActionMenuTrigger disabled={!selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE)}>
+                                        </PromptInputActionMenuTrigger>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE) ? (
+                                        <p>Attach Images</p>
+                                    ) : (
+                                        <p>Images not supported my selected Model</p>
+                                    )}
+
+                                </TooltipContent>
+                            </Tooltip>
                             <PromptInputActionMenuContent>
-                                <PromptInputActionAddAttachments/>
+                                <PromptInputActionAddAttachments label="Add Photos"
+
+                                />
                             </PromptInputActionMenuContent>
                         </PromptInputActionMenu>
                         <ModelSelector
@@ -140,9 +164,9 @@ function PureMultimodalInput({
                         >
                             <ModelSelectorTrigger asChild>
                                 <PromptInputButton className="w-max">
-                                    {selectedModel ? (
+                                    {chat.selectedModelId ? (
                                         <ModelSelectorName>
-                                            {selectedModel.modelId}
+                                            {chat.selectedModelId}
                                         </ModelSelectorName>
                                     ) : ('Select Model')}
                                 </PromptInputButton>
@@ -159,19 +183,18 @@ function PureMultimodalInput({
                                                     <ModelSelectorItem
                                                         key={m.modelId}
                                                         onSelect={() => {
-                                                            setSelectedProvider(provider);
-                                                            setSelectedModel(m);
                                                             setModelSelectorOpen(false);
+                                                            saveSelectedModelPreference(provider.name, m.modelId);
                                                         }}
                                                         value={m.modelId}
                                                     >
                                                         <ModelSelectorName>{m.name}</ModelSelectorName>
                                                         <ModelSelectorLogo
-                                                                key={provider.type.toString()}
+                                                            key={provider.type.toString()}
                                                             provider={provider.type.toString()}
                                                         />
-                                                        {selectedProvider?.name === provider.name &&
-                                                        selectedModel?.modelId === m.modelId ? (
+                                                        {chat.selectedProvider === provider.name &&
+                                                        chat.selectedModelId === m.modelId ? (
                                                             <CheckIcon className="ml-auto size-4"/>
                                                         ) : (
                                                             <div className="ml-auto size-4"/>
@@ -190,13 +213,3 @@ function PureMultimodalInput({
         </PromptInputProvider>
     );
 }
-
-export const MultimodalInput = memo(
-    PureMultimodalInput,
-    (prevProps, nextProps) => {
-        if (prevProps.input !== nextProps.input) return false;
-        if (prevProps.stillAnswering !== nextProps.stillAnswering) return false;
-        if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-        return prevProps.status !== nextProps.status;
-    },
-);

@@ -18,7 +18,7 @@ export class ChatService {
         return this.chatRepository.getById(id);
     }
 
-    public async createChat(newChat: NewChat): Promise<Chat> {
+    public async createChat(newChat: NewChat): Promise<void> {
         return this.chatRepository.create(newChat);
     }
 
@@ -40,5 +40,9 @@ export class ChatService {
 
     public async updateSelectedModelForChat(id: string, modelIdentifier: string): Promise<void> {
         return this.chatRepository.updateSelectedModelForChatId(id, modelIdentifier);
+    }
+
+    public async updateSelectedChat(id: string): Promise<void> {
+        return this.chatRepository.updateSelectedChat(id);
     }
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "Chat" ADD COLUMN "selected" boolean DEFAULT false;

@@ -7,7 +7,7 @@ import {Controller} from "./Controller";
 import {CORETYPES} from "core/types/types";
 import {ModelProviderService} from "core/services/ModelProviderService";
 import {MessageService} from "core/services/MessageService";
-import log from 'electron-log/main';
+import {logger} from "../logger";
 
 @injectable()
 @IpcController("streamingChat")
@@ -63,7 +63,7 @@ export class StreamingChatController implements Controller {
                     this.activeStreams.delete(args.streamChannel);
                 },
                 onError: (error) => {
-                    log.error("Stream error:", error);
+                    logger.error("Stream error:", error);
                     let msg = error.error;
                     if (RetryError.isInstance(error)) {
                         msg = error.lastError;
@@ -81,7 +81,7 @@ export class StreamingChatController implements Controller {
                 sendSources: true
             })) {
                 if (webContents.isDestroyed()) {
-                    log.info("WebContents destroyed, stopping stream.");
+                    logger.info("WebContents destroyed, stopping stream.");
                     controller.abort();
                     break;
                 }
@@ -89,7 +89,7 @@ export class StreamingChatController implements Controller {
 
             }
         } catch (error) {
-            log.error("Failed to start streamText:", error);
+            logger.error("Failed to start streamText:", error);
             controller.abort();
             this.activeStreams.delete(args.streamChannel);
             if (!webContents.isDestroyed()) {
@@ -104,7 +104,7 @@ export class StreamingChatController implements Controller {
         if (controller) {
             controller.abort();
             this.activeStreams.delete(args.streamChannel);
-            log.info(`Aborted stream for channel: ${args.streamChannel}`);
+            logger.info(`Aborted stream for channel: ${args.streamChannel}`);
         }
     }
 

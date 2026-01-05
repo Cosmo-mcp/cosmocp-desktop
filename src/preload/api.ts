@@ -1,11 +1,9 @@
 import { ipcRenderer } from 'electron';
 import {
     NewChat,
-    ModelProvider,
     ModelProviderLite,
     ChatAbortArgs,
     ChatSendMessageArgs,
-    Model,
     Chat,
     ModelProviderCreateInput,
     NewMessage,
@@ -18,12 +16,13 @@ import {UIMessage} from "ai";
 export interface ChatApi {
     getAllChats(searchQuery: string | null): Promise<Chat[]>;
     getChatById(id: string): Promise<ChatWithMessages | undefined>;
-    createChat(newChat: NewChat): Promise<Chat>;
+    createChat(newChat: NewChat): Promise<void>;
     updateChat(id: string, updates: Partial<NewChat>): Promise<Chat>;
     deleteChat(id: string): Promise<void>;
     updatePinnedStatusForChat(id: string, pinned: boolean): Promise<void>;
     getSelectedModelForChat(id: string): Promise<string | null>;
     updateSelectedModelForChat(id: string, modelIdentifier: string): Promise<void>;
+    updateSelectedChat(id: string): Promise<void>;
 }
 
 export interface ModelProviderApi {
@@ -32,7 +31,7 @@ export interface ModelProviderApi {
     getProviders(): Promise<ModelProviderLite[]>;
     getProvidersWithModels(): Promise<ProviderWithModels[]>;
     deleteProvider(providerId: string): Promise<void>;
-    updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData?: NewModel[]): Promise<ProviderWithModels>;
+    updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData: NewModel[]): Promise<ProviderWithModels>;
     getAvailableModelsFromProviders(provider: ModelProviderCreateInput): Promise<NewModel[]>;
 }
 
@@ -68,7 +67,8 @@ export const api: Api = {
     deleteChat: (id: string) => ipcRenderer.invoke('chat:deleteChat', id),
     updatePinnedStatusForChat: (id: string, pinned: boolean) => ipcRenderer.invoke('chat:updatePinnedStatusForChat', id, pinned),
     getSelectedModelForChat: (id: string) => ipcRenderer.invoke('chat:getSelectedModelForChat', id),
-    updateSelectedModelForChat: (id: string, modelIdentifier: string) => ipcRenderer.invoke('chat:updateSelectedModelForChat', id, modelIdentifier)
+    updateSelectedModelForChat: (id: string, modelIdentifier: string) => ipcRenderer.invoke('chat:updateSelectedModelForChat', id, modelIdentifier),
+    updateSelectedChat: (id: string) => ipcRenderer.invoke('chat:updateSelectedChat', id)
   },
   modelProvider: {
     addProvider: (providerData: ModelProviderCreateInput, models: NewModel[]) => ipcRenderer.invoke('modelProvider:addProvider', providerData, models),
@@ -76,7 +76,7 @@ export const api: Api = {
     getProviders: () => ipcRenderer.invoke('modelProvider:getProviders'),
     getProvidersWithModels: () => ipcRenderer.invoke('modelProvider:getProvidersWithModels'),
     deleteProvider: (providerId: string) => ipcRenderer.invoke('modelProvider:deleteProvider', providerId),
-    updateProvider: (providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData?: NewModel[]) => ipcRenderer.invoke('modelProvider:updateProvider', providerId, updateObject, modelsData),
+    updateProvider: (providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData: NewModel[]) => ipcRenderer.invoke('modelProvider:updateProvider', providerId, updateObject, modelsData),
     getAvailableModelsFromProviders: (provider: ModelProviderCreateInput) => ipcRenderer.invoke('modelProvider:getAvailableModelsFromProviders', provider)
   },
   message: {

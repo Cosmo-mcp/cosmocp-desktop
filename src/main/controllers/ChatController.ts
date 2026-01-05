@@ -22,7 +22,7 @@ export class ChatController implements Controller {
     }
 
     @IpcHandler("createChat")
-    public async createChat(newChat: NewChat): Promise<Chat> {
+    public async createChat(newChat: NewChat): Promise<void> {
         return this.chatService.createChat(newChat);
     }
 
@@ -49,5 +49,10 @@ export class ChatController implements Controller {
     @IpcHandler("updateSelectedModelForChat")
     public async updateSelectedModelForChat(id: string, modelIdentifier: string): Promise<void> {
         return this.chatService.updateSelectedModelForChat(id, modelIdentifier);
+    }
+
+    @IpcHandler("updateSelectedChat")
+    public async updateSelectedChat(id: string): Promise<void> {
+        return this.chatService.updateSelectedChat(id);
     }
 }

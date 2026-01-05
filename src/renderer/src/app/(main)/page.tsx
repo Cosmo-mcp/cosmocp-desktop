@@ -13,7 +13,7 @@ import {MessageCirclePlus} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {UIMessage} from "ai";
 import {toast} from "sonner"
-import log from 'electron-log/renderer';
+import {logger} from "../../../logger";
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -47,19 +47,21 @@ export default function Page(): JSX.Element {
         },
     });
 
-
     useEffect(() => {
         window.api.chat.getAllChats(searchHistoryQuery)
             .then((chats) => {
                 setChatHistory(chats);
                 if (chats && chats.length > 0) {
-                    setSelectedChat(chats.find(chat => chat.id === selectedChat?.id) ?? chats[0]);
+                    setSelectedChat(chats.find(chat => chat.selected) ?? chats[0]);
                 } else {
                     setSelectedChat(null);
                 }
                 setRefreshHistory(false);
             })
-            .catch((error) => log.error(error));
+            .catch((error) => {
+                console.log(error);
+                logger.error(error);
+            });
     }, [refreshHistory, searchHistoryQuery]);
 
     useEffect(() => {
@@ -70,13 +72,16 @@ export default function Page(): JSX.Element {
                         setMessages(chat);
                     }
                 })
-                .catch((error) => log.error(error));
+                .catch((error) => {
+                    console.log(error);
+                    logger.error(error)
+                });
         }
 
     }, [selectedChat, setMessages]);
 
     const handleNewChat = () => {
-        window.api.chat.createChat({title: "New Chat", lastMessage: null, lastMessageAt: null})
+        window.api.chat.createChat({title: "New Chat"})
             .then(() => {
                 setRefreshHistory(true);
             });
@@ -133,7 +138,11 @@ export default function Page(): JSX.Element {
                 chats={chatHistory}
                 selectedChat={selectedChat as Chat}
                 onChangeSelectedChat={(chat) => {
-                    setSelectedChat(chat)
+                    window.api.chat.updateSelectedChat(chat.id).then(() => {
+                        setRefreshHistory(true);
+                    }).catch((error) => {
+                        logger.error(error);
+                    })
                 }}
                 onNewChat={handleNewChat}
                 onSearch={searchFromChatHistory}
@@ -174,12 +183,20 @@ export default function Page(): JSX.Element {
                             </div>
                             <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full border-t">
                                 <MultimodalInput
+                                    chat={selectedChat}
                                     input={input}
                                     setInput={setInput}
                                     status={status}
                                     attachments={attachments}
                                     messages={messages}
                                     sendMessage={sendMessage}
+                                    onModelChange={(providerName, modelId) => {
+                                        window.api.chat.updateChat(selectedChat.id,
+                                            {
+                                                selectedProvider: providerName,
+                                                selectedModelId: modelId
+                                            }).then(() => setRefreshHistory(true));
+                                    }}
                                 />
                             </div>
                         </>) : (
