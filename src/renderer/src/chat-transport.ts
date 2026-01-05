@@ -24,7 +24,7 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const onError = (err: any) => {
                     cleanup();
-                    const msg = err?.error?.message || err?.message || (typeof err === 'string' ? err : 'Stream Error');
+                    const msg = err?.error?.message || err?.message || err || 'Stream Error';
                     controller.error(new Error(msg));
                 }
 
@@ -66,7 +66,7 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 const onError = (err: any) => {
                     cleanup();
                     // we don't know the structure of err, so being defensive
-                    const msg = err?.error?.message || err?.message || (typeof err === 'string' ? err : 'Stream Error');
+                    const msg = err?.error?.message || err?.message || err || 'Stream Error';
                     controller.error(new Error(msg));
                 }
 
