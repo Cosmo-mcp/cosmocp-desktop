@@ -19,7 +19,7 @@ export class ChatRepository {
         if (searchQuery) {
             conditions.push(ilike(chat.title, `%${searchQuery.trim()}%`))
         }
-        return this.db.select().from(chat).where(and(...conditions)).orderBy(desc(chat.lastMessageAt));
+        return this.db.select().from(chat).where(and(...conditions)).orderBy(desc(chat.pinned), desc(chat.lastMessageAt));
     }
 
     public async getById(id: string): Promise<ChatWithMessages | undefined> {
