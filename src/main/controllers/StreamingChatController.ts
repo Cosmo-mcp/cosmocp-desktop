@@ -71,8 +71,8 @@ export class StreamingChatController implements Controller {
                     if (!webContents.isDestroyed()) {
                         webContents.send(`${args.streamChannel}-error`, msg);
                     }
+                    controller.abort();
                     this.activeStreams.delete(args.streamChannel);
-
                 }
             });
 
@@ -90,6 +90,7 @@ export class StreamingChatController implements Controller {
             }
         } catch (error) {
             logger.error("Failed to start streamText:", error);
+            controller.abort();
             this.activeStreams.delete(args.streamChannel);
             if (!webContents.isDestroyed()) {
                 webContents.send(`${args.streamChannel}-error`, error);
