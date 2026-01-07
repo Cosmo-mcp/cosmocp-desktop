@@ -139,7 +139,7 @@ export default function Page(): JSX.Element {
                 selectedChat={selectedChat as Chat}
                 onChangeSelectedChat={(chat) => {
                     window.api.chat.updateSelectedChat(chat.id).then(() => {
-                        setRefreshHistory(true);
+                        setSelectedChat(chat);
                     }).catch((error) => {
                         logger.error(error);
                     })
