@@ -22,6 +22,7 @@ export type ModelProviderCreateInput = Omit<ModelProviderInsert, 'id' | 'created
 
 // The safe model for sending to the renderer process (no API key).
 export type ModelProviderLite = Optional<ModelProvider, "apiKey">;
+export type ModelIdentifier = Pick<Chat, "selectedProvider" | "selectedModelId">;
 
 // Simple Model interface (kept here for full context)
 export type Model = InferSelectModel<typeof model>;
