@@ -139,7 +139,7 @@ export default function Page(): JSX.Element {
                 selectedChat={selectedChat as Chat}
                 onChangeSelectedChat={(chat) => {
                     window.api.chat.updateSelectedChat(chat.id).then(() => {
-                        setRefreshHistory(true);
+                        setSelectedChat(chat);
                     }).catch((error) => {
                         logger.error(error);
                     })
@@ -159,7 +159,7 @@ export default function Page(): JSX.Element {
                                             window.api.chat.deleteChat(chat.id).then(() => setRefreshHistory(true));
                                         }}
                                         onPinChat={(chat) => {
-                                            window.api.chat.updateChat(chat.id, {pinned: !chat.pinned}).then(() => setRefreshHistory(true));
+                                            window.api.chat.updatePinnedStatusForChat(chat.id, !chat.pinned).then(() => setRefreshHistory(true));
                                         }}
                                         onSearch={handleSearch}
                                         currentMatch={currentMatchIndex}
@@ -191,7 +191,7 @@ export default function Page(): JSX.Element {
                                     messages={messages}
                                     sendMessage={sendMessage}
                                     onModelChange={(providerName, modelId) => {
-                                        window.api.chat.updateChat(selectedChat.id,
+                                        window.api.chat.updateSelectedModelForChat(selectedChat.id,
                                             {
                                                 selectedProvider: providerName,
                                                 selectedModelId: modelId

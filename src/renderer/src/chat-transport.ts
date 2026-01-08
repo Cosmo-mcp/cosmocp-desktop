@@ -81,7 +81,6 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 // Send to main process
                 const messages = options.messages;
 
-                // QUICK HACK FOR NOW: Extract modelId from the last user message metadata
                 const modelIdentifier = options?.metadata as {modelId: string};
                 const modelId = modelIdentifier.modelId as string;
 
