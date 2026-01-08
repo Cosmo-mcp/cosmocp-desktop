@@ -1,4 +1,4 @@
-name: Build
+name: Build_signing
 
 on:
   workflow_dispatch:
