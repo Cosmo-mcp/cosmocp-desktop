@@ -16,7 +16,6 @@ const config: ForgeConfig = {
             executableName: "CosmoStudio", //Needed for linux
             asar: true,
             icon: './icons/cosmo',
-            osxSign: {} // object must exist even if empty
         },
         rebuildConfig: {},
         makers: [new MakerSquirrel({}),
