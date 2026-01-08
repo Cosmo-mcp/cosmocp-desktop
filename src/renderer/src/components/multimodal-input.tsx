@@ -36,9 +36,11 @@ import {
     ModelSelectorTrigger
 } from "@/components/ai-elements/model-selector";
 import {CheckIcon} from "lucide-react";
-import log from 'electron-log/renderer';
 import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
+import {logger} from "../../logger";
+
+
 
 export function MultimodalInput({
                                     chat,
@@ -75,7 +77,7 @@ export function MultimodalInput({
                     }
                 }
             })
-            .catch((error) => log.error(error));
+            .catch((error) => logger.error(error));
     }, [chat]);
     const submitForm = useCallback(() => {
         if (!chat.selectedModelId) {

@@ -93,7 +93,6 @@ dist
 
 # vuepress v2.x temp and cache directory
 .temp
-.cache
 
 # Sveltekit cache directory
 .svelte-kit/
@@ -142,6 +141,7 @@ vite.config.ts.timestamp-*
 # packages-lock.json files
 package-lock.json
 src/renderer/package-lock.json
+src/renderer/next-env.d.ts
 /.idea
 .DS_Store
 /database

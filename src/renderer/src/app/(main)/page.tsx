@@ -13,7 +13,7 @@ import {MessageCirclePlus} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {UIMessage} from "ai";
 import {toast} from "sonner"
-import log from 'electron-log/renderer';
+import {logger} from "../../../logger";
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -60,7 +60,7 @@ export default function Page(): JSX.Element {
             })
             .catch((error) => {
                 console.log(error);
-                log.error(error);
+                logger.error(error);
             });
     }, [refreshHistory, searchHistoryQuery]);
 
@@ -74,7 +74,7 @@ export default function Page(): JSX.Element {
                 })
                 .catch((error) => {
                     console.log(error);
-                    log.error(error)
+                    logger.error(error)
                 });
         }
 
@@ -141,7 +141,7 @@ export default function Page(): JSX.Element {
                     window.api.chat.updateSelectedChat(chat.id).then(() => {
                         setRefreshHistory(true);
                     }).catch((error) => {
-                        log.error(error);
+                        logger.error(error);
                     })
                 }}
                 onNewChat={handleNewChat}
