@@ -23,8 +23,7 @@ jobs:
           node-version: '22.19.0'
 
       - name: Install dependencies
-        run: |
-          npm install
+        run: npm install
 
       - name: Install the Apple certificate
         if: runner.os == 'macOS'
