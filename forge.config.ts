@@ -17,20 +17,6 @@ const config: ForgeConfig = {
             asar: true,
             icon: './icons/cosmo',
             appBundleId: "com.cosmocp.cosmostudio",
-            osxSign: {
-                identity: "Developer ID Application: Gaurav Saini (M9WFNZ4PLR)",
-                optionsForFile: () => {
-                    return {
-                        entitlements: './entitlements.plist',
-                        hardenedRuntime: true
-                    }
-                }
-            },
-            osxNotarize: {
-                appleId: "gaurav@cosmocp.com",
-                appleIdPassword: "zkdj-vvmb-gwnu-lpvh",
-                teamId: "M9WFNZ4PLR",
-            }
         },
         rebuildConfig: {},
         makers: [new MakerSquirrel({}),
