@@ -30,7 +30,7 @@ jobs:
         run: |
           # create variables
           BUILD_CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          KEYCHAIN_PATH=$RUNNER_TEMP/login.keychain-db
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
           
           # import certificate from secrets
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $BUILD_CERTIFICATE_PATH
@@ -51,7 +51,7 @@ jobs:
       - name: Build application
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: npm run make
 
