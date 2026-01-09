@@ -24,6 +24,7 @@ jobs:
           node-version: '22.19.0'
 
       - name: Install the Apple certificate
+        if: runner.os == 'macOS'
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
