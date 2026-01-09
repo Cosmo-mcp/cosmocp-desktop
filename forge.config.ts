@@ -17,6 +17,14 @@ const config: ForgeConfig = {
             asar: true,
             icon: './icons/cosmo',
             appBundleId: "com.cosmocp.cosmostudio",
+            osxSign: {
+                identity: process.env.SIGN_IDENTITY,
+            },
+            osxNotarize: {
+                appleId: process.env.APPLE_ID,
+                appleIdPassword: process.env.APPLE_ID_PASSWORD,
+                teamId: process.env.APPLE_TEAM_ID,
+            }
         },
         rebuildConfig: {},
         makers: [new MakerSquirrel({}),
