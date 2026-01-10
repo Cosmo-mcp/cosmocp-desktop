@@ -1,7 +1,7 @@
 'use client';
 
 import type {UIMessage} from 'ai';
-import {type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState,} from 'react';
+import {useCallback, useEffect, useRef, useState,} from 'react';
 import {toast} from 'sonner';
 import {
     PromptInput,
@@ -40,28 +40,22 @@ import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {logger} from "../../logger";
 
-
-
 export function MultimodalInput({
                                     chat,
-                                    input,
-                                    setInput,
                                     status,
-                                    attachments,
                                     sendMessage,
                                     onModelChange,
                                 }: {
     chat: Chat;
-    input: string;
-    setInput: Dispatch<SetStateAction<string>>;
     status: UseChatHelpers<UIMessage>['status'];
-    attachments: Array<Attachment>;
     messages: Array<UIMessage>;
     sendMessage: UseChatHelpers<UIMessage>['sendMessage'];
     className?: string;
     stillAnswering?: boolean,
     onModelChange: (providerName: string, modelId: string) => void;
 }) {
+    const [input, setInput] = useState<string>('');
+    const [attachments, setAttachments] = useState<Array<Attachment>>([]);
     const [selectedModelInfo, setSelectedModelInfo] = useState<ModelLite | undefined>(undefined);
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
@@ -75,10 +69,16 @@ export function MultimodalInput({
                     if (provider) {
                         setSelectedModelInfo(provider.models.find((model) => model.modelId === chat.selectedModelId));
                     }
+                } else if (providers.length > 0) {
+                    const firstProvider = providers.find(p => p.models.length > 0);
+                    if (firstProvider) {
+                        const firstModel = firstProvider.models[0];
+                        onModelChange(firstProvider.name, firstModel.modelId);
+                    }
                 }
             })
             .catch((error) => logger.error(error));
-    }, [chat]);
+    }, [chat, onModelChange]);
     const submitForm = useCallback(() => {
         if (!chat.selectedModelId) {
             return;
@@ -207,7 +207,10 @@ export function MultimodalInput({
                             </ModelSelectorContent>
                         </ModelSelector>
                     </PromptInputTools>
-                    <PromptInputSubmit disabled={!input && !status} status={status}/>
+                    <PromptInputSubmit
+                        disabled={!input || !chat.selectedModelId || status !== 'ready'}
+                        status={status}
+                    />
                 </PromptInputFooter>
             </PromptInput>
         </PromptInputProvider>

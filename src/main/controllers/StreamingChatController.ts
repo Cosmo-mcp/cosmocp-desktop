@@ -46,7 +46,7 @@ export class StreamingChatController implements Controller {
                 model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 messages: modelMessages,
                 abortSignal: controller.signal,
-                experimental_transform: smoothStream(),
+                experimental_transform: smoothStream({delayInMs: 30}),
                 onFinish: (result) => {
                     this.messageService.createMessage({
                         chatId: args.chatId,

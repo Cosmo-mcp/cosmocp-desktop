@@ -5,7 +5,6 @@ import {Chat} from "core/dto";
 import {ChatHeader} from "@/components/chat-header";
 import {Messages} from "@/components/messages";
 import {MultimodalInput} from "@/components/multimodal-input";
-import {Attachment} from "@/lib/types";
 import {useChat} from "@ai-sdk/react";
 import {IpcChatTransport} from "@/chat-transport";
 import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty";
@@ -19,8 +18,6 @@ export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [refreshHistory, setRefreshHistory] = useState(false);
-    const [input, setInput] = useState<string>('');
-    const [attachments, setAttachments] = useState<Array<Attachment>>([]);
     const [searchHistoryQuery, setSearchHistoryQuery] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
@@ -184,10 +181,7 @@ export default function Page(): JSX.Element {
                             <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full border-t">
                                 <MultimodalInput
                                     chat={selectedChat}
-                                    input={input}
-                                    setInput={setInput}
                                     status={status}
-                                    attachments={attachments}
                                     messages={messages}
                                     sendMessage={sendMessage}
                                     onModelChange={(providerName, modelId) => {
