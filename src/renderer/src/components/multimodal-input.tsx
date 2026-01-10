@@ -1,7 +1,7 @@
 'use client';
 
 import type {UIMessage} from 'ai';
-import {type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState,} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState,} from 'react';
 import {toast} from 'sonner';
 import {
     PromptInput,
@@ -40,45 +40,60 @@ import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {logger} from "../../logger";
 
-
-
 export function MultimodalInput({
                                     chat,
-                                    input,
-                                    setInput,
                                     status,
-                                    attachments,
                                     sendMessage,
                                     onModelChange,
                                 }: {
     chat: Chat;
-    input: string;
-    setInput: Dispatch<SetStateAction<string>>;
     status: UseChatHelpers<UIMessage>['status'];
-    attachments: Array<Attachment>;
     messages: Array<UIMessage>;
     sendMessage: UseChatHelpers<UIMessage>['sendMessage'];
     className?: string;
     stillAnswering?: boolean,
     onModelChange: (providerName: string, modelId: string) => void;
 }) {
-    const [selectedModelInfo, setSelectedModelInfo] = useState<ModelLite | undefined>(undefined);
+    const [input, setInput] = useState<string>('');
+    const [attachments, setAttachments] = useState<Array<Attachment>>([]);
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
-            .then((providers) => {
-                setProviders(providers);
-                if (chat.selectedProvider) {
-                    const provider = providers.find(provider => provider.name === chat.selectedProvider);
-                    if (provider) {
-                        setSelectedModelInfo(provider.models.find((model) => model.modelId === chat.selectedModelId));
-                    }
-                }
-            })
-            .catch((error) => logger.error(error));
-    }, [chat]);
+            .then(fetchedProviders => setProviders(fetchedProviders))
+            .catch(error => logger.error(error));
+    }, []);
+
+    const selectedModelInfo = useMemo(() => {
+        if (providers.length === 0) return undefined;
+        if (chat.selectedProvider && chat.selectedModelId) {
+            const provider = providers.find(p => p.name === chat.selectedProvider);
+            if (provider) {
+                return provider.models.find(m => m.modelId === chat.selectedModelId);
+            }
+        }
+        return undefined;
+    }, [providers, chat.selectedProvider, chat.selectedModelId]);
+
+    // Auto-select first available model if none selected.
+    useEffect(() => {
+        if (providers.length === 0) return;
+
+        if (chat.selectedProvider && chat.selectedModelId) {
+            return;
+        }
+
+        const firstProvider = providers.find(p => p.models.length > 0);
+        if (firstProvider) {
+            const firstModel = firstProvider.models[0];
+            if (firstModel) {
+               onModelChange(firstProvider.name, firstModel.modelId);
+            }
+        }
+    }, [providers, chat.selectedProvider, chat.selectedModelId, onModelChange]);
+
     const submitForm = useCallback(() => {
         if (!chat.selectedModelId) {
             return;
@@ -207,7 +222,10 @@ export function MultimodalInput({
                             </ModelSelectorContent>
                         </ModelSelector>
                     </PromptInputTools>
-                    <PromptInputSubmit disabled={!input && !status} status={status}/>
+                    <PromptInputSubmit
+                        disabled={!input || !chat.selectedModelId || status !== 'ready'}
+                        status={status}
+                    />
                 </PromptInputFooter>
             </PromptInput>
         </PromptInputProvider>
