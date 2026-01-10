@@ -128,6 +128,33 @@ export default function Page(): JSX.Element {
         setTotalMatches(0);
     }, []);
 
+    const handleModelChange = useCallback((providerName: string, modelId: string) => {
+        if (!selectedChat) return;
+
+        const updatedChat = {
+            ...selectedChat,
+            selectedProvider: providerName,
+            selectedModelId: modelId
+        };
+
+        setSelectedChat(updatedChat);
+
+        // update local chat history state
+        setChatHistory(prev =>
+            prev.map(chat => (chat.id === selectedChat.id ? updatedChat : chat))
+        );
+
+        window.api.chat
+            .updateSelectedModelForChat(selectedChat.id, {
+                selectedProvider: providerName,
+                selectedModelId: modelId,
+            })
+            .catch((error) => {
+                logger.error(error);
+                setRefreshHistory(true);
+            });
+    }, [selectedChat]);
+
     return (
         <div
             className="flex-1 min-h-0 flex rounded-b-lg border-t-0 overflow-hidden bg-background">
@@ -184,13 +211,7 @@ export default function Page(): JSX.Element {
                                     status={status}
                                     messages={messages}
                                     sendMessage={sendMessage}
-                                    onModelChange={(providerName, modelId) => {
-                                        window.api.chat.updateSelectedModelForChat(selectedChat.id,
-                                            {
-                                                selectedProvider: providerName,
-                                                selectedModelId: modelId
-                                            }).then(() => setRefreshHistory(true));
-                                    }}
+                                    onModelChange={handleModelChange}
                                 />
                             </div>
                         </>) : (

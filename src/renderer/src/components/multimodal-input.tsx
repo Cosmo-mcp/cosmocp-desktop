@@ -1,7 +1,7 @@
 'use client';
 
 import type {UIMessage} from 'ai';
-import {useCallback, useEffect, useRef, useState,} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState,} from 'react';
 import {toast} from 'sonner';
 import {
     PromptInput,
@@ -56,29 +56,44 @@ export function MultimodalInput({
 }) {
     const [input, setInput] = useState<string>('');
     const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-    const [selectedModelInfo, setSelectedModelInfo] = useState<ModelLite | undefined>(undefined);
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
-            .then((providers) => {
-                setProviders(providers);
-                if (chat.selectedProvider) {
-                    const provider = providers.find(provider => provider.name === chat.selectedProvider);
-                    if (provider) {
-                        setSelectedModelInfo(provider.models.find((model) => model.modelId === chat.selectedModelId));
-                    }
-                } else if (providers.length > 0) {
-                    const firstProvider = providers.find(p => p.models.length > 0);
-                    if (firstProvider) {
-                        const firstModel = firstProvider.models[0];
-                        onModelChange(firstProvider.name, firstModel.modelId);
-                    }
-                }
-            })
-            .catch((error) => logger.error(error));
-    }, [chat, onModelChange]);
+            .then(fetchedProviders => setProviders(fetchedProviders))
+            .catch(error => logger.error(error));
+    }, []);
+
+    const selectedModelInfo = useMemo(() => {
+        if (providers.length === 0) return undefined;
+        if (chat.selectedProvider && chat.selectedModelId) {
+            const provider = providers.find(p => p.name === chat.selectedProvider);
+            if (provider) {
+                return provider.models.find(m => m.modelId === chat.selectedModelId);
+            }
+        }
+        return undefined;
+    }, [providers, chat.selectedProvider, chat.selectedModelId]);
+
+    // Auto-select first available model if none selected.
+    useEffect(() => {
+        if (providers.length === 0) return;
+
+        if (chat.selectedProvider && chat.selectedModelId) {
+            return;
+        }
+
+        const firstProvider = providers.find(p => p.models.length > 0);
+        if (firstProvider) {
+            const firstModel = firstProvider.models[0];
+            if (firstModel) {
+               onModelChange(firstProvider.name, firstModel.modelId);
+            }
+        }
+    }, [providers, chat.selectedProvider, chat.selectedModelId, onModelChange]);
+
     const submitForm = useCallback(() => {
         if (!chat.selectedModelId) {
             return;
