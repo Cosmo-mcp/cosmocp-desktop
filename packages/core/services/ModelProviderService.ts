@@ -170,9 +170,6 @@ export class ModelProviderService {
         if (!encryptedKey) {
             return "";
         }
-        if (!safeStorage.isEncryptionAvailable()) {
-            throw new Error('Encryption is not available.');
-        }
         const buffer = Buffer.from(encryptedKey, 'base64');
         return safeStorage.decryptString(buffer);
     };

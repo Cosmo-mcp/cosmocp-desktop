@@ -160,9 +160,6 @@ export class ModelProviderRepository {
     }
 
     private encryptApiKey = (apiKey: string): string => {
-        if (!safeStorage.isEncryptionAvailable()) {
-            throw new Error('Encryption is not available.');
-        }
         const buffer = safeStorage.encryptString(apiKey);
         return buffer.toString('base64');
     };
