@@ -75,7 +75,6 @@ const config: ForgeConfig = {
                 draft: false,
                 force: true,
                 generateReleaseNotes: true,
-                tagPrefix: "v1.0.1",
                 prerelease: false
             }
         }],
