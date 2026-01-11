@@ -1,7 +1,7 @@
 'use client';
 
 import type {UIMessage} from 'ai';
-import {useCallback, useEffect, useMemo, useRef, useState,} from 'react';
+import {useCallback, useEffect, useMemo, useState,} from 'react';
 import {toast} from 'sonner';
 import {
     PromptInput,
@@ -19,10 +19,10 @@ import {
     PromptInputSubmit,
     PromptInputTextarea,
     PromptInputTools,
+    type PromptInputMessage
 } from './ai-elements/prompt-input';
 import type {UseChatHelpers} from '@ai-sdk/react';
-import type {Attachment} from '@/lib/types';
-import {Chat, ModelLite, ProviderWithModels} from "core/dto";
+import {Chat, ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -55,10 +55,8 @@ export function MultimodalInput({
     onModelChange: (providerName: string, modelId: string) => void;
 }) {
     const [input, setInput] = useState<string>('');
-    const [attachments, setAttachments] = useState<Array<Attachment>>([]);
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
@@ -94,48 +92,27 @@ export function MultimodalInput({
         }
     }, [providers, chat.selectedProvider, chat.selectedModelId, onModelChange]);
 
-    const submitForm = useCallback(() => {
+    const submitForm = useCallback((message: PromptInputMessage) => {
         if (!chat.selectedModelId) {
             return;
         }
         const modelId = chat.selectedProvider + ":" + chat.selectedModelId
+
         sendMessage({
-            role: 'user',
-            parts: [
-                ...attachments.map((attachment) => ({
-                    type: 'file' as const,
-                    url: attachment.url,
-                    name: attachment.name,
-                    mediaType: attachment.contentType,
-                })),
-                {
-                    type: 'text',
-                    text: input,
-                },
-            ],
+            text: message.text,
+            files: message.files
         }, {
             metadata: {modelId}
-        }).then(() => {
-            // TODO: use if reqd
         }).catch((error) => {
             toast.error(error.message);
-            // TODO: use if reqd
         }).finally(() => {
             setInput('');
         })
-    }, [chat.selectedModelId, chat.selectedProvider, sendMessage, attachments, input, setInput]);
-
-    const handlePromptSubmit = () => {
-        submitForm();
-    }
-
-    function saveSelectedModelPreference(providerName: string, modelId: string) {
-        onModelChange(providerName, modelId);
-    }
+    }, [chat.selectedModelId, chat.selectedProvider, sendMessage]);
 
     return (
         <PromptInputProvider>
-            <PromptInput globalDrop multiple onSubmit={handlePromptSubmit}>
+            <PromptInput globalDrop multiple onSubmit={submitForm}>
                 <PromptInputHeader>
                     <PromptInputAttachments>
                         {(attachment) => <PromptInputAttachment data={attachment}/>}
@@ -144,7 +121,6 @@ export function MultimodalInput({
                 <PromptInputBody>
                     <PromptInputTextarea
                         onChange={(e) => setInput(e.target.value)}
-                        ref={textareaRef}
                         value={input}
                     />
                 </PromptInputBody>
@@ -162,15 +138,12 @@ export function MultimodalInput({
                                     {selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE) ? (
                                         <p>Attach Images</p>
                                     ) : (
-                                        <p>Images not supported my selected Model</p>
+                                        <p>Images not supported by selected Model</p>
                                     )}
-
                                 </TooltipContent>
                             </Tooltip>
                             <PromptInputActionMenuContent>
-                                <PromptInputActionAddAttachments label="Add Photos"
-
-                                />
+                                <PromptInputActionAddAttachments/>
                             </PromptInputActionMenuContent>
                         </PromptInputActionMenu>
                         <ModelSelector
@@ -199,7 +172,7 @@ export function MultimodalInput({
                                                         key={m.modelId}
                                                         onSelect={() => {
                                                             setModelSelectorOpen(false);
-                                                            saveSelectedModelPreference(provider.name, m.modelId);
+                                                            onModelChange(provider.name, m.modelId);
                                                         }}
                                                         value={m.modelId}
                                                     >

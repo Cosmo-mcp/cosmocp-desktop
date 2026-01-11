@@ -19,6 +19,7 @@ import {Reasoning, ReasoningContent, ReasoningTrigger} from "@/components/ai-ele
 import {Source, Sources, SourcesContent, SourcesTrigger} from "@/components/ai-elements/sources";
 import {Loader} from "@/components/ai-elements/loader";
 import {UIMessage} from "ai";
+import {PreviewAttachment} from "@/components/preview-attachment";
 
 
 interface MessagesProps {
@@ -189,7 +190,7 @@ function PureMessages({
                                                         {highlightText(part.text, searchQuery || '', message.id, i)}
                                                     </MessageResponse>
                                                 </MessageContent>
-                                                {message.role === 'assistant'&& (
+                                                {message.role === 'assistant' && (
                                                     <MessageActions>
                                                         {/*<MessageAction
                                                             onClick={() => regenerate()}
@@ -219,6 +220,19 @@ function PureMessages({
                                                 <ReasoningTrigger/>
                                                 <ReasoningContent>{part.text}</ReasoningContent>
                                             </Reasoning>
+                                        );
+                                    case 'file':
+                                        return (
+                                            <div className="flex flex-row justify-end gap-2 m-2">
+                                                <PreviewAttachment
+                                                    attachment={{
+                                                        name: part.filename ?? "file",
+                                                        contentType: part.mediaType,
+                                                        url: part.url,
+                                                    }}
+                                                    key={part.url}
+                                                />
+                                            </div>
                                         );
                                     default:
                                         return null;
