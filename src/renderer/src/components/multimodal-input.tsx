@@ -1,7 +1,7 @@
 'use client';
 
 import type {UIMessage} from 'ai';
-import {type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState,} from 'react';
+import {useCallback, useEffect, useMemo, useState,} from 'react';
 import {toast} from 'sonner';
 import {
     PromptInput,
@@ -19,10 +19,10 @@ import {
     PromptInputSubmit,
     PromptInputTextarea,
     PromptInputTools,
+    type PromptInputMessage
 } from './ai-elements/prompt-input';
 import type {UseChatHelpers} from '@ai-sdk/react';
-import type {Attachment} from '@/lib/types';
-import {Chat, ModelLite, ProviderWithModels} from "core/dto";
+import {Chat, ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -40,87 +40,79 @@ import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {logger} from "../../logger";
 
-
-
 export function MultimodalInput({
                                     chat,
-                                    input,
-                                    setInput,
                                     status,
-                                    attachments,
                                     sendMessage,
                                     onModelChange,
                                 }: {
     chat: Chat;
-    input: string;
-    setInput: Dispatch<SetStateAction<string>>;
     status: UseChatHelpers<UIMessage>['status'];
-    attachments: Array<Attachment>;
     messages: Array<UIMessage>;
     sendMessage: UseChatHelpers<UIMessage>['sendMessage'];
     className?: string;
     stillAnswering?: boolean,
     onModelChange: (providerName: string, modelId: string) => void;
 }) {
-    const [selectedModelInfo, setSelectedModelInfo] = useState<ModelLite | undefined>(undefined);
+    const [input, setInput] = useState<string>('');
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
-            .then((providers) => {
-                setProviders(providers);
-                if (chat.selectedProvider) {
-                    const provider = providers.find(provider => provider.name === chat.selectedProvider);
-                    if (provider) {
-                        setSelectedModelInfo(provider.models.find((model) => model.modelId === chat.selectedModelId));
-                    }
-                }
-            })
-            .catch((error) => logger.error(error));
-    }, [chat]);
-    const submitForm = useCallback(() => {
+            .then(fetchedProviders => setProviders(fetchedProviders))
+            .catch(error => logger.error(error));
+    }, []);
+
+    const selectedModelInfo = useMemo(() => {
+        if (providers.length === 0) return undefined;
+        if (chat.selectedProvider && chat.selectedModelId) {
+            const provider = providers.find(p => p.name === chat.selectedProvider);
+            if (provider) {
+                return provider.models.find(m => m.modelId === chat.selectedModelId);
+            }
+        }
+        return undefined;
+    }, [providers, chat.selectedProvider, chat.selectedModelId]);
+
+    // Auto-select first available model if none selected.
+    useEffect(() => {
+        if (providers.length === 0) return;
+
+        if (chat.selectedProvider && chat.selectedModelId) {
+            return;
+        }
+
+        const firstProvider = providers.find(p => p.models.length > 0);
+        if (firstProvider) {
+            const firstModel = firstProvider.models[0];
+            if (firstModel) {
+               onModelChange(firstProvider.name, firstModel.modelId);
+            }
+        }
+    }, [providers, chat.selectedProvider, chat.selectedModelId, onModelChange]);
+
+    const submitForm = useCallback((message: PromptInputMessage) => {
         if (!chat.selectedModelId) {
             return;
         }
         const modelId = chat.selectedProvider + ":" + chat.selectedModelId
+
         sendMessage({
-            role: 'user',
-            parts: [
-                ...attachments.map((attachment) => ({
-                    type: 'file' as const,
-                    url: attachment.url,
-                    name: attachment.name,
-                    mediaType: attachment.contentType,
-                })),
-                {
-                    type: 'text',
-                    text: input,
-                },
-            ],
+            text: message.text,
+            files: message.files
         }, {
             metadata: {modelId}
-        }).then(() => {
-            // TODO: use if reqd
         }).catch((error) => {
             toast.error(error.message);
-            // TODO: use if reqd
         }).finally(() => {
             setInput('');
         })
-    }, [chat.selectedModelId, chat.selectedProvider, sendMessage, attachments, input, setInput]);
-
-    const handlePromptSubmit = () => {
-        submitForm();
-    }
-
-    function saveSelectedModelPreference(providerName: string, modelId: string) {
-        onModelChange(providerName, modelId);
-    }
+    }, [chat.selectedModelId, chat.selectedProvider, sendMessage]);
 
     return (
         <PromptInputProvider>
-            <PromptInput globalDrop multiple onSubmit={handlePromptSubmit}>
+            <PromptInput globalDrop multiple onSubmit={submitForm}>
                 <PromptInputHeader>
                     <PromptInputAttachments>
                         {(attachment) => <PromptInputAttachment data={attachment}/>}
@@ -129,7 +121,6 @@ export function MultimodalInput({
                 <PromptInputBody>
                     <PromptInputTextarea
                         onChange={(e) => setInput(e.target.value)}
-                        ref={textareaRef}
                         value={input}
                     />
                 </PromptInputBody>
@@ -147,15 +138,12 @@ export function MultimodalInput({
                                     {selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE) ? (
                                         <p>Attach Images</p>
                                     ) : (
-                                        <p>Images not supported my selected Model</p>
+                                        <p>Images not supported by selected Model</p>
                                     )}
-
                                 </TooltipContent>
                             </Tooltip>
                             <PromptInputActionMenuContent>
-                                <PromptInputActionAddAttachments label="Add Photos"
-
-                                />
+                                <PromptInputActionAddAttachments/>
                             </PromptInputActionMenuContent>
                         </PromptInputActionMenu>
                         <ModelSelector
@@ -184,7 +172,7 @@ export function MultimodalInput({
                                                         key={m.modelId}
                                                         onSelect={() => {
                                                             setModelSelectorOpen(false);
-                                                            saveSelectedModelPreference(provider.name, m.modelId);
+                                                            onModelChange(provider.name, m.modelId);
                                                         }}
                                                         value={m.modelId}
                                                     >
@@ -207,7 +195,10 @@ export function MultimodalInput({
                             </ModelSelectorContent>
                         </ModelSelector>
                     </PromptInputTools>
-                    <PromptInputSubmit disabled={!input && !status} status={status}/>
+                    <PromptInputSubmit
+                        disabled={!input || !chat.selectedModelId || status !== 'ready'}
+                        status={status}
+                    />
                 </PromptInputFooter>
             </PromptInput>
         </PromptInputProvider>

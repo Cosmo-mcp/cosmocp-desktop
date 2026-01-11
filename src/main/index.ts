@@ -1,4 +1,4 @@
-import {app, BrowserWindow} from 'electron';
+import {app, BrowserWindow, safeStorage} from 'electron';
 import path from 'path';
 import {IpcHandlerRegistry} from './ipc';
 import {DatabaseManager} from "core/database/DatabaseManager";
@@ -18,6 +18,10 @@ export class Main {
     constructor() {
         config();
         app.whenReady().then(async () => {
+            if (!safeStorage.isEncryptionAvailable()) {
+                logger.warn('safeStorage encryption unavailable. Using plaintext fallback');
+                safeStorage.setUsePlainTextEncryption(true);
+            }
             await this.initializeDatabase();
             const ipcHandlerRegistry = container.get<IpcHandlerRegistry>(TYPES.IpcHandlerRegistry);
             ipcHandlerRegistry.registerIpcHandlers();
