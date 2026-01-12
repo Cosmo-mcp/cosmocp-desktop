@@ -127,6 +127,13 @@
       "when": 1767334318034,
       "tag": "0017_black_wasp",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1768214870215,
+      "tag": "0018_brisk_persona",
+      "breakpoints": true
     }
   ]
 }

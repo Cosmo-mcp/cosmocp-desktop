@@ -30,19 +30,21 @@ export class MessageRepository {
                 createdAt: now,
             }).returning();
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const chatUpdate: any = {
-                lastMessage: newMessage.text.slice(0, 200),
-                lastMessageAt: now,
-            };
+            if (newMessage.role !== 'system') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const chatUpdate: any = {
+                    lastMessage: newMessage.text.slice(0, 200),
+                    lastMessageAt: now,
+                };
 
-            if (existingMessages.length === 0 && newMessage.text) {
-                chatUpdate.title = newMessage.text.slice(0, 50);
+                if (existingMessages.length === 0 && newMessage.text) {
+                    chatUpdate.title = newMessage.text.slice(0, 50);
+                }
+
+                await tx.update(chat)
+                    .set(chatUpdate)
+                    .where(eq(chat.id, newMessage.chatId));
             }
-
-            await tx.update(chat)
-                .set(chatUpdate)
-                .where(eq(chat.id, newMessage.chatId));
 
             return createdMessage;
         });
