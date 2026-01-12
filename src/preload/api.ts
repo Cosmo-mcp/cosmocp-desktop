@@ -42,6 +42,22 @@ export interface MessageApi {
     delete(id: string): Promise<void>;
 }
 
+export interface Persona {
+    id: string;
+    name: string;
+    details: string | null;
+}
+
+export interface PersonaCreateInput {
+    name: string;
+    details?: string | null;
+}
+
+export interface PersonaApi {
+    getAll(): Promise<Persona[]>;
+    create(persona: PersonaCreateInput): Promise<Persona>;
+}
+
 export interface StreamingApi {
     sendMessage(args: ChatSendMessageArgs): void;
     abortMessage(args: ChatAbortArgs): void;
@@ -55,6 +71,7 @@ export interface Api {
   chat: ChatApi;
   modelProvider: ModelProviderApi;
   message: MessageApi;
+  persona: PersonaApi;
   streaming: StreamingApi;
 }
 
@@ -84,6 +101,10 @@ export const api: Api = {
     save: (newMessage: NewMessage) => ipcRenderer.invoke('message:save', newMessage),
     update: (id: string, updates: Partial<NewMessage>) => ipcRenderer.invoke('message:update', id, updates),
     delete: (id: string) => ipcRenderer.invoke('message:delete', id)
+  },
+  persona: {
+    getAll: () => ipcRenderer.invoke('persona:getAll'),
+    create: (persona: PersonaCreateInput) => ipcRenderer.invoke('persona:create', persona)
   },
   streaming: {
     sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('streamingChat:sendMessage', args),
