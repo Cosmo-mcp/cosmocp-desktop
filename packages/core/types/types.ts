@@ -8,6 +8,7 @@ const CORETYPES = {
     ChatService: Symbol.for("ChatService"),
     MessageService: Symbol.for("MessageService"),
     ModelProviderService: Symbol.for("ModelProviderService"),
+    PersonaService: Symbol.for("PersonaService"),
 };
 
 export {CORETYPES};

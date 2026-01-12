@@ -8,6 +8,7 @@ import {ChatService} from "./services/ChatService";
 import {MessageService} from "./services/MessageService";
 import {ModelProviderRepository} from "./repositories/ModelProviderRepository";
 import {ModelProviderService} from "./services/ModelProviderService";
+import {PersonaService} from "./services/PersonaService";
 
 const coreContainer = new Container();
 
@@ -23,5 +24,6 @@ coreContainer.bind<ModelProviderRepository>(CORETYPES.ModelProviderRepository).t
 coreContainer.bind<ChatService>(CORETYPES.ChatService).to(ChatService).inSingletonScope();
 coreContainer.bind<MessageService>(CORETYPES.MessageService).to(MessageService).inSingletonScope();
 coreContainer.bind<ModelProviderService>(CORETYPES.ModelProviderService).to(ModelProviderService).inSingletonScope();
+coreContainer.bind<PersonaService>(CORETYPES.PersonaService).to(PersonaService).inSingletonScope();
 
 export {coreContainer};

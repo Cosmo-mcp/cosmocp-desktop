@@ -8,6 +8,16 @@ type Optional<T, K extends keyof T> = Omit<T, K> & Pick<Partial<T>, K>;
 export type Message = InferSelectModel<typeof message>;
 export type Chat = InferSelectModel<typeof chat>;
 
+export interface Persona {
+    id: string;
+    name: string;
+    description?: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export type NewPersona = Omit<Persona, "id" | "createdAt" | "updatedAt">;
+
 // DTOs for new database entry
 export type NewChat = InferInsertModel<typeof chat>;
 export type NewMessage = Omit<Message, "id" | "createdAt">;

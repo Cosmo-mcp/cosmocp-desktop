@@ -10,7 +10,10 @@ import {
     Message,
     NewModel,
     ProviderWithModels,
-    ChatWithMessages, ModelIdentifier
+    ChatWithMessages,
+    ModelIdentifier,
+    NewPersona,
+    Persona
 } from 'core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
@@ -51,11 +54,21 @@ export interface StreamingApi {
     removeListeners: (channel: string) => void;
 }
 
+export interface PersonaApi {
+    getAll(): Promise<Persona[]>;
+    getById(id: string): Promise<Persona | undefined>;
+    getByName(name: string): Promise<Persona | undefined>;
+    create(newPersona: NewPersona): Promise<Persona>;
+    update(id: string, updates: Partial<NewPersona>): Promise<Persona>;
+    delete(id: string): Promise<void>;
+}
+
 export interface Api {
   chat: ChatApi;
   modelProvider: ModelProviderApi;
   message: MessageApi;
   streaming: StreamingApi;
+  persona: PersonaApi;
 }
 
 export const api: Api = {
@@ -104,5 +117,13 @@ export const api: Api = {
       ipcRenderer.removeAllListeners(`${channel}-end`);
       ipcRenderer.removeAllListeners(`${channel}-data`);
     },
+  },
+  persona: {
+    getAll: () => ipcRenderer.invoke('persona:getAll'),
+    getById: (id: string) => ipcRenderer.invoke('persona:getById', id),
+    getByName: (name: string) => ipcRenderer.invoke('persona:getByName', name),
+    create: (newPersona: NewPersona) => ipcRenderer.invoke('persona:create', newPersona),
+    update: (id: string, updates: Partial<NewPersona>) => ipcRenderer.invoke('persona:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('persona:delete', id),
   },
 };
