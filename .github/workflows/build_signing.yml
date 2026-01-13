@@ -12,7 +12,7 @@ jobs:
     name: Build on ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [ macos-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -52,8 +52,9 @@ jobs:
       - name: Build application
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SIGN_IDENTITY: ${{secrets.SIGN_IDENTITY}}
         run: DEBUG=electron-forge:* npm run make
 
       - name: Upload artifact
