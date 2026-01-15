@@ -1,5 +1,5 @@
 import {InferInsertModel, InferSelectModel} from "drizzle-orm";
-import {chat, message, model, modelProvider} from "./database/schema/schema";
+import {chat, message, model, modelProvider, persona} from "./database/schema/schema";
 import {UIMessage} from "ai";
 
 type Optional<T, K extends keyof T> = Omit<T, K> & Pick<Partial<T>, K>;
@@ -7,9 +7,12 @@ type Optional<T, K extends keyof T> = Omit<T, K> & Pick<Partial<T>, K>;
 //full entity based dto
 export type Message = InferSelectModel<typeof message>;
 export type Chat = InferSelectModel<typeof chat>;
+export type Persona = InferSelectModel<typeof persona>;
 
 // DTOs for new database entry
 export type NewChat = InferInsertModel<typeof chat>;
+export type NewPersona = InferInsertModel<typeof persona>;
+export type PersonaCreateInput = Omit<NewPersona, 'id' | 'createdAt' | 'updatedAt'>;
 export type NewMessage = Omit<Message, "id" | "createdAt">;
 
 // The full model, retrieved from the database with a decrypted apiKey.

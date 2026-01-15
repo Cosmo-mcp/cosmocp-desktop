@@ -16,6 +16,7 @@ import {
 import Link from 'next/link';
 import {MessageCircle, SettingsIcon} from "lucide-react";
 import {CosmoIcon} from "@/components/cosmo-icon";
+import {PersonaList} from "@/components/persona-list";
 
 export function AppSidebar() {
     useSidebar();
@@ -63,6 +64,7 @@ export function AppSidebar() {
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
+                <PersonaList />
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>

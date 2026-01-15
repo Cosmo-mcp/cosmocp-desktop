@@ -8,6 +8,8 @@ import {CORETYPES} from "core/types/types";
 import {ModelProviderService} from "core/services/ModelProviderService";
 import {MessageService} from "core/services/MessageService";
 import {logger} from "../logger";
+import {PersonaService} from "core/services/PersonaService";
+import {extractPersonaMentions, stripPersonaMentions} from "core/services/personaMentions";
 
 @injectable()
 @IpcController("streamingChat")
@@ -17,20 +19,33 @@ export class StreamingChatController implements Controller {
     constructor(@inject(CORETYPES.ModelProviderService)
                 private modelProviderService: ModelProviderService,
                 @inject(CORETYPES.MessageService)
-                private messageService: MessageService) {
+                private messageService: MessageService,
+                @inject(CORETYPES.PersonaService)
+                private personaService: PersonaService) {
     }
 
     @IpcOn("sendMessage")
     public async sendMessage(args: ChatSendMessageArgs, event: IpcMainEvent) {
         const modelProviderRegistry = await this.modelProviderService.getModelProviderRegistry();
         const webContents = event.sender as WebContents;
-        const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
-
         const controller = new AbortController();
         this.activeStreams.set(args.streamChannel, controller);
         const lastUserMsg = args.messages[args.messages.length - 1];
         const txtMsg = lastUserMsg.parts.find(part => part.type === 'text')?.text;
         const rsnMsg = lastUserMsg.parts.find(part => part.type === 'reasoning')?.text;
+
+        const personaMentions = extractPersonaMentions(txtMsg);
+        const persona = personaMentions.length > 0
+            ? await this.personaService.getPersonaByName(personaMentions[0])
+            : undefined;
+        const sanitizedMessages = this.sanitizeMessagesForPersona(args.messages, personaMentions);
+        const modelMessages: ModelMessage[] = convertToModelMessages(sanitizedMessages);
+        if (persona) {
+            modelMessages.unshift({
+                role: 'system',
+                content: persona.details,
+            });
+        }
 
         await this.messageService.createMessage({
             chatId: args.chatId,
@@ -127,5 +142,32 @@ export class StreamingChatController implements Controller {
     public onError(channel: string, listener: (error: any) => void): () => void {
         return () => {
         };
+    }
+
+    private sanitizeMessagesForPersona(messages: ChatSendMessageArgs['messages'], personaMentions: string[]) {
+        if (personaMentions.length === 0) {
+            return messages;
+        }
+
+        const lastIndex = messages.length - 1;
+        return messages.map((message, index) => {
+            if (index !== lastIndex || message.role !== 'user') {
+                return message;
+            }
+
+            return {
+                ...message,
+                parts: message.parts.map(part => {
+                    if (part.type !== 'text') {
+                        return part;
+                    }
+                    const cleanedText = stripPersonaMentions(part.text);
+                    return {
+                        ...part,
+                        text: cleanedText.length > 0 ? cleanedText : part.text,
+                    };
+                }),
+            };
+        });
     }
 }

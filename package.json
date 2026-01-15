@@ -18,6 +18,7 @@
     "publish": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge publish",
     "lint": "gts lint",
     "fix": "gts fix",
+    "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
@@ -57,7 +58,8 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3",
     "vite": "^7.1.7",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "2.0.44",
