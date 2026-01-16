@@ -48,8 +48,6 @@ jobs:
           security list-keychain -d user -s $KEYCHAIN_PATH
       - name: Install dependencies
         run: npm install
-      - name: Install Renderer dependencies
-        run: npm install --prefix src/renderer
       - name: Extract version from tag
         shell: bash
         run: |

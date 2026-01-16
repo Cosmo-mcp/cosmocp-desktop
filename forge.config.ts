@@ -88,9 +88,10 @@ const config: ForgeConfig = {
                     owner: 'Cosmo-cp',
                     name: 'cosmo-studio'
                 },
-                draft: true,
+                draft: false,
                 force: true,
-                generateReleaseNotes: false,
+                generateReleaseNotes: true,
+                prerelease: false
             }
         }],
         // we asked vite not to bundle PGLite because it was not bundled properly
