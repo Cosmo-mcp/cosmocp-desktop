@@ -32,6 +32,7 @@ jobs:
           # create variables
           BUILD_CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
           
           # import certificate from secrets
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $BUILD_CERTIFICATE_PATH
