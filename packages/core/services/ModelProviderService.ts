@@ -170,8 +170,11 @@ export class ModelProviderService {
         if (!encryptedKey) {
             return "";
         }
-        const buffer = Buffer.from(encryptedKey, 'base64');
-        return safeStorage.decryptString(buffer);
+        const buffer = Buffer.from(encryptedKey, "base64");
+        if (safeStorage.isEncryptionAvailable()) {
+            return safeStorage.decryptString(buffer);
+        }
+        return buffer.toString("utf-8");
     };
 
     private async getModelsFromOllama(provider: ModelProviderCreateInput): Promise<NewModel[]> {
