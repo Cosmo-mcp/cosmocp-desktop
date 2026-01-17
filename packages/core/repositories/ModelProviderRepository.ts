@@ -160,8 +160,10 @@ export class ModelProviderRepository {
     }
 
     private encryptApiKey = (apiKey: string): string => {
-        const buffer = safeStorage.encryptString(apiKey);
-        return buffer.toString('base64');
+        if (safeStorage.isEncryptionAvailable()) {
+            return safeStorage.encryptString(apiKey).toString("base64");
+        }
+        return Buffer.from(apiKey, "utf-8").toString("base64");
     };
 
 }
