@@ -4,7 +4,7 @@ import {ModelProviderRepository} from "../repositories/ModelProviderRepository";
 import {ModelProvider, ModelProviderCreateInput, ModelProviderLite, NewModel, ProviderWithModels} from "../dto";
 import {ModelProviderTypeEnum} from "../database/schema/modelProviderSchema";
 import {safeStorage} from "electron";
-import {ProviderV2} from "@ai-sdk/provider";
+import {ProviderV3} from "@ai-sdk/provider";
 import {AnthropicProviderSettings, createAnthropic} from "@ai-sdk/anthropic";
 import {createGoogleGenerativeAI, GoogleGenerativeAIProviderSettings} from "@ai-sdk/google";
 import {createOpenAI, OpenAIProviderSettings} from "@ai-sdk/openai";
@@ -102,7 +102,7 @@ export class ModelProviderService {
     }
 
     private updateModelProviderRegistry() {
-        const registryObject: Record<string, ProviderV2> = {};
+        const registryObject: Record<string, ProviderV3> = {};
         this.getProviders({withApiKey: true})
             .then(providers => {
                 for (const provider of providers) {
@@ -170,8 +170,11 @@ export class ModelProviderService {
         if (!encryptedKey) {
             return "";
         }
-        const buffer = Buffer.from(encryptedKey, 'base64');
-        return safeStorage.decryptString(buffer);
+        const buffer = Buffer.from(encryptedKey, "base64");
+        if (safeStorage.isEncryptionAvailable()) {
+            return safeStorage.decryptString(buffer);
+        }
+        return buffer.toString("utf-8");
     };
 
     private async getModelsFromOllama(provider: ModelProviderCreateInput): Promise<NewModel[]> {

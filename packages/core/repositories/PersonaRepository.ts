@@ -3,7 +3,7 @@ import {asc, eq} from "drizzle-orm";
 import {CORETYPES} from "../types/types";
 import {DatabaseManager} from "../database/DatabaseManager";
 import {persona} from "../database/schema/schema";
-import {Persona, PersonaCreateInput} from "../dto";
+import {NewPersona, Persona} from "../dto";
 
 @injectable()
 export class PersonaRepository {
@@ -27,20 +27,22 @@ export class PersonaRepository {
         return result[0];
     }
 
-    public async create(input: PersonaCreateInput): Promise<Persona> {
-        const result = await this.db.insert(persona).values({
-            ...input,
-            updatedAt: new Date(),
+    public async create(data: NewPersona): Promise<Persona> {
+        const now = new Date();
+        const [createdPersona] = await this.db.insert(persona).values({
+            ...data,
+            createdAt: data.createdAt ?? now,
+            updatedAt: data.updatedAt ?? now,
         }).returning();
-        return result[0];
+        return createdPersona;
     }
 
-    public async update(id: string, updates: Partial<PersonaCreateInput>): Promise<Persona> {
-        const result = await this.db.update(persona).set({
+    public async update(id: string, updates: Partial<NewPersona>): Promise<Persona> {
+        const [updatedPersona] = await this.db.update(persona).set({
             ...updates,
             updatedAt: new Date(),
         }).where(eq(persona.id, id)).returning();
-        return result[0];
+        return updatedPersona;
     }
 
     public async delete(id: string): Promise<void> {

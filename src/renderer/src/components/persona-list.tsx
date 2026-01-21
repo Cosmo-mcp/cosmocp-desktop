@@ -1,20 +1,46 @@
-"use client";
+'use client';
 
-import {useCallback, useEffect, useMemo, useState} from "react";
-import {Persona, PersonaCreateInput} from "core/dto";
-import {SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton} from "@/components/ui/sidebar";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Textarea} from "@/components/ui/textarea";
-import {Plus} from "lucide-react";
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {Plus} from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
+import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
+import {
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem
+} from '@/components/ui/sidebar';
+
+type Persona = Awaited<ReturnType<typeof window.api.persona.getAll>>[number];
+
+const getErrorMessage = (error: unknown) => {
+    if (error instanceof Error) {
+        return error.message;
+    }
+
+    if (typeof error === 'string') {
+        return error;
+    }
+
+    return 'Unable to create persona.';
+};
+
+const isUniqueNameError = (message: string) => {
+    const normalized = message.toLowerCase();
+    return normalized.includes('unique') || normalized.includes('duplicate') || normalized.includes('already exists');
+};
 
 export function PersonaList() {
     const [personas, setPersonas] = useState<Persona[]>([]);
     const [isOpen, setIsOpen] = useState(false);
-    const [name, setName] = useState("");
-    const [details, setDetails] = useState("");
-    const [error, setError] = useState<string | null>(null);
+    const [name, setName] = useState('');
+    const [details, setDetails] = useState('');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const loadPersonas = useCallback(async () => {
         const list = await window.api.persona.getAll();
@@ -25,106 +51,136 @@ export function PersonaList() {
         loadPersonas();
     }, [loadPersonas]);
 
-    const resetForm = useCallback(() => {
-        setName("");
-        setDetails("");
-        setError(null);
-    }, []);
-
-    const handleOpenChange = useCallback((open: boolean) => {
-        setIsOpen(open);
-        if (!open) {
-            resetForm();
+    useEffect(() => {
+        if (!isOpen) {
+            setName('');
+            setDetails('');
+            setErrorMessage(null);
+            setIsSaving(false);
         }
-    }, [resetForm]);
+    }, [isOpen]);
 
-    const createPayload = useMemo<PersonaCreateInput>(() => ({
-        name: name.trim(),
-        details: details.trim(),
-    }), [name, details]);
+    const hasPersonas = personas.length > 0;
+    const trimmedName = name.trim();
+    const trimmedDetails = details.trim();
 
-    const handleSave = useCallback(async () => {
-        if (!createPayload.name) {
-            setError("Name is required.");
+    const canSave = useMemo(() => {
+        return trimmedName.length > 0 && !isSaving;
+    }, [trimmedName, isSaving]);
+
+    const handleSave = async () => {
+        if (!trimmedName) {
+            setErrorMessage('Name is required.');
             return;
         }
-        if (!createPayload.details) {
-            setError("Details are required.");
-            return;
-        }
+
+        setIsSaving(true);
+        setErrorMessage(null);
 
         try {
-            await window.api.persona.create(createPayload);
+            await window.api.persona.create({
+                name: trimmedName,
+                details: trimmedDetails ? trimmedDetails : null
+            });
             await loadPersonas();
-            handleOpenChange(false);
-        } catch (saveError) {
-            setError(saveError instanceof Error ? saveError.message : "Failed to save persona.");
+            setIsOpen(false);
+        } catch (error) {
+            const message = getErrorMessage(error);
+            if (isUniqueNameError(message)) {
+                setErrorMessage('A persona with this name already exists.');
+            } else {
+                setErrorMessage(message);
+            }
+        } finally {
+            setIsSaving(false);
         }
-    }, [createPayload, handleOpenChange, loadPersonas]);
+    };
 
     return (
-        <SidebarGroup>
-            <SidebarGroupLabel>Personas</SidebarGroupLabel>
-            <SidebarGroupAction asChild>
-                <button type="button" onClick={() => handleOpenChange(true)}>
-                    <Plus />
-                    <span className="sr-only">Add persona</span>
-                </button>
-            </SidebarGroupAction>
-            <SidebarGroupContent>
-                <SidebarMenu>
-                    {personas.length === 0 ? (
+        <>
+            <SidebarGroup>
+                <SidebarGroupLabel>Personas</SidebarGroupLabel>
+                <SidebarGroupContent>
+                    <SidebarMenu>
+                        {hasPersonas ? (
+                            personas.map((persona) => (
+                                <SidebarMenuItem key={persona.id ?? persona.name}>
+                                    <SidebarMenuButton>
+                                        <span className="truncate">{persona.name}</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))
+                        ) : (
+                            <SidebarMenuItem>
+                                <div className="px-2 py-1 text-xs text-muted-foreground">
+                                    No personas yet.
+                                </div>
+                            </SidebarMenuItem>
+                        )}
                         <SidebarMenuItem>
-                            <SidebarMenuButton disabled>
-                                <span className="text-muted-foreground">No personas yet</span>
+                            <SidebarMenuButton onClick={() => setIsOpen(true)}>
+                                <Plus />
+                                <span>Add persona</span>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
-                    ) : (
-                        personas.map((persona) => (
-                            <SidebarMenuItem key={persona.id}>
-                                <SidebarMenuButton>
-                                    <span>@{persona.name}</span>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        ))
-                    )}
-                </SidebarMenu>
-            </SidebarGroupContent>
-            <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-                <DialogContent className="sm:max-w-[500px]">
+                    </SidebarMenu>
+                </SidebarGroupContent>
+            </SidebarGroup>
+
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Add Persona</DialogTitle>
+                        <DialogTitle>Add persona</DialogTitle>
+                        <DialogDescription>
+                            Create a persona with a unique name and optional details.
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium" htmlFor="persona-name">Name</label>
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium" htmlFor="persona-name">
+                                Name
+                            </label>
                             <Input
                                 id="persona-name"
                                 value={name}
                                 onChange={(event) => setName(event.target.value)}
-                                placeholder="persona-name"
+                                placeholder="e.g. Research Assistant"
+                                aria-invalid={Boolean(errorMessage)}
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium" htmlFor="persona-details">Details</label>
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium" htmlFor="persona-details">
+                                Details
+                            </label>
                             <Textarea
                                 id="persona-details"
-                                rows={6}
                                 value={details}
                                 onChange={(event) => setDetails(event.target.value)}
-                                placeholder="Describe how this persona should behave..."
+                                placeholder="Optional description or behavior notes"
+                                rows={4}
                             />
                         </div>
-                        {error ? (
-                            <p className="text-sm text-destructive">{error}</p>
+                        {errorMessage ? (
+                            <p className="text-sm text-destructive" role="alert">
+                                {errorMessage}
+                            </p>
                         ) : null}
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
-                        <Button onClick={handleSave}>Save persona</Button>
+                    <DialogFooter className="gap-2">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => setIsOpen(false)}
+                            disabled={isSaving}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="button" onClick={handleSave} disabled={!canSave}>
+                            {isSaving ? 'Saving...' : 'Save persona'}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </SidebarGroup>
+        </>
     );
 }

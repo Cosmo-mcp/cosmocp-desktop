@@ -34,6 +34,10 @@ export type ModelInsert = InferInsertModel<typeof model>;
 export type NewModel = Omit<Model, 'id' | 'createdAt' | 'updatedAt' | 'providerId'>;
 export type ModelLite = Omit<Model, 'providerId'>;
 
+export type Persona = InferSelectModel<typeof persona>;
+export type NewPersona = InferInsertModel<typeof persona>;
+export type PersonaCreateInput = Omit<NewPersona, 'id' | 'createdAt' | 'updatedAt'>;
+
 export type ProviderWithModels = ModelProviderLite & {
     models: ModelLite[]
 }

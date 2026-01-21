@@ -1,5 +1,5 @@
 {
-  "id": "ec868194-645e-4990-baed-2f3c14d78c6a",
+  "id": "3be545c8-f10f-47b7-b538-48b45785c6cc",
   "prevId": "3b12797e-8fd6-44ec-8946-7c7feb9909bb",
   "version": "7",
   "dialect": "postgresql",
@@ -351,6 +351,18 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "details": {
+          "name": "details",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -364,18 +376,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "details": {
-          "name": "details",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},

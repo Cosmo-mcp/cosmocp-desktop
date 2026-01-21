@@ -1,9 +1,9 @@
 import {inject, injectable} from "inversify";
+import {IpcController, IpcHandler} from "../ipc/Decorators";
 import {CORETYPES} from "core/types/types";
 import {PersonaService} from "core/services/PersonaService";
-import {IpcController, IpcHandler} from "../ipc/Decorators";
 import {Controller} from "./Controller";
-import {Persona, PersonaCreateInput} from "core/dto";
+import {NewPersona, Persona} from "core/dto";
 
 @injectable()
 @IpcController("persona")
@@ -12,32 +12,32 @@ export class PersonaController implements Controller {
     }
 
     @IpcHandler("getAll")
-    public async getAllPersonas(): Promise<Persona[]> {
-        return this.personaService.getAllPersonas();
+    public async getAll(): Promise<Persona[]> {
+        return this.personaService.getAll();
     }
 
     @IpcHandler("getById")
-    public async getPersonaById(id: string): Promise<Persona | undefined> {
-        return this.personaService.getPersonaById(id);
+    public async getById(id: string): Promise<Persona | undefined> {
+        return this.personaService.getById(id);
     }
 
     @IpcHandler("getByName")
-    public async getPersonaByName(name: string): Promise<Persona | undefined> {
-        return this.personaService.getPersonaByName(name);
+    public async getByName(name: string): Promise<Persona | undefined> {
+        return this.personaService.getByName(name);
     }
 
     @IpcHandler("create")
-    public async createPersona(input: PersonaCreateInput): Promise<Persona> {
-        return this.personaService.createPersona(input);
+    public async create(newPersona: NewPersona): Promise<Persona> {
+        return this.personaService.create(newPersona);
     }
 
     @IpcHandler("update")
-    public async updatePersona(id: string, updates: Partial<PersonaCreateInput>): Promise<Persona> {
-        return this.personaService.updatePersona(id, updates);
+    public async update(id: string, updates: Partial<NewPersona>): Promise<Persona> {
+        return this.personaService.update(id, updates);
     }
 
     @IpcHandler("delete")
-    public async deletePersona(id: string): Promise<void> {
-        return this.personaService.deletePersona(id);
+    public async delete(id: string): Promise<void> {
+        return this.personaService.delete(id);
     }
 }
