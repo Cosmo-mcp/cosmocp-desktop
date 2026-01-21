@@ -5,9 +5,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { Persona } from 'core/dto';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-type Persona = Awaited<ReturnType<typeof window.api.persona.getAll>>[number];
 
 const getErrorMessage = (error: unknown) => {
     if (error instanceof Error) {
