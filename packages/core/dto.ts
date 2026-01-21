@@ -48,6 +48,8 @@ export interface ChatSendMessageArgs {
     messages: UIMessage[];
     streamChannel: string;
     modelIdentifier: string & {};
+    personaId?: string;
+    personaName?: string;
 }
 
 export interface ChatAbortArgs {

@@ -81,12 +81,13 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 // Send to main process
                 const messages = options.messages;
 
-                const modelIdentifier = options?.metadata as {modelId: string};
-                const modelId = modelIdentifier.modelId as string;
+                const metadata = options?.metadata as {modelId: string; personaName?: string};
+                const modelId = metadata.modelId as string;
 
                 window.api.streaming.sendMessage({
                     chatId, messages, streamChannel,
                     modelIdentifier: modelId,
+                    personaName: metadata.personaName,
                 });
 
                 if (options.abortSignal) {

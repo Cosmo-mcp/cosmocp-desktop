@@ -40,6 +40,20 @@ import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {logger} from "../../logger";
 
+const parsePersonaDirective = (text: string) => {
+    const match = text.match(/^\s*@persona(?:\s*[:=])?\s*(?:"([^"]+)"|'([^']+)'|([^\s]+))\s*/i);
+    if (!match) {
+        return {text, personaName: undefined};
+    }
+
+    const personaName = match[1] ?? match[2] ?? match[3];
+    const remainingText = text.slice(match[0].length).trimStart();
+    return {
+        text: remainingText,
+        personaName,
+    };
+};
+
 export function MultimodalInput({
                                     chat,
                                     status,
@@ -97,12 +111,13 @@ export function MultimodalInput({
             return;
         }
         const modelId = chat.selectedProvider + ":" + chat.selectedModelId
+        const {text: cleanedText, personaName} = parsePersonaDirective(message.text);
 
         sendMessage({
-            text: message.text,
+            text: cleanedText,
             files: message.files
         }, {
-            metadata: {modelId}
+            metadata: {modelId, personaName}
         }).catch((error) => {
             toast.error(error.message);
         }).finally(() => {
