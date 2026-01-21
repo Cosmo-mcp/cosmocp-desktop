@@ -5,6 +5,7 @@ import {Plus} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {Input} from '@/components/ui/input';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {Textarea} from '@/components/ui/textarea';
 import {
     SidebarGroup,
@@ -34,7 +35,13 @@ const isUniqueNameError = (message: string) => {
     return normalized.includes('unique') || normalized.includes('duplicate') || normalized.includes('already exists');
 };
 
-export function PersonaList() {
+type PersonaListVariant = 'sidebar' | 'table';
+
+type PersonaListProps = {
+    variant?: PersonaListVariant;
+};
+
+export function PersonaList({variant = 'table'}: PersonaListProps) {
     const [personas, setPersonas] = useState<Persona[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [name, setName] = useState('');
@@ -96,36 +103,83 @@ export function PersonaList() {
         }
     };
 
+    const isSidebar = variant === 'sidebar';
+
     return (
         <>
-            <SidebarGroup>
-                <SidebarGroupLabel>Personas</SidebarGroupLabel>
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        {hasPersonas ? (
-                            personas.map((persona) => (
-                                <SidebarMenuItem key={persona.id ?? persona.name}>
-                                    <SidebarMenuButton>
-                                        <span className="truncate">{persona.name}</span>
-                                    </SidebarMenuButton>
+            {isSidebar ? (
+                <SidebarGroup>
+                    <SidebarGroupLabel>Personas</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {hasPersonas ? (
+                                personas.map((persona) => (
+                                    <SidebarMenuItem key={persona.id ?? persona.name}>
+                                        <SidebarMenuButton>
+                                            <span className="truncate">{persona.name}</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))
+                            ) : (
+                                <SidebarMenuItem>
+                                    <div className="px-2 py-1 text-xs text-muted-foreground">
+                                        No personas yet.
+                                    </div>
                                 </SidebarMenuItem>
-                            ))
-                        ) : (
+                            )}
                             <SidebarMenuItem>
-                                <div className="px-2 py-1 text-xs text-muted-foreground">
-                                    No personas yet.
-                                </div>
+                                <SidebarMenuButton onClick={() => setIsOpen(true)}>
+                                    <Plus />
+                                    <span>Add persona</span>
+                                </SidebarMenuButton>
                             </SidebarMenuItem>
-                        )}
-                        <SidebarMenuItem>
-                            <SidebarMenuButton onClick={() => setIsOpen(true)}>
-                                <Plus />
-                                <span>Add persona</span>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+            ) : (
+                <section className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h4 className="text-lg font-medium">Personas</h4>
+                            <p className="text-xs text-muted-foreground">
+                                Create and manage personas for your workspace.
+                            </p>
+                        </div>
+                        <Button onClick={() => setIsOpen(true)}>
+                            <Plus className="h-4 w-4" />
+                            <span>Add persona</span>
+                        </Button>
+                    </div>
+                    {hasPersonas ? (
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-[220px]">Name</TableHead>
+                                        <TableHead>Details</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {personas.map((persona) => (
+                                        <TableRow key={persona.id ?? persona.name}>
+                                            <TableCell className="font-medium">
+                                                <span className="block truncate">{persona.name}</span>
+                                            </TableCell>
+                                            <TableCell className="whitespace-normal text-muted-foreground">
+                                                {persona.details ? persona.details : 'No details'}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    ) : (
+                        <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+                            No personas yet. Create one to get started.
+                        </div>
+                    )}
+                </section>
+            )}
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="sm:max-w-[425px]">
