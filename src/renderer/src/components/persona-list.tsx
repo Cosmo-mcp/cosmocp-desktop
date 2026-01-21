@@ -1,21 +1,13 @@
 'use client';
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {Plus} from 'lucide-react';
-import {Button} from '@/components/ui/button';
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
-import {Input} from '@/components/ui/input';
-import {Textarea} from '@/components/ui/textarea';
-import {
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem
-} from '@/components/ui/sidebar';
-
-type Persona = Awaited<ReturnType<typeof window.api.persona.getAll>>[number];
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
+import { Persona } from 'core/dto';
+import { Edit, Plus, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const getErrorMessage = (error: unknown) => {
     if (error instanceof Error) {
@@ -41,6 +33,9 @@ export function PersonaList() {
     const [details, setDetails] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [listError, setListError] = useState<string | null>(null);
+    const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+    const [editingPersona, setEditingPersona] = useState<Persona | null>(null);
 
     const loadPersonas = useCallback(async () => {
         const list = await window.api.persona.getAll();
@@ -57,6 +52,7 @@ export function PersonaList() {
             setDetails('');
             setErrorMessage(null);
             setIsSaving(false);
+            setEditingPersona(null);
         }
     }, [isOpen]);
 
@@ -65,12 +61,27 @@ export function PersonaList() {
     const trimmedDetails = details.trim();
 
     const canSave = useMemo(() => {
-        return trimmedName.length > 0 && !isSaving;
-    }, [trimmedName, isSaving]);
+        return trimmedName.length > 0 && trimmedDetails.length > 0 && !isSaving;
+    }, [trimmedName, trimmedDetails, isSaving]);
 
     const handleSave = async () => {
+        if (!trimmedName && !trimmedDetails) {
+            setErrorMessage('Name and details are required.');
+            return;
+        }
+
         if (!trimmedName) {
             setErrorMessage('Name is required.');
+            return;
+        }
+
+        if (!trimmedDetails) {
+            setErrorMessage('Details are required.');
+            return;
+        }
+
+        if (editingPersona && !editingPersona.id) {
+            setErrorMessage('Unable to update persona without an id.');
             return;
         }
 
@@ -78,10 +89,17 @@ export function PersonaList() {
         setErrorMessage(null);
 
         try {
-            await window.api.persona.create({
-                name: trimmedName,
-                details: trimmedDetails ? trimmedDetails : null
-            });
+            if (editingPersona) {
+                await window.api.persona.update(editingPersona.id, {
+                    name: trimmedName,
+                    details: trimmedDetails
+                });
+            } else {
+                await window.api.persona.create({
+                    name: trimmedName,
+                    details: trimmedDetails
+                });
+            }
             await loadPersonas();
             setIsOpen(false);
         } catch (error) {
@@ -96,43 +114,119 @@ export function PersonaList() {
         }
     };
 
+    const handleEdit = (persona: Persona) => {
+        setEditingPersona(persona);
+        setName(persona.name ?? '');
+        setDetails(persona.details ?? '');
+        setErrorMessage(null);
+        setIsOpen(true);
+    };
+
+    const handleDelete = async (persona: Persona) => {
+        if (!persona.id) {
+            setListError('Unable to delete persona without an id.');
+            return;
+        }
+
+        const confirmed = window.confirm(`Delete persona "${persona.name}"?`);
+        if (!confirmed) {
+            return;
+        }
+
+        setIsDeletingId(persona.id);
+        setListError(null);
+
+        try {
+            await window.api.persona.delete(persona.id);
+            await loadPersonas();
+        } catch (error) {
+            setListError(getErrorMessage(error));
+        } finally {
+            setIsDeletingId(null);
+        }
+    };
+
     return (
         <>
-            <SidebarGroup>
-                <SidebarGroupLabel>Personas</SidebarGroupLabel>
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        {hasPersonas ? (
-                            personas.map((persona) => (
-                                <SidebarMenuItem key={persona.id ?? persona.name}>
-                                    <SidebarMenuButton>
-                                        <span className="truncate">{persona.name}</span>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))
-                        ) : (
-                            <SidebarMenuItem>
-                                <div className="px-2 py-1 text-xs text-muted-foreground">
-                                    No personas yet.
-                                </div>
-                            </SidebarMenuItem>
-                        )}
-                        <SidebarMenuItem>
-                            <SidebarMenuButton onClick={() => setIsOpen(true)}>
-                                <Plus />
-                                <span>Add persona</span>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
+            <section className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h4 className="text-lg font-medium">Personas</h4>
+                        <p className="text-xs text-muted-foreground">
+                            Create and manage personas
+                        </p>
+                    </div>
+                    <Button onClick={() => setIsOpen(true)}>
+                        <Plus className="h-4 w-4" />
+                        <span>Add persona</span>
+                    </Button>
+                </div>
+                {listError ? (
+                    <p className="text-sm text-destructive" role="alert">
+                        {listError}
+                    </p>
+                ) : null}
+                {hasPersonas ? (
+                    <div className="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[220px]">Name</TableHead>
+                                    <TableHead>Details</TableHead>
+                                    <TableHead className="w-[140px] text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {personas.map((persona) => (
+                                    <TableRow key={persona.id ?? persona.name}>
+                                        <TableCell className="font-medium">
+                                            <span className="block truncate">{persona.name}</span>
+                                        </TableCell>
+                                        <TableCell className="max-w-[360px] truncate text-muted-foreground">
+                                            {persona.details ? persona.details : 'No details'}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                onClick={() => handleEdit(persona)}
+                                                disabled={!persona.id}
+                                                aria-label={`Edit ${persona.name}`}
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                onClick={() => handleDelete(persona)}
+                                                disabled={!persona.id || isDeletingId === persona.id}
+                                                aria-label={`Delete ${persona.name}`}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                ) : (
+                    <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+                        No personas yet. Create one to get started.
+                    </div>
+                )}
+            </section>
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Add persona</DialogTitle>
+                        <DialogTitle>{editingPersona ? 'Edit persona' : 'Add persona'}</DialogTitle>
                         <DialogDescription>
-                            Create a persona with a unique name and optional details.
+                            {editingPersona
+                                ? 'Update the persona name and details.'
+                                : 'Create a persona with a unique name and details.'}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4">
@@ -156,7 +250,9 @@ export function PersonaList() {
                                 id="persona-details"
                                 value={details}
                                 onChange={(event) => setDetails(event.target.value)}
-                                placeholder="Optional description or behavior notes"
+                                placeholder="Description or behavior notes"
+                                className="max-h-40 overflow-y-auto"
+                                aria-invalid={Boolean(errorMessage)}
                                 rows={4}
                             />
                         </div>
@@ -176,7 +272,7 @@ export function PersonaList() {
                             Cancel
                         </Button>
                         <Button type="button" onClick={handleSave} disabled={!canSave}>
-                            {isSaving ? 'Saving...' : 'Save persona'}
+                            {isSaving ? 'Saving...' : editingPersona ? 'Update persona' : 'Save persona'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
