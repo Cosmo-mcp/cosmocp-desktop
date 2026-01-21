@@ -6,16 +6,18 @@ import {ChatController} from '../src/main/controllers/ChatController';
 import {ModelProviderController} from '../src/main/controllers/ModelProviderController';
 import {StreamingChatController} from '../src/main/controllers/StreamingChatController';
 import {MessageController} from "../src/main/controllers/MessageController";
+import {PersonaController} from "../src/main/controllers/PersonaController";
 
 const apiFilePath = path.resolve(__dirname, '../src/preload/api.ts');
 
-const controllers = [ChatController, ModelProviderController, StreamingChatController, MessageController];
+const controllers = [ChatController, ModelProviderController, StreamingChatController, MessageController, PersonaController];
 
 const controllerPaths = {
     'ChatController': path.resolve(__dirname, '../src/main/controllers/ChatController.ts'),
     'ModelProviderController': path.resolve(__dirname, '../src/main/controllers/ModelProviderController.ts'),
     'StreamingChatController': path.resolve(__dirname, '../src/main/controllers/StreamingChatController.ts'),
     'MessageController': path.resolve(__dirname, '../src/main/controllers/MessageController.ts'),
+    'PersonaController': path.resolve(__dirname, '../src/main/controllers/PersonaController.ts'),
 };
 
 const controllerFileContents: { [key: string]: string } = {};
@@ -113,7 +115,10 @@ import {
     Message,
     NewModel,
     ProviderWithModels,
-    ChatWithMessages
+    ChatWithMessages,
+    ModelIdentifier,
+    Persona,
+    NewPersona
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 `;
