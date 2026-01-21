@@ -1,7 +1,7 @@
 'use client';
 
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {Plus} from 'lucide-react';
+import {Plus, Trash2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {Input} from '@/components/ui/input';
@@ -48,6 +48,8 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
     const [details, setDetails] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [listError, setListError] = useState<string | null>(null);
+    const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
 
     const loadPersonas = useCallback(async () => {
         const list = await window.api.persona.getAll();
@@ -103,6 +105,30 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
         }
     };
 
+    const handleDelete = async (persona: Persona) => {
+        if (!persona.id) {
+            setListError('Unable to delete persona without an id.');
+            return;
+        }
+
+        const confirmed = window.confirm(`Delete persona "${persona.name}"?`);
+        if (!confirmed) {
+            return;
+        }
+
+        setIsDeletingId(persona.id);
+        setListError(null);
+
+        try {
+            await window.api.persona.delete(persona.id);
+            await loadPersonas();
+        } catch (error) {
+            setListError(getErrorMessage(error));
+        } finally {
+            setIsDeletingId(null);
+        }
+    };
+
     const isSidebar = variant === 'sidebar';
 
     return (
@@ -150,6 +176,11 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
                             <span>Add persona</span>
                         </Button>
                     </div>
+                    {listError ? (
+                        <p className="text-sm text-destructive" role="alert">
+                            {listError}
+                        </p>
+                    ) : null}
                     {hasPersonas ? (
                         <div className="rounded-md border">
                             <Table>
@@ -157,6 +188,7 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
                                     <TableRow>
                                         <TableHead className="w-[220px]">Name</TableHead>
                                         <TableHead>Details</TableHead>
+                                        <TableHead className="w-[120px] text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -167,6 +199,18 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
                                             </TableCell>
                                             <TableCell className="whitespace-normal text-muted-foreground">
                                                 {persona.details ? persona.details : 'No details'}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    onClick={() => handleDelete(persona)}
+                                                    disabled={!persona.id || isDeletingId === persona.id}
+                                                    aria-label={`Delete ${persona.name}`}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}
