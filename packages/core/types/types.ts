@@ -4,6 +4,7 @@ const CORETYPES = {
     ChatRepository: Symbol.for("ChatRepository"),
     MessageRepository: Symbol.for("MessageRepository"),
     ModelProviderRepository: Symbol.for("ModelProviderRepository"),
+    PersonaRepository: Symbol.for("PersonaRepository"),
     // services
     ChatService: Symbol.for("ChatService"),
     MessageService: Symbol.for("MessageService"),
