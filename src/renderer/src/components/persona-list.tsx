@@ -153,7 +153,7 @@ export function PersonaList() {
                     <div>
                         <h4 className="text-lg font-medium">Personas</h4>
                         <p className="text-xs text-muted-foreground">
-                            Create and manage personas for your workspace.
+                            Create and manage personas
                         </p>
                     </div>
                     <Button onClick={() => setIsOpen(true)}>
