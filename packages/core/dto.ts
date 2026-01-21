@@ -7,11 +7,9 @@ type Optional<T, K extends keyof T> = Omit<T, K> & Pick<Partial<T>, K>;
 //full entity based dto
 export type Message = InferSelectModel<typeof message>;
 export type Chat = InferSelectModel<typeof chat>;
-export type Persona = InferSelectModel<typeof persona>;
 
 // DTOs for new database entry
 export type NewChat = InferInsertModel<typeof chat>;
-export type NewPersona = InferInsertModel<typeof persona>;
 export type NewMessage = Omit<Message, "id" | "createdAt">;
 
 // The full model, retrieved from the database with a decrypted apiKey.
