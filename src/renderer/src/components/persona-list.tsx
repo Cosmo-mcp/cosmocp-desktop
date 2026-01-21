@@ -1,7 +1,7 @@
 'use client';
 
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {Plus, Trash2} from 'lucide-react';
+import {Edit, Plus, Trash2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {Input} from '@/components/ui/input';
@@ -50,6 +50,7 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [listError, setListError] = useState<string | null>(null);
     const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+    const [editingPersona, setEditingPersona] = useState<Persona | null>(null);
 
     const loadPersonas = useCallback(async () => {
         const list = await window.api.persona.getAll();
@@ -66,6 +67,7 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
             setDetails('');
             setErrorMessage(null);
             setIsSaving(false);
+            setEditingPersona(null);
         }
     }, [isOpen]);
 
@@ -83,14 +85,26 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
             return;
         }
 
+        if (editingPersona && !editingPersona.id) {
+            setErrorMessage('Unable to update persona without an id.');
+            return;
+        }
+
         setIsSaving(true);
         setErrorMessage(null);
 
         try {
-            await window.api.persona.create({
-                name: trimmedName,
-                details: trimmedDetails ? trimmedDetails : null
-            });
+            if (editingPersona) {
+                await window.api.persona.update(editingPersona.id, {
+                    name: trimmedName,
+                    details: trimmedDetails ? trimmedDetails : null
+                });
+            } else {
+                await window.api.persona.create({
+                    name: trimmedName,
+                    details: trimmedDetails ? trimmedDetails : null
+                });
+            }
             await loadPersonas();
             setIsOpen(false);
         } catch (error) {
@@ -103,6 +117,14 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleEdit = (persona: Persona) => {
+        setEditingPersona(persona);
+        setName(persona.name ?? '');
+        setDetails(persona.details ?? '');
+        setErrorMessage(null);
+        setIsOpen(true);
     };
 
     const handleDelete = async (persona: Persona) => {
@@ -188,7 +210,7 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
                                     <TableRow>
                                         <TableHead className="w-[220px]">Name</TableHead>
                                         <TableHead>Details</TableHead>
-                                        <TableHead className="w-[120px] text-right">Actions</TableHead>
+                                        <TableHead className="w-[140px] text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -201,6 +223,16 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
                                                 {persona.details ? persona.details : 'No details'}
                                             </TableCell>
                                             <TableCell className="text-right">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    onClick={() => handleEdit(persona)}
+                                                    disabled={!persona.id}
+                                                    aria-label={`Edit ${persona.name}`}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
@@ -228,9 +260,11 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Add persona</DialogTitle>
+                        <DialogTitle>{editingPersona ? 'Edit persona' : 'Add persona'}</DialogTitle>
                         <DialogDescription>
-                            Create a persona with a unique name and optional details.
+                            {editingPersona
+                                ? 'Update the persona name and details.'
+                                : 'Create a persona with a unique name and optional details.'}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4">
@@ -274,7 +308,7 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
                             Cancel
                         </Button>
                         <Button type="button" onClick={handleSave} disabled={!canSave}>
-                            {isSaving ? 'Saving...' : 'Save persona'}
+                            {isSaving ? 'Saving...' : editingPersona ? 'Update persona' : 'Save persona'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
