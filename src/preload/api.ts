@@ -12,6 +12,7 @@ import {
     ProviderWithModels,
     ChatWithMessages,
     ModelIdentifier,
+    PersonaIdentifier,
     Persona,
     NewPersona
 } from '../../packages/core/dto';
@@ -25,6 +26,7 @@ export interface ChatApi {
     updatePinnedStatusForChat(id: string, pinned: boolean): Promise<void>;
     getSelectedModelForChat(id: string): Promise<string | null>;
     updateSelectedModelForChat(id: string, modelIdentifier: ModelIdentifier): Promise<void>;
+    updateSelectedPersonaForChat(id: string, personaIdentifier: PersonaIdentifier): Promise<void>;
     updateSelectedChat(id: string): Promise<void>;
 }
 
@@ -81,6 +83,7 @@ export const api: Api = {
     updatePinnedStatusForChat: (id: string, pinned: boolean) => ipcRenderer.invoke('chat:updatePinnedStatusForChat', id, pinned),
     getSelectedModelForChat: (id: string) => ipcRenderer.invoke('chat:getSelectedModelForChat', id),
     updateSelectedModelForChat: (id: string, modelIdentifier: ModelIdentifier) => ipcRenderer.invoke('chat:updateSelectedModelForChat', id, modelIdentifier),
+    updateSelectedPersonaForChat: (id: string, personaIdentifier: PersonaIdentifier) => ipcRenderer.invoke('chat:updateSelectedPersonaForChat', id, personaIdentifier),
     updateSelectedChat: (id: string) => ipcRenderer.invoke('chat:updateSelectedChat', id)
   },
   modelProvider: {

@@ -16,13 +16,18 @@ import {
     PromptInputFooter,
     PromptInputHeader,
     PromptInputProvider,
+    PromptInputSelect,
+    PromptInputSelectContent,
+    PromptInputSelectItem,
+    PromptInputSelectTrigger,
+    PromptInputSelectValue,
     PromptInputSubmit,
     PromptInputTextarea,
     PromptInputTools,
     type PromptInputMessage
 } from './ai-elements/prompt-input';
 import type {UseChatHelpers} from '@ai-sdk/react';
-import {Chat, ProviderWithModels} from "core/dto";
+import {Chat, Persona, ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -45,6 +50,7 @@ export function MultimodalInput({
                                     status,
                                     sendMessage,
                                     onModelChange,
+                                    onPersonaChange,
                                 }: {
     chat: Chat;
     status: UseChatHelpers<UIMessage>['status'];
@@ -53,14 +59,22 @@ export function MultimodalInput({
     className?: string;
     stillAnswering?: boolean,
     onModelChange: (providerName: string, modelId: string) => void;
+    onPersonaChange: (personaId: string | null) => void;
 }) {
     const [input, setInput] = useState<string>('');
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
+    const [personas, setPersonas] = useState<Persona[]>([]);
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
             .then(fetchedProviders => setProviders(fetchedProviders))
+            .catch(error => logger.error(error));
+    }, []);
+
+    useEffect(() => {
+        window.api.persona.getAll()
+            .then((list) => setPersonas(list))
             .catch(error => logger.error(error));
     }, []);
 
@@ -146,6 +160,28 @@ export function MultimodalInput({
                                 <PromptInputActionAddAttachments/>
                             </PromptInputActionMenuContent>
                         </PromptInputActionMenu>
+                        <PromptInputSelect
+                            value={chat.selectedPersonaId ?? "none"}
+                            onValueChange={(value) => {
+                                if (value === "none") {
+                                    onPersonaChange(null);
+                                    return;
+                                }
+                                onPersonaChange(value);
+                            }}
+                        >
+                            <PromptInputSelectTrigger className="w-max">
+                                <PromptInputSelectValue placeholder="Persona"/>
+                            </PromptInputSelectTrigger>
+                            <PromptInputSelectContent>
+                                <PromptInputSelectItem value="none">No persona</PromptInputSelectItem>
+                                {personas.map((persona) => (
+                                    <PromptInputSelectItem key={persona.id} value={persona.id}>
+                                        {persona.name}
+                                    </PromptInputSelectItem>
+                                ))}
+                            </PromptInputSelectContent>
+                        </PromptInputSelect>
                         <ModelSelector
                             onOpenChange={setModelSelectorOpen}
                             open={modelSelectorOpen}
