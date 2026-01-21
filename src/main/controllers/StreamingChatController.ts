@@ -24,7 +24,7 @@ export class StreamingChatController implements Controller {
     public async sendMessage(args: ChatSendMessageArgs, event: IpcMainEvent) {
         const modelProviderRegistry = await this.modelProviderService.getModelProviderRegistry();
         const webContents = event.sender as WebContents;
-        const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
+        const modelMessages: ModelMessage[] = await convertToModelMessages(args.messages);
 
         const controller = new AbortController();
         this.activeStreams.set(args.streamChannel, controller);

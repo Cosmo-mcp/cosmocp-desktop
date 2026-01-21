@@ -10,27 +10,27 @@ export class PersonaService {
     ) {
     }
 
-    public async getAllPersonas(): Promise<Persona[]> {
+    public async getAll(): Promise<Persona[]> {
         return this.personaRepository.getAll();
     }
 
-    public async getPersonaById(id: string): Promise<Persona | undefined> {
+    public async getById(id: string): Promise<Persona | undefined> {
         return this.personaRepository.getById(id);
     }
 
-    public async getPersonaByName(name: string): Promise<Persona | undefined> {
+    public async getByName(name: string): Promise<Persona | undefined> {
         return this.personaRepository.getByName(name);
     }
 
-    public async createPersona(data: NewPersona): Promise<Persona> {
+    public async create(data: NewPersona): Promise<Persona> {
         return this.personaRepository.create(data);
     }
 
-    public async updatePersona(id: string, updates: Partial<NewPersona>): Promise<Persona> {
+    public async update(id: string, updates: Partial<NewPersona>): Promise<Persona> {
         return this.personaRepository.update(id, updates);
     }
 
-    public async deletePersona(id: string): Promise<void> {
+    public async delete(id: string): Promise<void> {
         return this.personaRepository.delete(id);
     }
 }
