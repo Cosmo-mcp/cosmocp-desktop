@@ -76,12 +76,22 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
     const trimmedDetails = details.trim();
 
     const canSave = useMemo(() => {
-        return trimmedName.length > 0 && !isSaving;
-    }, [trimmedName, isSaving]);
+        return trimmedName.length > 0 && trimmedDetails.length > 0 && !isSaving;
+    }, [trimmedName, trimmedDetails, isSaving]);
 
     const handleSave = async () => {
+        if (!trimmedName && !trimmedDetails) {
+            setErrorMessage('Name and details are required.');
+            return;
+        }
+
         if (!trimmedName) {
             setErrorMessage('Name is required.');
+            return;
+        }
+
+        if (!trimmedDetails) {
+            setErrorMessage('Details are required.');
             return;
         }
 
@@ -97,12 +107,12 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
             if (editingPersona) {
                 await window.api.persona.update(editingPersona.id, {
                     name: trimmedName,
-                    details: trimmedDetails ? trimmedDetails : null
+                    details: trimmedDetails
                 });
             } else {
                 await window.api.persona.create({
                     name: trimmedName,
-                    details: trimmedDetails ? trimmedDetails : null
+                    details: trimmedDetails
                 });
             }
             await loadPersonas();
@@ -219,7 +229,7 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
                                             <TableCell className="font-medium">
                                                 <span className="block truncate">{persona.name}</span>
                                             </TableCell>
-                                            <TableCell className="whitespace-normal text-muted-foreground">
+                                            <TableCell className="max-w-[360px] truncate text-muted-foreground">
                                                 {persona.details ? persona.details : 'No details'}
                                             </TableCell>
                                             <TableCell className="text-right">
@@ -264,7 +274,7 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
                         <DialogDescription>
                             {editingPersona
                                 ? 'Update the persona name and details.'
-                                : 'Create a persona with a unique name and optional details.'}
+                                : 'Create a persona with a unique name and details.'}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4">
@@ -288,7 +298,9 @@ export function PersonaList({variant = 'table'}: PersonaListProps) {
                                 id="persona-details"
                                 value={details}
                                 onChange={(event) => setDetails(event.target.value)}
-                                placeholder="Optional description or behavior notes"
+                                placeholder="Description or behavior notes"
+                                className="max-h-40 overflow-y-auto"
+                                aria-invalid={Boolean(errorMessage)}
                                 rows={4}
                             />
                         </div>
