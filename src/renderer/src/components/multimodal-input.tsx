@@ -17,12 +17,17 @@ import {
     PromptInputHeader,
     PromptInputProvider,
     PromptInputSubmit,
-    PromptInputTextarea,
+    PromptInputMentionsTextarea,
+    PromptInputSelect,
+    PromptInputSelectContent,
+    PromptInputSelectItem,
+    PromptInputSelectTrigger,
+    PromptInputSelectValue,
     PromptInputTools,
     type PromptInputMessage
 } from './ai-elements/prompt-input';
 import type {UseChatHelpers} from '@ai-sdk/react';
-import {Chat, ProviderWithModels} from "core/dto";
+import {Chat, Persona, ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -57,10 +62,18 @@ export function MultimodalInput({
     const [input, setInput] = useState<string>('');
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
+    const [personas, setPersonas] = useState<Persona[]>([]);
+    const [selectedPersonaId, setSelectedPersonaId] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
             .then(fetchedProviders => setProviders(fetchedProviders))
+            .catch(error => logger.error(error));
+    }, []);
+
+    useEffect(() => {
+        window.api.persona.getAll()
+            .then(fetchedPersonas => setPersonas(fetchedPersonas))
             .catch(error => logger.error(error));
     }, []);
 
@@ -110,6 +123,22 @@ export function MultimodalInput({
         })
     }, [chat.selectedModelId, chat.selectedProvider, sendMessage]);
 
+    const personaOptions = useMemo(() => {
+        return personas
+            .map((persona) => ({
+                id: persona.id ?? persona.name ?? '',
+                name: persona.name ?? ''
+            }))
+            .filter((persona) => persona.id && persona.name);
+    }, [personas]);
+
+    const personaMentionData = useMemo(() => {
+        return personaOptions.map((persona) => ({
+            id: persona.id,
+            display: persona.name
+        }));
+    }, [personaOptions]);
+
     return (
         <PromptInputProvider>
             <PromptInput globalDrop multiple onSubmit={submitForm}>
@@ -119,8 +148,10 @@ export function MultimodalInput({
                     </PromptInputAttachments>
                 </PromptInputHeader>
                 <PromptInputBody>
-                    <PromptInputTextarea
-                        onChange={(e) => setInput(e.target.value)}
+                    <PromptInputMentionsTextarea
+                        mentionData={personaMentionData}
+                        onChange={(value) => setInput(value)}
+                        onMentionAdd={(id) => setSelectedPersonaId(id)}
                         value={input}
                     />
                 </PromptInputBody>
@@ -146,6 +177,24 @@ export function MultimodalInput({
                                 <PromptInputActionAddAttachments/>
                             </PromptInputActionMenuContent>
                         </PromptInputActionMenu>
+                        <PromptInputSelect
+                            onValueChange={setSelectedPersonaId}
+                            value={selectedPersonaId}
+                        >
+                            <PromptInputSelectTrigger className="w-max">
+                                <PromptInputSelectValue placeholder="Persona"/>
+                            </PromptInputSelectTrigger>
+                            <PromptInputSelectContent>
+                                {personaOptions.map((persona) => (
+                                    <PromptInputSelectItem
+                                        key={persona.id}
+                                        value={persona.id}
+                                    >
+                                        {persona.name}
+                                    </PromptInputSelectItem>
+                                ))}
+                            </PromptInputSelectContent>
+                        </PromptInputSelect>
                         <ModelSelector
                             onOpenChange={setModelSelectorOpen}
                             open={modelSelectorOpen}
