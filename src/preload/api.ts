@@ -10,8 +10,11 @@ import {
     Message,
     NewModel,
     ProviderWithModels,
-    ChatWithMessages, ModelIdentifier
-} from 'core/dto';
+    ChatWithMessages,
+    ModelIdentifier,
+    Persona,
+    NewPersona
+} from '../../packages/core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
     getAllChats(searchQuery: string | null): Promise<Chat[]>;
@@ -42,6 +45,15 @@ export interface MessageApi {
     delete(id: string): Promise<void>;
 }
 
+export interface PersonaApi {
+    getAll(): Promise<Persona[]>;
+    getById(id: string): Promise<Persona | undefined>;
+    getByName(name: string): Promise<Persona | undefined>;
+    create(newPersona: NewPersona): Promise<Persona>;
+    update(id: string, updates: Partial<NewPersona>): Promise<Persona>;
+    delete(id: string): Promise<void>;
+}
+
 export interface StreamingApi {
     sendMessage(args: ChatSendMessageArgs): void;
     abortMessage(args: ChatAbortArgs): void;
@@ -55,6 +67,7 @@ export interface Api {
   chat: ChatApi;
   modelProvider: ModelProviderApi;
   message: MessageApi;
+  persona: PersonaApi;
   streaming: StreamingApi;
 }
 
@@ -84,6 +97,14 @@ export const api: Api = {
     save: (newMessage: NewMessage) => ipcRenderer.invoke('message:save', newMessage),
     update: (id: string, updates: Partial<NewMessage>) => ipcRenderer.invoke('message:update', id, updates),
     delete: (id: string) => ipcRenderer.invoke('message:delete', id)
+  },
+  persona: {
+    getAll: () => ipcRenderer.invoke('persona:getAll'),
+    getById: (id: string) => ipcRenderer.invoke('persona:getById', id),
+    getByName: (name: string) => ipcRenderer.invoke('persona:getByName', name),
+    create: (newPersona: NewPersona) => ipcRenderer.invoke('persona:create', newPersona),
+    update: (id: string, updates: Partial<NewPersona>) => ipcRenderer.invoke('persona:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('persona:delete', id)
   },
   streaming: {
     sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('streamingChat:sendMessage', args),
