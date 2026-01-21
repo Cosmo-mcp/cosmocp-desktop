@@ -26,13 +26,7 @@ const isUniqueNameError = (message: string) => {
     return normalized.includes('unique') || normalized.includes('duplicate') || normalized.includes('already exists');
 };
 
-type PersonaListVariant = 'sidebar' | 'table';
-
-type PersonaListProps = {
-    variant?: PersonaListVariant;
-};
-
-export function PersonaList({ variant = 'table' }: PersonaListProps) {
+export function PersonaList() {
     const [personas, setPersonas] = useState<Persona[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [name, setName] = useState('');
@@ -151,8 +145,6 @@ export function PersonaList({ variant = 'table' }: PersonaListProps) {
             setIsDeletingId(null);
         }
     };
-
-    const isSidebar = variant === 'sidebar';
 
     return (
         <>
