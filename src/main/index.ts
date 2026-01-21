@@ -19,8 +19,7 @@ export class Main {
         config();
         app.whenReady().then(async () => {
             if (!safeStorage.isEncryptionAvailable()) {
-                logger.warn('safeStorage encryption unavailable. Using plaintext fallback');
-                safeStorage.setUsePlainTextEncryption(true);
+                logger.warn("safeStorage encryption unavailable. API keys won't be encrypted.");
             }
             await this.initializeDatabase();
             const ipcHandlerRegistry = container.get<IpcHandlerRegistry>(TYPES.IpcHandlerRegistry);

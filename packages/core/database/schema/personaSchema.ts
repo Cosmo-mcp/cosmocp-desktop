@@ -5,4 +5,5 @@ export const persona = pgTable("Persona", {
     name: text("name").notNull().unique(),
     details: text("details").notNull(),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });

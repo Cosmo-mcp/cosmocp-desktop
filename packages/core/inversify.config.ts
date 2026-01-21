@@ -4,11 +4,11 @@ import {CORETYPES} from "./types/types";
 import {DatabaseManager} from "./database/DatabaseManager";
 import {ChatRepository} from "./repositories/ChatRepository";
 import {MessageRepository} from "./repositories/MessageRepository";
-import {PersonaRepository} from "./repositories/PersonaRepository";
 import {ChatService} from "./services/ChatService";
 import {MessageService} from "./services/MessageService";
 import {ModelProviderRepository} from "./repositories/ModelProviderRepository";
 import {ModelProviderService} from "./services/ModelProviderService";
+import {PersonaRepository} from "./repositories/PersonaRepository";
 import {PersonaService} from "./services/PersonaService";
 
 const coreContainer = new Container();
