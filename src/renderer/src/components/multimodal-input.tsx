@@ -177,24 +177,6 @@ export function MultimodalInput({
                                 <PromptInputActionAddAttachments/>
                             </PromptInputActionMenuContent>
                         </PromptInputActionMenu>
-                        <PromptInputSelect
-                            onValueChange={setSelectedPersonaId}
-                            value={selectedPersonaId}
-                        >
-                            <PromptInputSelectTrigger className="w-max">
-                                <PromptInputSelectValue placeholder="Persona"/>
-                            </PromptInputSelectTrigger>
-                            <PromptInputSelectContent>
-                                {personaOptions.map((persona) => (
-                                    <PromptInputSelectItem
-                                        key={persona.id}
-                                        value={persona.id}
-                                    >
-                                        {persona.name}
-                                    </PromptInputSelectItem>
-                                ))}
-                            </PromptInputSelectContent>
-                        </PromptInputSelect>
                         <ModelSelector
                             onOpenChange={setModelSelectorOpen}
                             open={modelSelectorOpen}
@@ -243,6 +225,24 @@ export function MultimodalInput({
                                 </ModelSelectorList>
                             </ModelSelectorContent>
                         </ModelSelector>
+                        <PromptInputSelect
+                            onValueChange={setSelectedPersonaId}
+                            value={selectedPersonaId}
+                        >
+                            <PromptInputSelectTrigger className="w-max">
+                                <PromptInputSelectValue placeholder="Persona"/>
+                            </PromptInputSelectTrigger>
+                            <PromptInputSelectContent>
+                                {personaOptions.map((persona) => (
+                                    <PromptInputSelectItem
+                                        key={persona.id}
+                                        value={persona.id}
+                                    >
+                                        {persona.name}
+                                    </PromptInputSelectItem>
+                                ))}
+                            </PromptInputSelectContent>
+                        </PromptInputSelect>
                     </PromptInputTools>
                     <PromptInputSubmit
                         disabled={!input || !chat.selectedModelId || status !== 'ready'}

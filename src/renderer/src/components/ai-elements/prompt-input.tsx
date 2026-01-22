@@ -949,7 +949,7 @@ export const PromptInputMentionsTextarea = ({
       },
       input: {
         margin: 0,
-        padding: "0.75rem 0",
+        padding: "0.75rem",
         border: 0,
         outline: "none",
         backgroundColor: "transparent",
@@ -1053,7 +1053,7 @@ export const PromptInputMentionsTextarea = ({
 
   return (
     <MentionsInput
-      className={cn("field-sizing-content max-h-48 min-h-16 flex-1", className)}
+      className={cn("field-sizing-content max-h-48 min-h-16 flex-1 w-full", className)}
       name="message"
       onChange={handleChange}
       onCompositionEnd={() => setIsComposing(false)}
