@@ -892,7 +892,7 @@ export type PromptInputMentionsTextareaProps = Omit<
   "children" | "onChange" | "value"
 > & {
   mentionData: { id: string; display: string }[];
-  onMentionAdd?: (id: string, display: string) => void;
+  onMentionAdd?: (id: string | number, display: string) => void;
   onChange?: (value: string) => void;
   value?: string;
   placeholder?: string;

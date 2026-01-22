@@ -153,7 +153,7 @@ export function MultimodalInput({
                     <PromptInputMentionsTextarea
                         mentionData={personaMentionData}
                         onChange={(value) => setInput(value)}
-                        onMentionAdd={(id) => setSelectedPersonaId(id)}
+                        onMentionAdd={(id) => setSelectedPersonaId(id as string)}
                         value={input}
                     />
                 </PromptInputBody>
