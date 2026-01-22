@@ -1069,6 +1069,7 @@ export const PromptInputMentionsTextarea = ({
         appendSpaceOnAdd
         className="rounded bg-accent px-1 text-accent-foreground"
         data={mentionData}
+        displayTransform={(_id, display) => display}
         markup="@__display__"
         onAdd={(id, display) => onMentionAdd?.(id, display)}
         trigger="@"
