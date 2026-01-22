@@ -15,6 +15,8 @@ import {
     PromptInputButton,
     PromptInputFooter,
     PromptInputHeader,
+    PromptInputMentionsTextarea,
+    type PromptInputMessage,
     PromptInputProvider,
     PromptInputSelect,
     PromptInputSelectContent,
@@ -22,14 +24,7 @@ import {
     PromptInputSelectTrigger,
     PromptInputSelectValue,
     PromptInputSubmit,
-    PromptInputMentionsTextarea,
-    PromptInputSelect,
-    PromptInputSelectContent,
-    PromptInputSelectItem,
-    PromptInputSelectTrigger,
-    PromptInputSelectValue,
-    PromptInputTools,
-    type PromptInputMessage
+    PromptInputTools
 } from './ai-elements/prompt-input';
 import type {UseChatHelpers} from '@ai-sdk/react';
 import {Chat, Persona, ProviderWithModels} from "core/dto";
@@ -107,7 +102,7 @@ export function MultimodalInput({
         if (firstProvider) {
             const firstModel = firstProvider.models[0];
             if (firstModel) {
-               onModelChange(firstProvider.name, firstModel.modelId);
+                onModelChange(firstProvider.name, firstModel.modelId);
             }
         }
     }, [providers, chat.selectedProvider, chat.selectedModelId, onModelChange]);
@@ -168,7 +163,8 @@ export function MultimodalInput({
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <span>
-                                        <PromptInputActionMenuTrigger disabled={!selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE)}>
+                                        <PromptInputActionMenuTrigger
+                                            disabled={!selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE)}>
                                         </PromptInputActionMenuTrigger>
                                     </span>
                                 </TooltipTrigger>
