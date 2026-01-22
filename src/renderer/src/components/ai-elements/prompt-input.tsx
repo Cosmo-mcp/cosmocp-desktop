@@ -929,6 +929,9 @@ export const PromptInputMentionsTextarea = ({
   const controller = useOptionalPromptInputController();
   const attachments = usePromptInputAttachments();
   const [isComposing, setIsComposing] = useState(false);
+  const initialTextValue = controller?.textInput.value ?? value ?? "";
+  const [mentionsValue, setMentionsValue] = useState(initialTextValue);
+  const [plainTextValue, setPlainTextValue] = useState(initialTextValue);
 
   const mentionsStyle = useMemo<MentionsInputProps["style"]>(
     () => ({
@@ -977,6 +980,17 @@ export const PromptInputMentionsTextarea = ({
     }),
     []
   );
+
+  const externalValue = controller ? controller.textInput.value : value;
+  useEffect(() => {
+    if (externalValue === undefined) {
+      return;
+    }
+    if (externalValue !== plainTextValue) {
+      setPlainTextValue(externalValue);
+      setMentionsValue(externalValue);
+    }
+  }, [externalValue, plainTextValue]);
 
   const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
     if (e.key === "Enter") {
@@ -1038,18 +1052,18 @@ export const PromptInputMentionsTextarea = ({
 
   const handleChange: MentionsInputProps["onChange"] = (
     _event,
-    _newValue,
+    newValue,
     newPlainTextValue
   ) => {
+    setMentionsValue(newValue);
+    setPlainTextValue(newPlainTextValue);
     if (controller) {
       controller.textInput.setInput(newPlainTextValue);
     }
     onChange?.(newPlainTextValue);
   };
 
-  const mentionsValue = controller ? controller.textInput.value : value;
-  const valueProps =
-    mentionsValue !== undefined ? { value: mentionsValue } : {};
+  const valueProps = { value: mentionsValue };
 
   return (
     <MentionsInput
@@ -1070,7 +1084,7 @@ export const PromptInputMentionsTextarea = ({
         className="rounded bg-accent px-1 text-accent-foreground"
         data={mentionData}
         displayTransform={(_id, display) => display}
-        markup="@__display__"
+        markup="@[__display__](__id__)"
         onAdd={(id, display) => onMentionAdd?.(id, display)}
         trigger="@"
       />
