@@ -69,6 +69,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Mention, MentionsInput, type MentionsInputProps } from "react-mentions";
 import {logger} from "../../../logger";
 
 // ============================================================================
@@ -902,6 +903,192 @@ export const PromptInputTextarea = ({
       {...props}
       {...controlledProps}
     />
+  );
+};
+
+export type PromptInputMentionsTextareaProps = Omit<
+  MentionsInputProps,
+  "children" | "onChange" | "value"
+> & {
+  mentionData: { id: string; display: string }[];
+  onMentionAdd?: (id: string, display: string) => void;
+  onChange?: (value: string) => void;
+  value?: string;
+  placeholder?: string;
+};
+
+export const PromptInputMentionsTextarea = ({
+  onChange,
+  onMentionAdd,
+  mentionData,
+  className,
+  placeholder = "What would you like to know?",
+  value,
+  ...props
+}: PromptInputMentionsTextareaProps) => {
+  const controller = useOptionalPromptInputController();
+  const attachments = usePromptInputAttachments();
+  const [isComposing, setIsComposing] = useState(false);
+  const initialTextValue = controller?.textInput.value ?? value ?? "";
+  const [mentionsValue, setMentionsValue] = useState(initialTextValue);
+  const [plainTextValue, setPlainTextValue] = useState(initialTextValue);
+
+  const mentionsStyle = useMemo<MentionsInputProps["style"]>(
+    () => ({
+      control: {
+        backgroundColor: "transparent",
+        border: 0,
+        color: "hsl(var(--foreground))",
+        fontFamily: "inherit",
+        fontSize: "0.875rem",
+        lineHeight: "1.25rem",
+        minHeight: "4rem",
+        maxHeight: "12rem",
+        overflowY: "auto",
+        padding: "0.75rem 0",
+      },
+      highlighter: {
+        padding: "0.75rem 0",
+      },
+      input: {
+        margin: 0,
+        padding: "0.75rem",
+        border: 0,
+        outline: "none",
+        backgroundColor: "transparent",
+        color: "inherit",
+      },
+      suggestions: {
+        list: {
+          backgroundColor: "hsl(var(--popover))",
+          border: "1px solid hsl(var(--border))",
+          borderRadius: "0.5rem",
+          boxShadow:
+            "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+          padding: "0.25rem",
+        },
+        item: {
+          padding: "0.5rem 0.75rem",
+          borderRadius: "0.375rem",
+          color: "hsl(var(--foreground))",
+          "&focused": {
+            backgroundColor: "hsl(var(--accent))",
+            color: "hsl(var(--accent-foreground))",
+          },
+        },
+      },
+    }),
+    []
+  );
+
+  const externalValue = controller ? controller.textInput.value : value;
+  useEffect(() => {
+    if (externalValue === undefined) {
+      return;
+    }
+    if (externalValue !== plainTextValue) {
+      setPlainTextValue(externalValue);
+      setMentionsValue(externalValue);
+    }
+  }, [externalValue, plainTextValue]);
+
+  const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
+    if (e.key === "Enter") {
+      if (isComposing || e.nativeEvent.isComposing) {
+        return;
+      }
+      if (e.shiftKey) {
+        return;
+      }
+      e.preventDefault();
+
+      const form = e.currentTarget.form;
+      const submitButton = form?.querySelector(
+        'button[type="submit"]'
+      ) as HTMLButtonElement | null;
+      if (submitButton?.disabled) {
+        return;
+      }
+
+      form?.requestSubmit();
+    }
+
+    if (
+      e.key === "Backspace" &&
+      e.currentTarget.value === "" &&
+      attachments.files.length > 0
+    ) {
+      e.preventDefault();
+      const lastAttachment = attachments.files.at(-1);
+      if (lastAttachment) {
+        attachments.remove(lastAttachment.id);
+      }
+    }
+  };
+
+  const handlePaste: ClipboardEventHandler<HTMLTextAreaElement> = (event) => {
+    const items = event.clipboardData?.items;
+
+    if (!items) {
+      return;
+    }
+
+    const files: File[] = [];
+
+    for (const item of items) {
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        if (file) {
+          files.push(file);
+        }
+      }
+    }
+
+    if (files.length > 0) {
+      event.preventDefault();
+      attachments.add(files);
+    }
+  };
+
+  const handleChange: MentionsInputProps["onChange"] = (
+    _event,
+    newValue,
+    newPlainTextValue
+  ) => {
+    setMentionsValue(newValue);
+    setPlainTextValue(newPlainTextValue);
+    if (controller) {
+      controller.textInput.setInput(newPlainTextValue);
+    }
+    onChange?.(newPlainTextValue);
+  };
+
+  const valueProps = { value: mentionsValue };
+
+  return (
+    <MentionsInput
+      className={cn("field-sizing-content max-h-48 min-h-16 flex-1 w-full", className)}
+      name="message"
+      onChange={handleChange}
+      onCompositionEnd={() => setIsComposing(false)}
+      onCompositionStart={() => setIsComposing(true)}
+      onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
+      placeholder={placeholder}
+      style={mentionsStyle}
+      {...props}
+      {...valueProps}
+    >
+      <Mention
+        appendSpaceOnAdd
+        className="rounded bg-accent px-1 text-accent-foreground"
+        data={mentionData}
+        displayTransform={(_id, display) => display}
+        markup="@[__display__](__id__)"
+        onAdd={(id, display) => onMentionAdd?.(id, display)}
+        trigger="@"
+      />
+    </MentionsInput>
   );
 };
 
