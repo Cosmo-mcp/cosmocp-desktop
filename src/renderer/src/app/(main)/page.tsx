@@ -1,5 +1,5 @@
 'use client'
-import { JSX, useCallback, useEffect, useState } from "react";
+import { JSX, useCallback, useEffect, useMemo, useState } from "react";
 import { ChatHistory } from "@/components/chat-history";
 import { Chat } from "core/dto";
 import { ChatHeader } from "@/components/chat-header";
@@ -26,6 +26,8 @@ export default function Page(): JSX.Element {
     // Load messages for the selected chat using SWR
     const { messages: loadedMessages } = useChatMessages(selectedChat?.id);
 
+    const transport = useMemo(() => new IpcChatTransport(), []);
+
     const {
         messages,
         sendMessage,
@@ -33,10 +35,9 @@ export default function Page(): JSX.Element {
         stop,
         regenerate,
         setMessages,
-        error
     } = useChat<UIMessage>({
         id: selectedChat?.id,
-        transport: new IpcChatTransport(),
+        transport,
         onFinish: () => {
             mutateChats();
         },
@@ -47,6 +48,13 @@ export default function Page(): JSX.Element {
         },
     });
 
+    // Sync loaded messages with AI SDK
+    useEffect(() => {
+        if (loadedMessages && loadedMessages.length > 0 && messages.length === 0) {
+            setMessages(loadedMessages);
+        }
+    }, [loadedMessages, messages.length, setMessages]);
+
     // Auto-select first chat if none selected and chats are available
     useEffect(() => {
         if (!selectedChat && chats.length > 0) {
@@ -54,13 +62,6 @@ export default function Page(): JSX.Element {
             setSelectedChat(chatToSelect);
         }
     }, [chats, selectedChat]);
-
-    // Sync loaded messages with AI SDK
-    useEffect(() => {
-        if (loadedMessages) {
-            setMessages(loadedMessages);
-        }
-    }, [loadedMessages, setMessages]);
 
     const handleNewChat = useCallback(() => {
         window.api.chat.createChat({ title: "New Chat" })
