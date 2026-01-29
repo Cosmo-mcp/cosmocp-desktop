@@ -134,6 +134,13 @@
       "when": 1768210093485,
       "tag": "0018_curvy_tigra",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1768965003725,
+      "tag": "0019_silver_mentor",
+      "breakpoints": true
     }
   ]
 }

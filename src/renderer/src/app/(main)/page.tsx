@@ -155,6 +155,30 @@ export default function Page(): JSX.Element {
             });
     }, [selectedChat]);
 
+    const handlePersonaChange = useCallback((personaId: string | null) => {
+        if (!selectedChat) return;
+
+        const updatedChat = {
+            ...selectedChat,
+            selectedPersonaId: personaId
+        };
+
+        setSelectedChat(updatedChat);
+
+        setChatHistory(prev =>
+            prev.map(chat => (chat.id === selectedChat.id ? updatedChat : chat))
+        );
+
+        window.api.chat
+            .updateSelectedPersonaForChat(selectedChat.id, {
+                selectedPersonaId: personaId,
+            })
+            .catch((error) => {
+                logger.error(error);
+                setRefreshHistory(true);
+            });
+    }, [selectedChat]);
+
     return (
         <div
             className="flex-1 min-h-0 flex rounded-b-lg border-t-0 overflow-hidden bg-background">
@@ -212,6 +236,7 @@ export default function Page(): JSX.Element {
                                     messages={messages}
                                     sendMessage={sendMessage}
                                     onModelChange={handleModelChange}
+                                    onPersonaChange={handlePersonaChange}
                                 />
                             </div>
                         </>) : (
