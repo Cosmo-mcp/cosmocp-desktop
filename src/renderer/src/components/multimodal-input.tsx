@@ -79,7 +79,6 @@ export function MultimodalInput({
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const [personas, setPersonas] = useState<Persona[]>([]);
-    const [selectedPersonaId, setSelectedPersonaId] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
@@ -126,13 +125,13 @@ export function MultimodalInput({
             return;
         }
         const modelId = chat.selectedProvider + ":" + chat.selectedModelId
-        const {text: cleanedText, personaName} = parsePersonaDirective(message.text);
+        const {text: cleanedText} = parsePersonaDirective(message.text);
 
         sendMessage({
             text: cleanedText,
             files: message.files
         }, {
-            metadata: {modelId, personaName}
+            metadata: {modelId, personaId: chat.selectedPersonaId}
         }).catch((error) => {
             toast.error(error.message);
         }).finally(() => {
@@ -168,7 +167,7 @@ export function MultimodalInput({
                     <PromptInputMentionsTextarea
                         mentionData={personaMentionData}
                         onChange={(value) => setInput(value)}
-                        onMentionAdd={(id) => setSelectedPersonaId(id as string)}
+                        onMentionAdd={(id) => onPersonaChange(id as string)}
                         value={input}
                     />
                 </PromptInputBody>
@@ -244,8 +243,8 @@ export function MultimodalInput({
                             </ModelSelectorContent>
                         </ModelSelector>
                         <PromptInputSelect
-                            onValueChange={setSelectedPersonaId}
-                            value={selectedPersonaId}
+                            onValueChange={onPersonaChange}
+                            value={chat.selectedPersonaId as string}
                         >
                             <PromptInputSelectTrigger className="w-max">
                                 <PromptInputSelectValue placeholder="Persona"/>
