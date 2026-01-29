@@ -45,6 +45,20 @@ import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {logger} from "../../logger";
 
+const parsePersonaDirective = (text: string) => {
+    const match = text.match(/^\s*@persona(?:\s*[:=])?\s*(?:"([^"]+)"|'([^']+)'|([^\s]+))\s*/i);
+    if (!match) {
+        return {text, personaName: undefined};
+    }
+
+    const personaName = match[1] ?? match[2] ?? match[3];
+    const remainingText = text.slice(match[0].length).trimStart();
+    return {
+        text: remainingText,
+        personaName,
+    };
+};
+
 export function MultimodalInput({
                                     chat,
                                     status,
@@ -65,7 +79,6 @@ export function MultimodalInput({
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const [personas, setPersonas] = useState<Persona[]>([]);
-    const [selectedPersonaId, setSelectedPersonaId] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
@@ -112,12 +125,13 @@ export function MultimodalInput({
             return;
         }
         const modelId = chat.selectedProvider + ":" + chat.selectedModelId
+        const {text: cleanedText} = parsePersonaDirective(message.text);
 
         sendMessage({
-            text: message.text,
+            text: cleanedText,
             files: message.files
         }, {
-            metadata: {modelId}
+            metadata: {modelId, personaId: chat.selectedPersonaId}
         }).catch((error) => {
             toast.error(error.message);
         }).finally(() => {
@@ -153,7 +167,7 @@ export function MultimodalInput({
                     <PromptInputMentionsTextarea
                         mentionData={personaMentionData}
                         onChange={(value) => setInput(value)}
-                        onMentionAdd={(id) => setSelectedPersonaId(id as string)}
+                        onMentionAdd={(id) => onPersonaChange(id as string)}
                         value={input}
                     />
                 </PromptInputBody>
@@ -229,8 +243,8 @@ export function MultimodalInput({
                             </ModelSelectorContent>
                         </ModelSelector>
                         <PromptInputSelect
-                            onValueChange={setSelectedPersonaId}
-                            value={selectedPersonaId}
+                            onValueChange={onPersonaChange}
+                            value={chat.selectedPersonaId as string}
                         >
                             <PromptInputSelectTrigger className="w-max">
                                 <PromptInputSelectValue placeholder="Persona"/>

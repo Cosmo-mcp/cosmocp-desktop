@@ -7,6 +7,7 @@ import {Controller} from "./Controller";
 import {CORETYPES} from "core/types/types";
 import {ModelProviderService} from "core/services/ModelProviderService";
 import {MessageService} from "core/services/MessageService";
+import {PersonaService} from "core/services/PersonaService";
 import {logger} from "../logger";
 
 @injectable()
@@ -17,7 +18,9 @@ export class StreamingChatController implements Controller {
     constructor(@inject(CORETYPES.ModelProviderService)
                 private modelProviderService: ModelProviderService,
                 @inject(CORETYPES.MessageService)
-                private messageService: MessageService) {
+                private messageService: MessageService,
+                @inject(CORETYPES.PersonaService)
+                private personaService: PersonaService) {
     }
 
     @IpcOn("sendMessage")
@@ -25,6 +28,17 @@ export class StreamingChatController implements Controller {
         const modelProviderRegistry = await this.modelProviderService.getModelProviderRegistry();
         const webContents = event.sender as WebContents;
         const modelMessages: ModelMessage[] = await convertToModelMessages(args.messages);
+        const persona = args.personaId
+            ? await this.personaService.getById(args.personaId)
+            : args.personaName
+                ? await this.personaService.getByName(args.personaName)
+                : undefined;
+        if (persona?.details) {
+            modelMessages.unshift({
+                role: "system",
+                content: persona.details,
+            });
+        }
 
         const controller = new AbortController();
         this.activeStreams.set(args.streamChannel, controller);
