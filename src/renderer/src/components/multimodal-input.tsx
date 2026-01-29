@@ -15,16 +15,16 @@ import {
     PromptInputButton,
     PromptInputFooter,
     PromptInputHeader,
-    PromptInputProvider,
-    PromptInputSubmit,
     PromptInputMentionsTextarea,
+    type PromptInputMessage,
+    PromptInputProvider,
     PromptInputSelect,
     PromptInputSelectContent,
     PromptInputSelectItem,
     PromptInputSelectTrigger,
     PromptInputSelectValue,
-    PromptInputTools,
-    type PromptInputMessage
+    PromptInputSubmit,
+    PromptInputTools
 } from './ai-elements/prompt-input';
 import type {UseChatHelpers} from '@ai-sdk/react';
 import {Chat, Persona, ProviderWithModels} from "core/dto";
@@ -50,6 +50,7 @@ export function MultimodalInput({
                                     status,
                                     sendMessage,
                                     onModelChange,
+                                    onPersonaChange,
                                 }: {
     chat: Chat;
     status: UseChatHelpers<UIMessage>['status'];
@@ -58,6 +59,7 @@ export function MultimodalInput({
     className?: string;
     stillAnswering?: boolean,
     onModelChange: (providerName: string, modelId: string) => void;
+    onPersonaChange: (personaId: string | null) => void;
 }) {
     const [input, setInput] = useState<string>('');
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
@@ -100,7 +102,7 @@ export function MultimodalInput({
         if (firstProvider) {
             const firstModel = firstProvider.models[0];
             if (firstModel) {
-               onModelChange(firstProvider.name, firstModel.modelId);
+                onModelChange(firstProvider.name, firstModel.modelId);
             }
         }
     }, [providers, chat.selectedProvider, chat.selectedModelId, onModelChange]);
@@ -151,7 +153,7 @@ export function MultimodalInput({
                     <PromptInputMentionsTextarea
                         mentionData={personaMentionData}
                         onChange={(value) => setInput(value)}
-                        onMentionAdd={(id) => setSelectedPersonaId(id)}
+                        onMentionAdd={(id) => setSelectedPersonaId(id as string)}
                         value={input}
                     />
                 </PromptInputBody>
@@ -161,7 +163,8 @@ export function MultimodalInput({
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <span>
-                                        <PromptInputActionMenuTrigger disabled={!selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE)}>
+                                        <PromptInputActionMenuTrigger
+                                            disabled={!selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE)}>
                                         </PromptInputActionMenuTrigger>
                                     </span>
                                 </TooltipTrigger>

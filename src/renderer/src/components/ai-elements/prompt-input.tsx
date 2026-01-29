@@ -1,75 +1,56 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+    CommandSeparator,
 } from "@/components/ui/command";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import {HoverCard, HoverCardContent, HoverCardTrigger,} from "@/components/ui/hover-card";
+import {InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea,} from "@/components/ui/input-group";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
+import {cn} from "@/lib/utils";
+import type {ChatStatus, FileUIPart} from "ai";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupTextarea,
-} from "@/components/ui/input-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import type { ChatStatus, FileUIPart } from "ai";
-import {
-  CornerDownLeftIcon,
-  ImageIcon,
-  Loader2Icon,
-  MicIcon,
-  PaperclipIcon,
-  PlusIcon,
-  SquareIcon,
-  XIcon,
+    CornerDownLeftIcon,
+    ImageIcon,
+    Loader2Icon,
+    MicIcon,
+    PaperclipIcon,
+    PlusIcon,
+    SquareIcon,
+    XIcon,
 } from "lucide-react";
-import { nanoid } from "nanoid";
+import {nanoid} from "nanoid";
+import * as React from "react";
 import {
-  type ChangeEvent,
-  type ChangeEventHandler,
-  Children,
-  type ClipboardEventHandler,
-  type ComponentProps,
-  createContext,
-  type FormEvent,
-  type FormEventHandler,
-  Fragment,
-  type HTMLAttributes,
-  type KeyboardEventHandler,
-  type PropsWithChildren,
-  type ReactNode,
-  type RefObject,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
+    type ChangeEvent,
+    type ChangeEventHandler,
+    Children,
+    type ClipboardEventHandler,
+    type ComponentProps,
+    createContext,
+    type FormEvent,
+    type FormEventHandler,
+    Fragment,
+    type HTMLAttributes,
+    type KeyboardEventHandler,
+    type PropsWithChildren,
+    type ReactNode,
+    type RefObject,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
-import { Mention, MentionsInput, type MentionsInputProps } from "react-mentions";
+import {Mention, MentionsInput, type MentionsInputProps} from "react-mentions";
 import {logger} from "../../../logger";
 
 // ============================================================================
@@ -911,7 +892,7 @@ export type PromptInputMentionsTextareaProps = Omit<
   "children" | "onChange" | "value"
 > & {
   mentionData: { id: string; display: string }[];
-  onMentionAdd?: (id: string, display: string) => void;
+  onMentionAdd?: (id: string | number, display: string) => void;
   onChange?: (value: string) => void;
   value?: string;
   placeholder?: string;
@@ -992,7 +973,9 @@ export const PromptInputMentionsTextarea = ({
     }
   }, [externalValue, plainTextValue]);
 
-  const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
+  const handleKeyDown: ((
+      event: React.KeyboardEvent<HTMLTextAreaElement> | React.KeyboardEvent<HTMLInputElement>,
+  ) => void) = (e) => {
     if (e.key === "Enter") {
       if (isComposing || e.nativeEvent.isComposing) {
         return;

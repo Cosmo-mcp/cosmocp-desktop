@@ -1,7 +1,7 @@
 import {inject, injectable} from "inversify";
 import {CORETYPES} from "../types/types";
 import {ChatRepository} from "../repositories/ChatRepository";
-import {Chat, ChatWithMessages, ModelIdentifier, NewChat} from "../dto";
+import {Chat, ChatWithMessages, ModelIdentifier, NewChat, PersonaIdentifier} from "../dto";
 
 @injectable()
 export class ChatService {
@@ -40,6 +40,10 @@ export class ChatService {
 
     public async updateSelectedModelForChat(id: string, modelIdentifier: ModelIdentifier): Promise<void> {
         return this.chatRepository.updateSelectedModelForChatId(id, modelIdentifier);
+    }
+
+    public async updateSelectedPersonaForChat(id: string, personaIdentifier: PersonaIdentifier): Promise<void> {
+        return this.chatRepository.updateSelectedPersonaForChatId(id, personaIdentifier);
     }
 
     public async updateSelectedChat(id: string): Promise<void> {
