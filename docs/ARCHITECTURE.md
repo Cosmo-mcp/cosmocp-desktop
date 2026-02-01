@@ -55,6 +55,7 @@ Cosmo Studio is an Electron desktop application with a static-exported Next.js U
 ### Core package (`packages/core`)
 
 - Shared DTOs and types (`packages/core/dto.ts`).
+- Provider catalog metadata shared across processes (`packages/core/providerCatalog.ts`).
 - Drizzle schema and DB manager (`packages/core/database/*`).
 - Repositories and services (`packages/core/repositories/*`, `packages/core/services/*`).
 - DI container (`packages/core/inversify.config.ts`) used as the parent container for main.

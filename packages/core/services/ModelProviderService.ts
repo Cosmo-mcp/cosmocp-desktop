@@ -11,6 +11,7 @@ import {createOpenAI, OpenAIProviderSettings} from "@ai-sdk/openai";
 import {createOllama, OllamaProviderSettings} from "ollama-ai-provider-v2";
 import {createProviderRegistry, ProviderRegistryProvider} from "ai";
 import {logger} from "../../../src/main/logger";
+import {ProviderCatalogByType} from "../providerCatalog";
 
 
 export type RemoteProviderOptions =
@@ -26,6 +27,17 @@ export class ModelProviderService {
     private modelProviderRegistry: ProviderRegistryProvider;
     private static MODELS_DOT_DEV_URL = "https://models.dev/api.json";
     private static MODELS_OLLAMA_URL = "http://127.0.0.1:11434/api";
+    private readonly providerFactoryByType: Record<ModelProviderTypeEnum, (provider: ModelProviderLite) => ProviderV3> = {
+        [ModelProviderTypeEnum.ANTHROPIC]: (provider) => createAnthropic(this.createRemoteOptions(provider)),
+        [ModelProviderTypeEnum.GOOGLE]: (provider) => createGoogleGenerativeAI(this.createRemoteOptions(provider)),
+        [ModelProviderTypeEnum.OPENAI]: (provider) => createOpenAI(this.createRemoteOptions(provider)),
+        [ModelProviderTypeEnum.OLLAMA]: (provider) => createOllama(this.createLocalOptions(provider)),
+        [ModelProviderTypeEnum.CUSTOM]: (provider) => createOpenAI({
+            name: provider.name,
+            apiKey: provider.apiKey,
+            baseURL: provider.apiUrl,
+        }),
+    };
 
     constructor(
         @inject(CORETYPES.ModelProviderRepository) repository: ModelProviderRepository
@@ -106,29 +118,11 @@ export class ModelProviderService {
         this.getProviders({withApiKey: true})
             .then(providers => {
                 for (const provider of providers) {
-                    switch (provider.type) {
-                        case ModelProviderTypeEnum.ANTHROPIC:
-                            registryObject[provider.name] = createAnthropic(this.createRemoteOptions(provider));
-                            break;
-                        case ModelProviderTypeEnum.GOOGLE:
-                            registryObject[provider.name] = createGoogleGenerativeAI(this.createRemoteOptions(provider));
-                            break;
-                        case ModelProviderTypeEnum.OPENAI:
-                            registryObject[provider.name] = createOpenAI(this.createRemoteOptions(provider));
-                            break;
-                        case ModelProviderTypeEnum.OLLAMA:
-                            registryObject[provider.name] = createOllama(this.createLocalOptions(provider));
-                            break;
-                        case ModelProviderTypeEnum.CUSTOM:
-                            registryObject[provider.name] = createOpenAI({
-                                name: provider.name,
-                                apiKey: provider.apiKey,
-                                baseURL: provider.apiUrl,
-                            });
-                            break;
-                        default:
-                            throw new Error(`Unknown provider: ${provider.type} , ${provider.name}`);
+                    const factory = this.providerFactoryByType[provider.type];
+                    if (!factory) {
+                        throw new Error(`Unknown provider: ${provider.type} , ${provider.name}`);
                     }
+                    registryObject[provider.name] = factory(provider);
                 }
                 this.modelProviderRegistry = createProviderRegistry(registryObject);
             })
@@ -215,13 +209,19 @@ export class ModelProviderService {
     }
 
     public async getModelsForProviderUsingModelsDotDev(provider: ModelProviderCreateInput): Promise<NewModel[]> {
-        if (provider.type === ModelProviderTypeEnum.OLLAMA) {
+        const result: NewModel[] = [];
+        const catalogEntry = ProviderCatalogByType[provider.type];
+        if (!catalogEntry) {
+            logger.warn(`Model listing is not supported for provider type: ${provider.type}.`);
+            return result;
+        }
+
+        if (catalogEntry.modelsSource === "ollama") {
             return this.getModelsFromOllama(provider);
         }
-        const result: NewModel[] = [];
 
-        if (provider.type === ModelProviderTypeEnum.CUSTOM) {
-            logger.warn(`Model listing is not supported for CUSTOM provider type.`);
+        if (catalogEntry.modelsSource === "none") {
+            logger.warn(`Model listing is not supported for provider type: ${provider.type}.`);
             return result;
         }
 
@@ -239,7 +239,8 @@ export class ModelProviderService {
             }
 
             const data = await response.json();
-            const modelsDict = data[provider.type]?.models ?? {};
+            const modelsDevKey = catalogEntry.modelsDevKey ?? provider.type;
+            const modelsDict = data[modelsDevKey]?.models ?? {};
             for (const key in modelsDict) {
                 const m = modelsDict[key];
                 result.push({

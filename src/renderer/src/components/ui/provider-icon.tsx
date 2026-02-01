@@ -9,7 +9,7 @@ type ProviderIconProps = {
     theme?: string;
 };
 
-const iconMap = {
+const iconMap: Record<ThemeType, Partial<Record<ModelProviderTypeEnum, string>>> = {
     light: {
         [ModelProviderTypeEnum.OPENAI]: "providers/openai-black.webp",
         [ModelProviderTypeEnum.ANTHROPIC]: "providers/anthropic-black.webp",
@@ -28,7 +28,9 @@ const iconMap = {
 
 const ProviderIcon = ({ type, size = 20, theme }: ProviderIconProps) => {
     const normalizedTheme: ThemeType = theme === "light" ? "light" : "dark";
-    const iconPath = iconMap[normalizedTheme][type];
+    const iconPath =
+        iconMap[normalizedTheme][type] ??
+        iconMap[normalizedTheme][ModelProviderTypeEnum.CUSTOM];
 
     return (
         <img
