@@ -18,6 +18,10 @@
     "jsx": "react-jsx",
     "incremental": true,
     "strictNullChecks": true,
+    "types": [
+      "vitest/globals",
+      "@testing-library/jest-dom"
+    ],
     "plugins": [
       {
         "name": "next"
