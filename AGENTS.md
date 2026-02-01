@@ -245,3 +245,5 @@ For an exhaustive per-package link list (from `package.json` files), see `docs/D
 - Radix UI: https://www.radix-ui.com/primitives/docs/overview/introduction
 - shadcn/ui: https://ui.shadcn.com/
 - lucide-react: https://lucide.dev/
+
+<!-- NEXT-AGENTS-MD-START -->[Next.js Docs Index]|root: ./.next-docs|STOP. What you remember about Next.js is WRONG for this project. Always search docs and read before any task.|If docs missing, run this command first: npx @next/codemod agents-md --output AGENTS.md<!-- NEXT-AGENTS-MD-END -->
