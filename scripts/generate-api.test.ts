@@ -1,16 +1,24 @@
 import "reflect-metadata"
 import fs from "fs"
 import path from "path"
-import { describe, expect, it } from "vitest"
-import { ChatController } from "../src/main/controllers/ChatController"
-import { MessageController } from "../src/main/controllers/MessageController"
-import { ModelProviderController } from "../src/main/controllers/ModelProviderController"
-import { PersonaController } from "../src/main/controllers/PersonaController"
-import { StreamingChatController } from "../src/main/controllers/StreamingChatController"
+import { describe, expect, it, vi } from "vitest"
 import { generateApiContent } from "./generate-api-lib"
+
+vi.mock("../src/main/logger", () => ({
+  logger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+  },
+}))
 
 describe("generate-api", () => {
   it("stays in sync with the checked-in preload api", () => {
+    const { ChatController } = require("../src/main/controllers/ChatController")
+    const { MessageController } = require("../src/main/controllers/MessageController")
+    const { ModelProviderController } = require("../src/main/controllers/ModelProviderController")
+    const { PersonaController } = require("../src/main/controllers/PersonaController")
+    const { StreamingChatController } = require("../src/main/controllers/StreamingChatController")
     const controllerSources = [
       {
         controller: ChatController,
