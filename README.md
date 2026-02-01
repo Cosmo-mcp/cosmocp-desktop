@@ -12,6 +12,14 @@ Cosmo Studio is a desktop AI chat application. It provides a beautiful and intui
 *   **Provider Management:** Easily add, edit, and remove AI model providers.
 *   **Cross-Platform:** Works on Windows, macOS, and Linux.
 
+## Getting started (development)
+
+From the repo root:
+
+```bash
+npm install
+npm run dev
+```
 
 ## License
 
