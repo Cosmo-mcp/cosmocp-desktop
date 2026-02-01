@@ -76,3 +76,54 @@ Add tests for any new UI behavior:
 
 If a test harness is missing, add it as part of the change rather than skipping tests.
 
+## How to add a new page + sidebar entry
+
+Cosmo Studio uses the Next.js App Router. The main application shell (sidebar + header) is defined by the `(main)` route group layout.
+
+### 1) Create an empty page
+
+Create a new folder under `src/renderer/src/app/(main)/` and add a `page.tsx`.
+
+Example: add a page at `/about`
+
+- Create file: `src/renderer/src/app/(main)/about/page.tsx`
+- Minimal client component template:
+
+```tsx
+'use client';
+
+export default function AboutPage() {
+  return (
+    <div className="flex h-full w-full flex-col p-4">
+      <h1 className="text-2xl font-semibold">About</h1>
+    </div>
+  );
+}
+```
+
+If the page doesn’t need hooks/state, you can omit `'use client'` and make it a server component (but remember this app is statically exported in production, so avoid server-only features).
+
+### 2) Add it to the sidebar
+
+Update the sidebar menu items in `src/renderer/src/components/app-sidebar.tsx`:
+
+- Import an icon from `lucide-react` (or reuse an existing one).
+- Add a new item to `menuItems`:
+
+```ts
+{
+  title: "About",
+  url: "./about",
+  icon: Info,
+}
+```
+
+Keep URLs consistent with existing entries (`"./"`, `"./persona"`, `"./settings"`). The `Link` rendering is already handled by the sidebar component.
+
+### 3) Quick verification
+
+- Start dev: `npm run dev` (from repo root).
+- Click the new sidebar item and confirm:
+  - route renders inside the main shell
+  - keyboard navigation works
+  - layout doesn’t overflow (small window widths)

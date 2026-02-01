@@ -85,6 +85,7 @@ We use a declarative IPC pattern:
    - Add `@IpcHandler("...")` (for invoke) or `@IpcOn("...")` (for send).
 2. Validate input with `zod` **inside** the controller (or at the first boundary layer).
 3. Bind the controller in `src/main/inversify.config.ts`.
+4. Bind Every new controller in `src/main/inversify.config.ts` with the same ServiceIdentifier type `TYPES.Controller`
 4. Run `npm run generate-api` (root) to regenerate `src/preload/api.ts`.
 5. Ensure the renderer uses `window.api.<group>.<method>()` only.
 6. Add tests (unit + integration) for the new behavior.
@@ -115,6 +116,7 @@ The current UI (see screenshots in the PR description / repository) establishes:
 
 - All interactive controls must be keyboard-accessible and have visible focus.
 - Provide `aria-label` / `sr-only` text where the UI is icon-only.
+- Add tooltip where the UI is icon-only.
 - Maintain sufficient contrast in both themes; do not rely on color alone to convey state.
 - Avoid `dangerouslySetInnerHTML` unless content is sanitized.
 
