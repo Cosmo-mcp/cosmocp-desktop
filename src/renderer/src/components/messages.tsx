@@ -154,92 +154,103 @@ function PureMessages({
                         description="Type a message below to begin chatting"
                     />
                 ) : (
-                    messages.map((message) => (
-                        <div key={message.id}>
-                            {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
-                                <Sources>
-                                    <SourcesTrigger
-                                        count={
-                                            message.parts.filter(
-                                                (part) => part.type === 'source-url',
-                                            ).length
-                                        }
-                                    />
-                                    {message.parts.filter((part) => part.type === 'source-url').map((part, i) => (
-                                        <SourcesContent key={`${message.id}-${i}`}>
-                                            <Source
-                                                key={`${message.id}-${i}`}
-                                                href={part.url}
-                                                title={part.url}
-                                            />
-                                        </SourcesContent>
-                                    ))}
-                                </Sources>
-                            )}
-                            {message.parts.map((part, i) => {
-                                switch (part.type) {
-                                    case 'text':
-                                        return (
-                                            <Message
-                                                key={`${message.id}-${i}`}
-                                                from={message.role}
-                                                id={`message-${message.id}-part-${i}`}
-                                            >
-                                                <MessageContent>
-                                                    <MessageResponse key={searchQuery}>
-                                                        {highlightText(part.text, searchQuery || '', message.id, i)}
-                                                    </MessageResponse>
-                                                </MessageContent>
-                                                {message.role === 'assistant' && (
-                                                    <MessageActions>
-                                                        {/*<MessageAction
-                                                            onClick={() => regenerate()}
-                                                            label="Retry"
-                                                        >
-                                                            <RefreshCcwIcon className="size-3"/>
-                                                        </MessageAction>*/}
-                                                        <MessageAction
-                                                            onClick={() =>
-                                                                navigator.clipboard.writeText(part.text)
-                                                            }
-                                                            label="Copy"
-                                                        >
-                                                            <CopyIcon className="size-3"/>
-                                                        </MessageAction>
-                                                    </MessageActions>
-                                                )}
-                                            </Message>
-                                        );
-                                    case 'reasoning':
-                                        return (
-                                            <Reasoning
-                                                key={`${message.id}-${i}`}
-                                                className="w-full"
-                                                isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
-                                            >
-                                                <ReasoningTrigger/>
-                                                <ReasoningContent>{part.text}</ReasoningContent>
-                                            </Reasoning>
-                                        );
-                                    case 'file':
-                                        return (
-                                            <div className="flex flex-row justify-end gap-2 m-2">
-                                                <PreviewAttachment
-                                                    attachment={{
-                                                        name: part.filename ?? "file",
-                                                        contentType: part.mediaType,
-                                                        url: part.url,
-                                                    }}
-                                                    key={part.url}
+                    messages.map((message) => {
+                        return (
+                            <div key={message.id}>
+                                {/* Render reasoning parts first */}
+                                {message.role === 'assistant' && (() => {
+                                    const reasoningParts = message.parts.filter(part => part.type === 'reasoning');
+                                    if (reasoningParts.length === 0) return null;
+                                    
+                                    const hasTextContent = message.parts.some(p => p.type === 'text' && p.text.length > 0);
+                                    const isReasoningStreaming = status === 'streaming' && !hasTextContent;
+
+                                    return reasoningParts.map((part, i) => (
+                                        <Reasoning
+                                            key={`${message.id}-reasoning-${i}`}
+                                            className="w-full"
+                                            isStreaming={isReasoningStreaming}
+                                        >
+                                            <ReasoningTrigger />
+                                            <ReasoningContent>{part.text}</ReasoningContent>
+                                        </Reasoning>
+                                    ));
+                                })()}
+                                {/* Render sources */}
+                                {message.role === 'assistant' && message.parts.filter(part => part.type === 'source-url').length > 0 && (
+                                    <Sources>
+                                        <SourcesTrigger
+                                            count={
+                                                message.parts.filter(
+                                                    (part) => part.type === 'source-url',
+                                                ).length
+                                            }
+                                        />
+                                        {message.parts.filter((part) => part.type === 'source-url').map((part, idx) => (
+                                            <SourcesContent key={`${message.id}-source-${idx}`}>
+                                                <Source
+                                                    key={`${message.id}-source-${idx}`}
+                                                    href={part.url}
+                                                    title={part.url}
                                                 />
-                                            </div>
-                                        );
-                                    default:
-                                        return null;
-                                }
-                            })}
-                        </div>
-                    )))}
+                                            </SourcesContent>
+                                        ))}
+                                    </Sources>
+                                )}
+                                {/* Render other parts (text, file, etc.) */}
+                                {message.parts.map((part, i) => {
+                                    switch (part.type) {
+                                        case 'text':
+                                            return (
+                                                <Message
+                                                    key={`${message.id}-${i}`}
+                                                    from={message.role}
+                                                    id={`message-${message.id}-part-${i}`}
+                                                >
+                                                    <MessageContent>
+                                                        <MessageResponse key={searchQuery}>
+                                                            {highlightText(part.text, searchQuery || '', message.id, i)}
+                                                        </MessageResponse>
+                                                    </MessageContent>
+                                                    {message.role === 'assistant' && (
+                                                        <MessageActions>
+                                                            {/*<MessageAction
+                                                                onClick={() => regenerate()}
+                                                                label="Retry"
+                                                            >
+                                                                <RefreshCcwIcon className="size-3"/>
+                                                            </MessageAction>*/}
+                                                            <MessageAction
+                                                                onClick={() =>
+                                                                    navigator.clipboard.writeText(part.text)
+                                                                }
+                                                                label="Copy"
+                                                            >
+                                                                <CopyIcon className="size-3" />
+                                                            </MessageAction>
+                                                        </MessageActions>
+                                                    )}
+                                                </Message>
+                                            );
+                                        case 'file':
+                                            return (
+                                                <div key={`${message.id}-${i}`} className="flex flex-row justify-end gap-2 m-2">
+                                                    <PreviewAttachment
+                                                        attachment={{
+                                                            name: part.filename ?? "file",
+                                                            contentType: part.mediaType,
+                                                            url: part.url,
+                                                        }}
+                                                    />
+                                                </div>
+                                            );
+                                        default:
+                                            return null;
+                                    }
+                                })}
+                            </div>
+                        );
+                    }))}
                 {status === 'submitted' &&
                     <div className="self-start">
                         <Loader/>
