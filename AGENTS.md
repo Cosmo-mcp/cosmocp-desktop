@@ -1,73 +1,245 @@
-# A Software Engineer's Guide to the `Cosmo-Studio` Project
+# `Cosmo Studio` — AGENTS Guide (single source of truth)
 
-This guide is a checklist to help you write, test, and review code *specifically for this Electron/Next.js project*. It builds on our exact tech stack and file structure.
+This file is written for AI agents/LLMs and engineers working in this repo. It explains **how the project is structured**, **where code belongs**, **how to ship safely**, and **what quality bars are non‑negotiable**.
 
----
+If you change architecture, workflows, scripts, or conventions, **update this file** (and the scoped `AGENTS.override.md` files) in the same PR.
 
-## 1. Before You Write a Single Line of Code
+## Project map (read this first)
 
-*   **Understand the Architecture:** Remember the four main parts of this app:
-    1.  **Main Process (Electron):** Lives in `src/main`. It manages windows, database access, and has access to Node.js APIs (like `fs` for files). The entry point is `src/main/index.ts`. It imports business logic from `src/core`.
-    2.  **Renderer Process (Next.js):** Lives in `src/renderer`. This is our entire UI. It's a standard Next.js app. You can see the main page component at `src/renderer/src/app/page.tsx`.
-    3.  **Core Logic (`src/core`):** This directory contains the core application logic, which is designed to be environment-agnostic. It is imported by the Electron main process (`src/main`). In the future, this same `core` logic can be imported into a different entry point, such as an Express.js server, to create a web-based version of the application without significant refactoring.
-    4.  **Database:** We use `Drizzle ORM` with `pglite` as the database engine. Schema definitions are located in `packages/core/database/schema/schema.ts`.
+Cosmo Studio is an Electron desktop app with a static-exported Next.js UI.
 
-*   **Plan Your Feature Location:**
-    *   Is it a purely visual change? It belongs in `src/renderer` (e.g., modifying a React component in `src/renderer/src/components`).
-    *   Does it need to access the user's file system, database, or other OS-level features? The logic must go in the **Core Logic (`src/core`)** and be exposed to the main process. You will then need to expose it securely to the UI via IPC.
-    *   Does it involve AI? We use the `@ai-sdk/google` and `ai` libraries. AI-related logic should also reside in the `src/core` and be exposed via the main process.
+- **Electron main process**: `src/main/` (entry: `src/main/index.ts`)
+  - Owns windows, app lifecycle, database initialization, IPC registration.
+- **Preload (security boundary)**: `src/preload/` (entry: `src/preload/index.ts`)
+  - Exposes a minimal, typed `window.api` via `contextBridge`.
+  - `src/preload/api.ts` is generated (see “IPC & API generation”).
+- **Renderer (Next.js UI)**: `src/renderer/` (Next app: `src/renderer/src/`)
+  - Runs in the BrowserWindow, talks to main **only** via `window.api`.
+  - Next config is `output: "export"` (static build to `src/renderer/out/`).
+- **Core package (domain + DB + AI)**: `packages/core/` (workspace package name: `core`)
+  - Drizzle schema, repositories/services, DTOs shared across processes.
+  - Imported as `core/...` from main/renderer/preload.
+- **Tooling/scripts**: `scripts/` (currently: `scripts/generate-api.ts`)
+  - Generates the preload API surface from main IPC controllers.
+- **Database**: Drizzle ORM + PGlite
+  - Schema: `packages/core/database/schema/`
+  - Migrations output: `migrations/`
+  - Drizzle config: `drizzle.config.ts`
 
-*   **How to Expose Main Process APIs:** To get data from the main process to the UI, you must use our established IPC (Inter-Process Communication) pattern:
-    1.  Add your function/API in the main process in `src/main/ipc/index.ts`.
-    2.  Define the types for the exposed API in `src/preload/api.ts`.
-    3.  Expose it to the renderer in the preload script: `src/preload/index.ts`.
+Internal docs live in `docs/` (keep them updated):
+- `docs/ARCHITECTURE.md`
+- `docs/IPC.md`
+- `docs/DATABASE.md`
+- `docs/RENDERER_DESIGN.md`
+- `docs/TESTING_STRATEGY.md`
+- `docs/DEPENDENCIES.md`
 
-*   **Check Project Conventions:** Before creating a new component, look at existing ones like `src/renderer/src/components/chat-header.tsx`. We use Tailwind CSS for styling and `lucide-react` for icons. Match the existing style.
+## 1) Feature planning & code placement (strict)
 
----
+Before coding, decide **where the feature belongs**. Default to keeping the renderer “dumb” and moving I/O + business logic out of it.
 
-## 2. While You Are Coding
+### Decision tree
 
-### Code Readability & Best Practices
-*   **Component Structure:** Keep React components small and focused. If a component in `src/renderer/src/components` gets too large, break it down.
-*   **State Management:** For UI state, use React hooks (`useState`, `useReducer`). For shared data definitions, see `src/renderer/src/lib/types.ts`.
-*   **Path Aliases:** To keep our import paths clean and manageable, we use TypeScript path aliases. When importing from the `src/core` directory, please use the available aliases. For example, instead of `import { db } from '../core/database/index'` you should use `import { db } from '@database/index'`. Refer to the `paths` section in the root `tsconfig.json` for a complete list of aliases.
-*   **Data Validation:** We use `zod` for robust data validation. When creating or updating data, define a `zod` schema to ensure type safety.
-*   **Styling:** Use Tailwind CSS utility classes directly in your `className` attributes. For common styles, you can use the `@apply` directive in `src/renderer/src/app/globals.css`.
-*   **Linting:** we use google typescript style guide(gts) for linting, please run `npm run lint` to lint the code
-*   **Style Fix:** we use google typescript style guide(gts) for fixing style problems, please run `npm run fix` for gts to fix style according to it's guide
+1. **Pure UI/UX change (layout, styling, components, interaction)**  
+   → `src/renderer/src/...`
 
-### Security
-*   **IPC Security is Critical:** The `src/preload/index.ts` script is a security boundary. When you expose functions from the main process using `contextBridge`, **never** expose entire modules like `fs`. Only expose the specific, minimal functionality the renderer needs. Always validate and sanitize arguments coming from the renderer process, preferably using `zod` schemas.
-*   **Dependency Audits:** We have two `package.json` files. Regularly run `npm audit` in the root directory and in `src/renderer` to check for vulnerabilities in our dependencies.
-*   **Cross-Site Scripting (XSS):** React automatically helps prevent XSS, but be careful when using `dangerouslySetInnerHTML`. In our chat interface, ensure any content rendered from user input is properly sanitized.
+2. **Needs OS access / Electron APIs / filesystem / app lifecycle**  
+   → `src/main/...`  
+   If the renderer needs it, expose a minimal IPC API via preload (see below).
 
-### Performance
-*   **Main vs. Renderer:** Keep the renderer process (the UI) snappy. If you have a long-running or computationally expensive task (like a database query or AI inference), move it to the main process to avoid freezing the UI. Use our IPC mechanism to send the result back.
-*   **React Performance:** In our React components (`src/renderer/src/components`), be mindful of re-renders. Use `React.memo`, `useCallback`, and `useMemo` where appropriate. The `ChatHeader` component is a good example of using `memo`.
-*   **Next.js Build:** Pay attention to the build output from `npm run build` in the `src/renderer` directory. Next.js provides insights into page sizes and performance.
+3. **Database work (schema/repository/service) or cross-process domain logic**  
+   → `packages/core/...`  
+   - Schema changes → also create migrations (`npm run db:generate`) and validate (`npm run db:check`).
 
----
+4. **AI/model provider logic** (providers, streaming, prompt assembly, tool calls)  
+   → Prefer `packages/core/...` for provider registry + model selection logic.  
+   → Keep streaming orchestration that needs `webContents.send` in `src/main/controllers/StreamingChatController.ts`.
 
-## 3. Testing Your Code
+5. **Shared types/DTOs**  
+   → `packages/core/dto.ts` (and types under `packages/core/types/`)
 
-*   **Linting:** Before anything else, run `npm run lint`.
-*   **Database Migrations:**
-    *   After changing the database schema in `src/core/database/schema.ts`, run `npm run db:generate` to create a new migration file.
-    *   Run `npm run db:migrate` to apply the migrations to your local database.
-    *   You can use `npm run db:studio` to open a local web interface to browse your database.
-*   **Unit Tests:** Create test files next to the files they are testing. If you add a utility function to `src/renderer/src/lib/utils.ts`, add a corresponding `utils.test.ts`.
-*   **End-to-End Testing:** The most important test is to run the application itself. Use `npm run dev` to start the development environment. Click through your new feature and try to break it. Test the entire flow from the UI in the renderer to the logic in the main process.
+6. **Anything crossing the process boundary** (renderer ⇄ main)  
+   → Add IPC handler in `src/main/controllers/*` + expose via generated preload API.
 
----
+### Non‑negotiables
 
-## 4. Preparing for and Reviewing Code
+- Renderer **must not** import Node/Electron APIs directly.
+- Preload is a security boundary: expose **capabilities**, not modules.
+- All IPC input is untrusted: validate/sanitize with `zod` at the boundary.
 
-*   **Small Pull Requests:** A PR should focus on one feature or bug fix. If you changed both the main process and the renderer, that's fine, but don't mix in an unrelated component refactor.
-*   **Clear PR Description:** Explain *what* you changed and *why*. Crucially, explain *how the reviewer can test it*. "To test, open the app and..."
-*   **Review Checklist:** When reviewing a teammate's PR, ask yourself:
-    *   Does this logic belong in the main process or the renderer? Is it in the right place?
-    *   If an IPC call was added, is it secure? Does it expose the minimum necessary?
-    *   If the database schema was changed, is there a corresponding migration?
-    *   Does the UI match our existing design language (see other components and `tailwind.config.ts`)?
-    *   Are there new dependencies? Have they been added to the correct `package.json`?
+## 2) IPC & API generation (how `window.api` works)
+
+We use a declarative IPC pattern:
+
+- Decorators live in `src/main/ipc/Decorators.ts`
+  - `@IpcController("prefix")` on controller classes
+  - `@IpcHandler("method")` for `ipcMain.handle` request/response APIs
+  - `@IpcOn("event")` for `ipcMain.on` fire-and-forget events (used for streaming)
+- Controllers live in `src/main/controllers/*` and are bound in `src/main/inversify.config.ts`.
+- IPC registration happens in `src/main/ipc/index.ts` via `IpcHandlerRegistry`.
+
+### Adding a new IPC API (checklist)
+
+1. Add method to an existing controller (or create a new controller):
+   - File: `src/main/controllers/<Something>Controller.ts`
+   - Add `@IpcHandler("...")` (for invoke) or `@IpcOn("...")` (for send).
+2. Validate input with `zod` **inside** the controller (or at the first boundary layer).
+3. Bind the controller in `src/main/inversify.config.ts`.
+4. Run `npm run generate-api` (root) to regenerate `src/preload/api.ts`.
+5. Ensure the renderer uses `window.api.<group>.<method>()` only.
+6. Add tests (unit + integration) for the new behavior.
+
+### Generated files policy
+
+- `src/preload/api.ts` is generated by `scripts/generate-api.ts`. Prefer **not** editing it manually.
+- If the generator can’t express a new shape, update the generator and regenerate.
+
+## 3) Frontend design guidelines (intuitive, accessible, mobile‑first)
+
+The current UI (see screenshots in the PR description / repository) establishes:
+- A **left app sidebar** (Cosmo logo + primary nav + Settings).
+- A **content header** with utility actions (e.g., “Give us a Star on GitHub”, theme toggle).
+- Card-based panels, neutral palette, rounded corners, soft borders.
+
+### Design system and branding
+
+- Use the existing Shadcn/Radix component primitives in `src/renderer/src/components/ui/`.
+- Styling is Tailwind v4 + CSS variables in `src/renderer/src/app/globals.css` (neutral base, light/dark).
+- Prefer consistent spacing/radius:
+  - Outer containers use `rounded-lg`, `border`, `bg-background`.
+  - Content widths: follow existing patterns like `max-w-3xl mx-auto` for inputs.
+- Icons: `lucide-react` only.
+- Theme: use `next-themes` and do not hardcode colors; use semantic tokens (e.g., `bg-background`, `text-foreground`, `border-border`).
+
+### Accessibility (must)
+
+- All interactive controls must be keyboard-accessible and have visible focus.
+- Provide `aria-label` / `sr-only` text where the UI is icon-only.
+- Maintain sufficient contrast in both themes; do not rely on color alone to convey state.
+- Avoid `dangerouslySetInnerHTML` unless content is sanitized.
+
+### Mobile-first and responsive
+
+- Start from small screens: ensure the sidebar collapses/works, and main content does not overflow.
+- Avoid fixed heights unless paired with `min-h-0`/`overflow-hidden` (see existing layout usage).
+- Prefer container queries and responsive utilities already in use.
+
+For renderer-specific implementation conventions, see `src/renderer/AGENTS.override.md`.
+
+## 4) Development workflow (commands + expectations)
+
+### Installation
+
+- Root is an npm workspace: installs root + `packages/*` + `src/renderer`.
+- Prefer running `npm install` once at the repo root.
+
+### Day-to-day commands (root)
+
+- `npm run dev` — Run Next dev server + Electron in development.
+- `npm run start` — Start Electron (development). Note: currently runs `npm i` first.
+- `npm run generate-api` — Regenerate preload API (`src/preload/api.ts`) from controllers.
+- `npm run lint` / `npm run fix` — Google TypeScript style (`gts`) lint/fix for main/preload/core/scripts.
+- `npm run db:generate` — Generate new migrations from schema changes.
+- `npm run db:migrate` — Apply migrations to the configured DB (see `drizzle.config.ts`).
+- `npm run db:studio` — Launch Drizzle Studio.
+- `npm run package` / `npm run make` / `npm run publish` — Build renderer then package/make/publish via Electron Forge.
+
+### Renderer commands (`src/renderer`)
+
+- `npm run dev` — Next dev (Turbopack).
+- `npm run build` — Static export build (`output: "export"`) to `src/renderer/out/`.
+- `npm run lint` — Next lint for UI code.
+
+### CI mindset (even locally)
+
+When you change code, always run:
+1. Lints: `npm run lint` (root) and `npm run lint` in `src/renderer`
+2. Tests: add/run targeted tests first, then full suite
+3. Build check (when relevant): renderer build + Electron start
+
+## 5) Testing policy (strict, 100%+ mindset)
+
+We target **100%+ meaningful coverage** (branch + line) for new/changed code. “Every line has a test” means:
+
+- Every behavior branch has an assertion.
+- No untested error handling.
+- No untested IPC validation.
+- No untested DB queries/repository behaviors.
+
+### What to test
+
+- `packages/core`: pure unit tests for services/repositories (mock DB boundary or use ephemeral PGlite).
+- `src/main`: integration tests for controllers + IPC registration (mock Electron pieces where needed).
+- `src/preload`: unit tests verifying the exposed API shape and argument validation.
+- `src/renderer`: component tests for UI logic; behavior tests for flows.
+- **Automation/E2E**: use Playwright (Electron mode) to cover full user flows (chat, provider management, settings).
+
+If a test harness is missing for an area, create it as part of the change. If you can’t, stop and explain the blocker.
+
+## 6) Security & vulnerability review (must)
+
+- IPC is untrusted input: validate with `zod` and reject unknown fields.
+- Never expose `fs`, `ipcRenderer`, or arbitrary Node APIs to the renderer.
+- Keep `contextIsolation: true`, `nodeIntegration: false`.
+- Never log secrets (API keys, tokens, full prompt content if it contains sensitive data).
+- Run dependency audits regularly:
+  - `npm audit` at repo root
+  - `npm audit` in `src/renderer`
+
+## 7) Documentation policy (code + docs folder + README)
+
+Documentation is part of the feature, not an afterthought.
+
+- **Code-level docs**: add short comments *before each method* explaining **why** it exists (not what the code literally does).
+- **Docs folder**: architectural decisions, flows, and boundaries go in `docs/`.
+- **README**: keep “getting started”, scripts, and release steps accurate.
+- **This file**: update `AGENTS.md`/overrides when conventions change.
+
+## 8) Maintainability & logging (make bugs easy to find)
+
+Follow these rules:
+
+- Use meaningful names, consistent formatting, and keep functions small.
+- Minimize nesting; use early returns.
+- Prefer SRP (single responsibility), loose coupling, high cohesion.
+- Avoid globals; remove dead code.
+
+Logging:
+- Use `electron-log` scopes:
+  - main: `src/main/logger.ts` (`logger = log.scope("main")`)
+  - renderer: `src/renderer/logger.ts` (`logger = log.scope("renderer")`)
+- Log at critical steps (startup, DB init/migrations, IPC entry/exit, AI stream start/end/error).
+- Include stable identifiers (chatId, providerId) but never include secrets.
+
+## 9) Dependency reference (official docs)
+
+Prefer official docs when changing behavior:
+
+For an exhaustive per-package link list (from `package.json` files), see `docs/DEPENDENCIES.md`.
+
+### App/runtime
+- Electron: https://www.electronjs.org/docs/latest
+- Electron Forge: https://www.electronforge.io/
+- Vite: https://vite.dev/
+- Next.js: https://nextjs.org/docs
+- React: https://react.dev/
+
+### AI stack
+- Vercel AI SDK (`ai`, `@ai-sdk/*`): https://sdk.vercel.ai/docs
+- Anthropic provider: https://sdk.vercel.ai/providers/anthropic
+- OpenAI provider: https://sdk.vercel.ai/providers/openai
+- Google provider: https://sdk.vercel.ai/providers/google
+- Ollama provider (community): https://www.npmjs.com/package/ollama-ai-provider-v2
+- models.dev registry: https://models.dev/
+
+### Data layer
+- Drizzle ORM: https://orm.drizzle.team/
+- Drizzle Kit: https://orm.drizzle.team/kit-docs/overview
+- PGlite: https://pglite.dev/
+- Zod: https://zod.dev/
+
+### UI
+- Tailwind CSS v4: https://tailwindcss.com/docs
+- Radix UI: https://www.radix-ui.com/primitives/docs/overview/introduction
+- shadcn/ui: https://ui.shadcn.com/
+- lucide-react: https://lucide.dev/
