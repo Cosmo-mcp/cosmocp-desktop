@@ -14,11 +14,26 @@ vi.mock("../src/main/logger", () => ({
 
 describe("generate-api", () => {
   it("stays in sync with the checked-in preload api", () => {
-    const { ChatController } = require("../src/main/controllers/ChatController")
-    const { MessageController } = require("../src/main/controllers/MessageController")
-    const { ModelProviderController } = require("../src/main/controllers/ModelProviderController")
-    const { PersonaController } = require("../src/main/controllers/PersonaController")
-    const { StreamingChatController } = require("../src/main/controllers/StreamingChatController")
+    const { ChatController } = require(path.resolve(
+      __dirname,
+      "../src/main/controllers/ChatController.ts"
+    ))
+    const { MessageController } = require(path.resolve(
+      __dirname,
+      "../src/main/controllers/MessageController.ts"
+    ))
+    const { ModelProviderController } = require(path.resolve(
+      __dirname,
+      "../src/main/controllers/ModelProviderController.ts"
+    ))
+    const { PersonaController } = require(path.resolve(
+      __dirname,
+      "../src/main/controllers/PersonaController.ts"
+    ))
+    const { StreamingChatController } = require(path.resolve(
+      __dirname,
+      "../src/main/controllers/StreamingChatController.ts"
+    ))
     const controllerSources = [
       {
         controller: ChatController,
