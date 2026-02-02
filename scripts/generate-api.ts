@@ -7,10 +7,18 @@ import {ModelProviderController} from '../src/main/controllers/ModelProviderCont
 import {StreamingChatController} from '../src/main/controllers/StreamingChatController';
 import {MessageController} from "../src/main/controllers/MessageController";
 import {PersonaController} from "../src/main/controllers/PersonaController";
+import {SlashCommandController} from "../src/main/controllers/SlashCommandController";
 
 const apiFilePath = path.resolve(__dirname, '../src/preload/api.ts');
 
-const controllers = [ChatController, ModelProviderController, StreamingChatController, MessageController, PersonaController];
+const controllers = [
+    ChatController,
+    ModelProviderController,
+    StreamingChatController,
+    MessageController,
+    PersonaController,
+    SlashCommandController,
+];
 
 const controllerPaths = {
     'ChatController': path.resolve(__dirname, '../src/main/controllers/ChatController.ts'),
@@ -18,6 +26,7 @@ const controllerPaths = {
     'StreamingChatController': path.resolve(__dirname, '../src/main/controllers/StreamingChatController.ts'),
     'MessageController': path.resolve(__dirname, '../src/main/controllers/MessageController.ts'),
     'PersonaController': path.resolve(__dirname, '../src/main/controllers/PersonaController.ts'),
+    'SlashCommandController': path.resolve(__dirname, '../src/main/controllers/SlashCommandController.ts'),
 };
 
 const controllerFileContents: { [key: string]: string } = {};
@@ -118,7 +127,11 @@ import {
     ChatWithMessages,
     ModelIdentifier,
     Persona,
-    NewPersona
+    NewPersona,
+    SlashCommandCreateInput,
+    SlashCommandDefinition,
+    SlashCommandExecution,
+    SlashCommandUpdateInput
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 `;

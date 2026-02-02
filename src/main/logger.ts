@@ -4,7 +4,20 @@ import {app} from "electron";
 
 log.initialize();
 
-const logDir = path.join(app.getPath("userData"), "logs");
+// Keep logging available in non-Electron contexts (tests, codegen).
+const resolveLogDir = () => {
+    if (!app || typeof app.getPath !== "function") {
+        return path.join(process.cwd(), "logs");
+    }
+
+    try {
+        return path.join(app.getPath("userData"), "logs");
+    } catch {
+        return path.join(process.cwd(), "logs");
+    }
+};
+
+const logDir = resolveLogDir();
 
 log.transports.file.level = 'info';
 log.transports.file.maxSize = 5 * 1024 * 1024; // 5MB

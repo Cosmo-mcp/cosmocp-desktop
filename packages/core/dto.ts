@@ -1,5 +1,12 @@
 import {InferInsertModel, InferSelectModel} from "drizzle-orm";
-import {chat, message, model, modelProvider, persona} from "./database/schema/schema";
+import {
+    chat,
+    message,
+    model,
+    modelProvider,
+    persona,
+    slashCommand,
+} from "./database/schema/schema";
 import {UIMessage} from "ai";
 
 type Optional<T, K extends keyof T> = Omit<T, K> & Pick<Partial<T>, K>;
@@ -35,6 +42,29 @@ export type ModelLite = Omit<Model, 'providerId'>;
 export type Persona = InferSelectModel<typeof persona>;
 export type NewPersona = InferInsertModel<typeof persona>;
 export type PersonaCreateInput = Omit<NewPersona, 'id' | 'createdAt' | 'updatedAt'>;
+
+export type SlashCommand = InferSelectModel<typeof slashCommand>;
+export type NewSlashCommand = InferInsertModel<typeof slashCommand>;
+export type SlashCommandCreateInput = Omit<
+    NewSlashCommand,
+    'id' | 'createdAt' | 'updatedAt'
+>;
+export type SlashCommandUpdateInput = Partial<SlashCommandCreateInput>;
+
+export interface SlashCommandDefinition {
+    id?: string;
+    name: string;
+    description: string;
+    template: string;
+    argumentLabel?: string | null;
+    builtIn: boolean;
+}
+
+export interface SlashCommandExecution {
+    name: string;
+    argument?: string;
+    resolvedText: string;
+}
 
 export type ProviderWithModels = ModelProviderLite & {
     models: ModelLite[]

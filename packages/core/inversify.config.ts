@@ -10,6 +10,8 @@ import {ModelProviderRepository} from "./repositories/ModelProviderRepository";
 import {ModelProviderService} from "./services/ModelProviderService";
 import {PersonaRepository} from "./repositories/PersonaRepository";
 import {PersonaService} from "./services/PersonaService";
+import {SlashCommandRepository} from "./repositories/SlashCommandRepository";
+import {SlashCommandService} from "./services/SlashCommandService";
 
 const coreContainer = new Container();
 
@@ -21,11 +23,13 @@ coreContainer.bind<ChatRepository>(CORETYPES.ChatRepository).to(ChatRepository).
 coreContainer.bind<MessageRepository>(CORETYPES.MessageRepository).to(MessageRepository).inSingletonScope();
 coreContainer.bind<ModelProviderRepository>(CORETYPES.ModelProviderRepository).to(ModelProviderRepository).inSingletonScope();
 coreContainer.bind<PersonaRepository>(CORETYPES.PersonaRepository).to(PersonaRepository).inSingletonScope();
+coreContainer.bind<SlashCommandRepository>(CORETYPES.SlashCommandRepository).to(SlashCommandRepository).inSingletonScope();
 
 // Services
 coreContainer.bind<ChatService>(CORETYPES.ChatService).to(ChatService).inSingletonScope();
 coreContainer.bind<MessageService>(CORETYPES.MessageService).to(MessageService).inSingletonScope();
 coreContainer.bind<ModelProviderService>(CORETYPES.ModelProviderService).to(ModelProviderService).inSingletonScope();
 coreContainer.bind<PersonaService>(CORETYPES.PersonaService).to(PersonaService).inSingletonScope();
+coreContainer.bind<SlashCommandService>(CORETYPES.SlashCommandService).to(SlashCommandService).inSingletonScope();
 
 export {coreContainer};

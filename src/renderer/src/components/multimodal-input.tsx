@@ -1,7 +1,7 @@
 'use client';
 
 import type {UIMessage} from 'ai';
-import {useCallback, useEffect, useMemo, useState,} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {toast} from 'sonner';
 import {
     PromptInput,
@@ -27,7 +27,7 @@ import {
     PromptInputTools
 } from './ai-elements/prompt-input';
 import type {UseChatHelpers} from '@ai-sdk/react';
-import {Chat, Persona, ProviderWithModels} from "core/dto";
+import type {Chat, Persona, ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -38,12 +38,14 @@ import {
     ModelSelectorList,
     ModelSelectorLogo,
     ModelSelectorName,
+    ModelSelectorSeparator,
     ModelSelectorTrigger
 } from "@/components/ai-elements/model-selector";
-import {CheckIcon} from "lucide-react";
+import {CheckIcon, Slash} from "lucide-react";
 import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {logger} from "../../logger";
+import type {SlashCommandDefinition} from "core/dto";
 
 const parsePersonaDirective = (text: string) => {
     const match = text.match(/^\s*@persona(?:\s*[:=])?\s*(?:"([^"]+)"|'([^']+)'|([^\s]+))\s*/i);
@@ -79,6 +81,7 @@ export function MultimodalInput({
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const [personas, setPersonas] = useState<Persona[]>([]);
+    const [slashCommands, setSlashCommands] = useState<SlashCommandDefinition[]>([]);
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
@@ -89,6 +92,12 @@ export function MultimodalInput({
     useEffect(() => {
         window.api.persona.getAll()
             .then(fetchedPersonas => setPersonas(fetchedPersonas))
+            .catch(error => logger.error(error));
+    }, []);
+
+    useEffect(() => {
+        window.api.slashCommand.listAll()
+            .then(fetchedCommands => setSlashCommands(fetchedCommands))
             .catch(error => logger.error(error));
     }, []);
 
@@ -120,15 +129,27 @@ export function MultimodalInput({
         }
     }, [providers, chat.selectedProvider, chat.selectedModelId, onModelChange]);
 
-    const submitForm = useCallback((message: PromptInputMessage) => {
+    const submitForm = useCallback(async (message: PromptInputMessage) => {
         if (!chat.selectedModelId) {
             return;
         }
         const modelId = chat.selectedProvider + ":" + chat.selectedModelId
         const {text: cleanedText} = parsePersonaDirective(message.text);
+        let resolvedText = cleanedText;
+
+        if (cleanedText.trim().startsWith("/")) {
+            try {
+                const result = await window.api.slashCommand.execute({input: cleanedText});
+                resolvedText = result.resolvedText;
+            } catch (error) {
+                const message = error instanceof Error ? error.message : "Failed to execute command.";
+                toast.error(message);
+                return;
+            }
+        }
 
         sendMessage({
-            text: cleanedText,
+            text: resolvedText,
             files: message.files
         }, {
             metadata: {modelId, personaId: chat.selectedPersonaId}
@@ -137,7 +158,7 @@ export function MultimodalInput({
         }).finally(() => {
             setInput('');
         })
-    }, [chat.selectedModelId, chat.selectedProvider, sendMessage]);
+    }, [chat.selectedModelId, chat.selectedProvider, sendMessage, chat.selectedPersonaId]);
 
     const personaOptions = useMemo(() => {
         return personas
@@ -154,6 +175,14 @@ export function MultimodalInput({
             display: persona.name
         }));
     }, [personaOptions]);
+
+    const commandOptions = useMemo(() => {
+        return slashCommands.map((command) => ({
+            name: command.name,
+            description: command.description,
+            argumentLabel: command.argumentLabel ?? undefined,
+        }));
+    }, [slashCommands]);
 
     return (
         <PromptInputProvider>
@@ -208,9 +237,35 @@ export function MultimodalInput({
                                 </PromptInputButton>
                             </ModelSelectorTrigger>
                             <ModelSelectorContent>
-                                <ModelSelectorInput placeholder="Search models..."/>
+                                <ModelSelectorInput placeholder="Search models or commands..."/>
                                 <ModelSelectorList>
                                     <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
+                                    {commandOptions.length > 0 && (
+                                        <>
+                                            <ModelSelectorGroup heading="Commands">
+                                                {commandOptions.map((command) => (
+                                                    <ModelSelectorItem
+                                                        key={command.name}
+                                                        onSelect={() => {
+                                                            setModelSelectorOpen(false);
+                                                            const suffix = command.argumentLabel ? " " : "";
+                                                            setInput(`${command.name}${suffix}`);
+                                                        }}
+                                                        value={command.name}
+                                                    >
+                                                        <ModelSelectorName>
+                                                            {command.name}{" "}
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {command.description}
+                                                            </span>
+                                                        </ModelSelectorName>
+                                                        <Slash className="ml-auto size-4 text-muted-foreground"/>
+                                                    </ModelSelectorItem>
+                                                ))}
+                                            </ModelSelectorGroup>
+                                            <ModelSelectorSeparator/>
+                                        </>
+                                    )}
                                     {providers.map((provider) => (
                                         <ModelSelectorGroup heading={provider.name}
                                                             key={provider.name}>
