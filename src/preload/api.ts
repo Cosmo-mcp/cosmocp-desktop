@@ -12,9 +12,11 @@ import {
     ProviderWithModels,
     ChatWithMessages,
     ModelIdentifier,
-    PersonaIdentifier,
     Persona,
-    NewPersona
+    NewPersona,
+    McpServer,
+    McpServerCreateInput,
+    McpServerUpdateInput, PersonaIdentifier
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
@@ -56,6 +58,20 @@ export interface PersonaApi {
     delete(id: string): Promise<void>;
 }
 
+export interface McpServerApi {
+    getAll(): Promise<McpServer[]>;
+    getAllEnabled(): Promise<McpServer[]>;
+    getById(id: string): Promise<McpServer | undefined>;
+    getByName(name: string): Promise<McpServer | undefined>;
+    create(data: McpServerCreateInput): Promise<McpServer>;
+    update(id: string, updates: McpServerUpdateInput): Promise<McpServer>;
+    delete(id: string): Promise<void>;
+    enable(id: string): Promise<McpServer>;
+    disable(id: string): Promise<McpServer>;
+    refreshClient(id: string): Promise<void>;
+    getClientCount(): Promise<number>;
+}
+
 export interface StreamingApi {
     sendMessage(args: ChatSendMessageArgs): void;
     abortMessage(args: ChatAbortArgs): void;
@@ -70,6 +86,7 @@ export interface Api {
   modelProvider: ModelProviderApi;
   message: MessageApi;
   persona: PersonaApi;
+  mcpServer: McpServerApi;
   streaming: StreamingApi;
 }
 
@@ -108,6 +125,19 @@ export const api: Api = {
     create: (newPersona: NewPersona) => ipcRenderer.invoke('persona:create', newPersona),
     update: (id: string, updates: Partial<NewPersona>) => ipcRenderer.invoke('persona:update', id, updates),
     delete: (id: string) => ipcRenderer.invoke('persona:delete', id)
+  },
+  mcpServer: {
+    getAll: () => ipcRenderer.invoke('mcpServer:getAll'),
+    getAllEnabled: () => ipcRenderer.invoke('mcpServer:getAllEnabled'),
+    getById: (id: string) => ipcRenderer.invoke('mcpServer:getById', id),
+    getByName: (name: string) => ipcRenderer.invoke('mcpServer:getByName', name),
+    create: (data: McpServerCreateInput) => ipcRenderer.invoke('mcpServer:create', data),
+    update: (id: string, updates: McpServerUpdateInput) => ipcRenderer.invoke('mcpServer:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('mcpServer:delete', id),
+    enable: (id: string) => ipcRenderer.invoke('mcpServer:enable', id),
+    disable: (id: string) => ipcRenderer.invoke('mcpServer:disable', id),
+    refreshClient: (id: string) => ipcRenderer.invoke('mcpServer:refreshClient', id),
+    getClientCount: () => ipcRenderer.invoke('mcpServer:getClientCount')
   },
   streaming: {
     sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('streamingChat:sendMessage', args),

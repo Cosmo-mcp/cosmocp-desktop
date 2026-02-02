@@ -8,6 +8,8 @@ import {TYPES} from "./types";
 import {config} from "dotenv";
 import {updateElectronApp, UpdateSourceType} from "update-electron-app";
 import {logger} from "./logger";
+import {McpClientManager} from "core/services/McpClientManager";
+import {CORETYPES} from "core/types/types";
 
 
 export class Main {
@@ -22,6 +24,7 @@ export class Main {
                 logger.warn("safeStorage encryption unavailable. API keys won't be encrypted.");
             }
             await this.initializeDatabase();
+            await this.initializeMcpClients();
             const ipcHandlerRegistry = container.get<IpcHandlerRegistry>(TYPES.IpcHandlerRegistry);
             ipcHandlerRegistry.registerIpcHandlers();
             await this.createWindow();
@@ -56,6 +59,18 @@ export class Main {
         } catch (error) {
             logger.error('FATAL ERROR: Failed to initialize database connection.', error);
             app.quit(); // Stop execution if we cannot connect
+        }
+    }
+
+    private async initializeMcpClients(): Promise<void> {
+        try {
+            const mcpClientManager = container.get<McpClientManager>(CORETYPES.McpClientManager);
+            await mcpClientManager.initializeClients();
+            const clientCount = mcpClientManager.getClientCount();
+            logger.info(`Initialized ${clientCount} MCP client(s)`);
+        } catch (error) {
+            logger.error('Failed to initialize MCP clients:', error);
+            // Don't quit the app, just log the error - MCP clients are optional
         }
     }
 
