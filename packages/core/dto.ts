@@ -1,5 +1,5 @@
 import {InferInsertModel, InferSelectModel} from "drizzle-orm";
-import {chat, message, model, modelProvider, persona} from "./database/schema/schema";
+import {chat, mcpServer, message, model, modelProvider, persona} from "./database/schema/schema";
 import {UIMessage} from "ai";
 
 type Optional<T, K extends keyof T> = Omit<T, K> & Pick<Partial<T>, K>;
@@ -56,3 +56,29 @@ export interface ChatSendMessageArgs {
 export interface ChatAbortArgs {
     streamChannel: string;
 }
+
+// MCP Server Transport Configurations
+export interface SseTransportConfig {
+    url: string;
+    headers?: Record<string, string>;
+}
+
+export interface HttpTransportConfig {
+    url: string;
+    headers?: Record<string, string>;
+}
+
+export interface StdioTransportConfig {
+    command: string;
+    args?: string[];
+    env?: Record<string, string>;
+    cwd?: string;
+}
+
+export type McpTransportConfig = SseTransportConfig | HttpTransportConfig | StdioTransportConfig;
+
+// MCP Server DTOs
+export type McpServer = InferSelectModel<typeof mcpServer>;
+export type McpServerInsert = InferInsertModel<typeof mcpServer>;
+export type McpServerCreateInput = Omit<McpServerInsert, 'id' | 'createdAt' | 'updatedAt'>;
+export type McpServerUpdateInput = Partial<Omit<McpServerInsert, 'id' | 'createdAt' | 'updatedAt'>>;
