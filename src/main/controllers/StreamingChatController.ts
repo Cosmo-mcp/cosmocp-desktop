@@ -128,7 +128,7 @@ export class StreamingChatController implements Controller {
 
     @IpcRendererOn("data")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onData(channel: string, listener: (data: any) => void): () => void {
+    public onData(channel: string, listener: (data: unknown) => void): () => void {
         return () => {
         };
     }
@@ -142,7 +142,7 @@ export class StreamingChatController implements Controller {
 
     @IpcRendererOn("error")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onError(channel: string, listener: (error: any) => void): () => void {
+    public onError(channel: string, listener: (error: unknown) => void): () => void {
         return () => {
         };
     }

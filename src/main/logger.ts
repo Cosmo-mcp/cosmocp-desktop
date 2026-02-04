@@ -1,19 +1,26 @@
 import log from "electron-log/main";
+import os from "os";
 import path from "path";
+import {app} from "electron";
 
 log.initialize();
 
-// Only configure file transport if running in Electron context
-try {
-    const {app} = require("electron");
-    if (app && app.getPath) {
-        const logDir = path.join(app.getPath("userData"), "logs");
-        log.transports.file.level = 'info';
-        log.transports.file.maxSize = 5 * 1024 * 1024; // 5MB
-        log.transports.file.resolvePathFn = () => path.join(logDir, "cosmo.log");
+function resolveLogDir(): string {
+    try {
+        if (app && typeof app.getPath === "function") {
+            return path.join(app.getPath("userData"), "logs");
+        }
+    } catch {
+        // Ignore: this file can be imported by non-Electron tooling (e.g. API generator scripts).
     }
-} catch (error) {
-    // Not in Electron context, skip file transport configuration
+
+    return path.join(os.tmpdir(), "cosmo-studio-logs");
 }
+
+const logDir = resolveLogDir();
+
+log.transports.file.level = 'info';
+log.transports.file.maxSize = 5 * 1024 * 1024; // 5MB
+log.transports.file.resolvePathFn = () => path.join(logDir, "cosmo.log");
 
 export const logger = log.scope("main");
