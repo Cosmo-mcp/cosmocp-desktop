@@ -6,11 +6,12 @@ import {ModelProviderController} from '../src/main/controllers/ModelProviderCont
 import {StreamingChatController} from '../src/main/controllers/StreamingChatController';
 import {MessageController} from "../src/main/controllers/MessageController";
 import {PersonaController} from "../src/main/controllers/PersonaController";
+import {McpServerController} from "../src/main/controllers/McpServerController";
 import {generateApiContent, type ControllerSource} from "./generate-api-lib";
 
 const apiFilePath = path.resolve(__dirname, '../src/preload/api.ts');
 
-const controllers = [ChatController, ModelProviderController, StreamingChatController, MessageController, PersonaController];
+const controllers = [ChatController, ModelProviderController, StreamingChatController, MessageController, PersonaController, McpServerController];
 
 const controllerPaths = {
     'ChatController': path.resolve(__dirname, '../src/main/controllers/ChatController.ts'),
@@ -18,6 +19,7 @@ const controllerPaths = {
     'StreamingChatController': path.resolve(__dirname, '../src/main/controllers/StreamingChatController.ts'),
     'MessageController': path.resolve(__dirname, '../src/main/controllers/MessageController.ts'),
     'PersonaController': path.resolve(__dirname, '../src/main/controllers/PersonaController.ts'),
+    'McpServerController': path.resolve(__dirname, '../src/main/controllers/McpServerController.ts'),
 };
 
 const controllerFileContents: { [key: string]: string } = {};

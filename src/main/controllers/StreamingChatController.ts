@@ -8,6 +8,7 @@ import {CORETYPES} from "core/types/types";
 import {ModelProviderService} from "core/services/ModelProviderService";
 import {MessageService} from "core/services/MessageService";
 import {PersonaService} from "core/services/PersonaService";
+import {McpClientManager} from "core/services/McpClientManager";
 import {logger} from "../logger";
 
 @injectable()
@@ -20,7 +21,9 @@ export class StreamingChatController implements Controller {
                 @inject(CORETYPES.MessageService)
                 private messageService: MessageService,
                 @inject(CORETYPES.PersonaService)
-                private personaService: PersonaService) {
+                private personaService: PersonaService,
+                @inject(CORETYPES.McpClientManager)
+                private mcpClientManager: McpClientManager) {
     }
 
     @IpcOn("sendMessage")
@@ -59,6 +62,7 @@ export class StreamingChatController implements Controller {
                 // model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 messages: modelMessages,
+                tools: await this.mcpClientManager.getAllTools(),
                 abortSignal: controller.signal,
                 experimental_transform: smoothStream({delayInMs: 30}),
                 onFinish: (result) => {
