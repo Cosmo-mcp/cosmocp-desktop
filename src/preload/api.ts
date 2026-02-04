@@ -12,11 +12,12 @@ import {
     ProviderWithModels,
     ChatWithMessages,
     ModelIdentifier,
+    PersonaIdentifier,
     Persona,
     NewPersona,
     McpServer,
     McpServerCreateInput,
-    McpServerUpdateInput, PersonaIdentifier
+    McpServerUpdateInput
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
