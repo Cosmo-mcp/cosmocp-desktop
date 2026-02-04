@@ -13,6 +13,7 @@ export default defineConfig({
     },
   },
   test: {
+    passWithNoTests: true,
     clearMocks: true,
     environment: "jsdom",
     setupFiles: ["./src/test/setup-tests.ts"],
