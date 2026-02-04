@@ -4,6 +4,10 @@ export default defineConfig({
   test: {
     clearMocks: true,
     environment: 'node',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+    },
     include: [
       'packages/**/*.test.ts',
       'scripts/**/*.test.ts',
