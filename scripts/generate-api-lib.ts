@@ -115,6 +115,10 @@ import {
     ModelIdentifier,
     PersonaIdentifier,
     Persona,
+    NewPersona,
+    McpServer,
+    McpServerCreateInput,
+    McpServerUpdateInput
     NewPersona
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";

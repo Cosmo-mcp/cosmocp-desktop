@@ -141,6 +141,7 @@ For renderer-specific implementation conventions, see `src/renderer/AGENTS.overr
 - `npm run start` — Start Electron (development). Note: currently runs `npm i` first.
 - `npm run generate-api` — Regenerate preload API (`src/preload/api.ts`) from controllers.
 - `npm run lint` / `npm run fix` — Google TypeScript style (`gts`) lint/fix for main/preload/core/scripts.
+- `npm run test` / `npm run test:watch` — Run Vitest suites for main/preload/core/scripts.
 - `npm run db:generate` — Generate new migrations from schema changes.
 - `npm run db:migrate` — Apply migrations to the configured DB (see `drizzle.config.ts`).
 - `npm run db:studio` — Launch Drizzle Studio.
@@ -151,6 +152,7 @@ For renderer-specific implementation conventions, see `src/renderer/AGENTS.overr
 - `npm run dev` — Next dev (Turbopack).
 - `npm run build` — Static export build (`output: "export"`) to `src/renderer/out/`.
 - `npm run lint` — Next lint for UI code.
+- `npm run test` / `npm run test:watch` — Run renderer component tests (Vitest + React Testing Library).
 
 ### CI mindset (even locally)
 
