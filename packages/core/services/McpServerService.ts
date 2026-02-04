@@ -106,7 +106,7 @@ export class McpServerService {
         }
 
         if (updates.config !== undefined) {
-            const transportType = updates.transportType ?? (await this.getById(id))?.transportType;
+            const transportType = normalizedUpdates.transportType ?? (await this.getById(id))?.transportType;
             if (!transportType) {
                 throw new Error('Cannot validate config: transport type not found.');
             }
