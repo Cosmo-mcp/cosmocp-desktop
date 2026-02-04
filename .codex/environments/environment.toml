@@ -7,5 +7,5 @@ script = "npm install"
 
 [[actions]]
 name = "Run app"
-icon = "tool"
-command = "npm run dev"
+icon = "run"
+command = "NODE_ENV=production npm run dev"
