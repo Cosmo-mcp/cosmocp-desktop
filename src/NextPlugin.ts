@@ -22,7 +22,7 @@ export default class NextPlugin extends PluginBase<NextPluginConfig> {
     getHooks = (): ForgeMultiHookMap => {
         return {
             prePackage: [
-                namedHookWithTaskFn<'prePackage'>(async (task) => {
+                namedHookWithTaskFn<'prePackage'>(async () => {
                     const dest = path.resolve(__dirname, this.outDir);
                     const src = path.resolve(__dirname, this.sourceDir);
                     if (!fs.existsSync(dest)) {
