@@ -1,7 +1,7 @@
 import {IPC_CONTROLLER_METADATA_KEY, IPC_HANDLE_METADATA_KEY, IPC_ON_METADATA_KEY} from "../src/main/ipc/Decorators"
 
 export type ControllerSource = {
-  controller: Function
+  controller: (abstract new (...args: unknown[]) => unknown) & {name: string}
   source: string
 }
 
@@ -119,6 +119,7 @@ import {
     McpServer,
     McpServerCreateInput,
     McpServerUpdateInput
+    NewPersona
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 `
@@ -138,9 +139,9 @@ import {UIMessage} from "ai";
   if (onHandlers.length > 0) {
     const streamingInterfaceMembers = [
       ...onHandlerInterfaceMembers,
-      "    onData: (channel: string, listener: (data: any) => void) => void;",
+      "    onData: (channel: string, listener: (data: unknown) => void) => void;",
       "    onEnd: (channel: string, listener: () => void) => void;",
-      "    onError: (channel: string, listener: (error: any) => void) => void;",
+      "    onError: (channel: string, listener: (error: unknown) => void) => void;",
       "    removeListeners: (channel: string) => void;",
     ]
     apiContent += `export interface StreamingApi {\n${streamingInterfaceMembers.join(
@@ -163,18 +164,18 @@ import {UIMessage} from "ai";
 
   if (onHandlers.length > 0) {
     apiContent += `  streaming: {\n${onHandlers.join(",\n")},\n`
-    apiContent += `    onData: (channel: string, listener: (data: any) => void) => {\n`
-    apiContent += `      const subscription = (_event: any, data: any) => listener(data);\n`
+    apiContent += `    onData: (channel: string, listener: (data: unknown) => void) => {\n`
+    apiContent += `      const subscription = (_event: unknown, data: unknown) => listener(data);\n`
     apiContent += `      ipcRenderer.on(\`\${channel}-data\`, subscription);\n`
     apiContent += `    },\n`
     apiContent += `    onEnd: (channel: string, listener: () => void) => {\n`
     apiContent += `      ipcRenderer.on(\`\${channel}-end\`, listener);\n`
     apiContent += `    },\n`
-    apiContent += `    onError: (channel: string, listener: (error: any) => void) => {\n`
-    apiContent += `      const subscription = (_event: any, error: any) => listener(error);\n`
+    apiContent += `    onError: (channel: string, listener: (error: unknown) => void) => {\n`
+    apiContent += `      const subscription = (_event: unknown, error: unknown) => listener(error);\n`
     apiContent += `      ipcRenderer.on(\`\${channel}-error\`, subscription);\n`
     apiContent += `    },\n`
-    apiContent += `    removeListeners: (channel) => {\n`
+    apiContent += `    removeListeners: (channel: string) => {\n`
     apiContent += `      ipcRenderer.removeAllListeners(\`\${channel}-error\`);\n`
     apiContent += `      ipcRenderer.removeAllListeners(\`\${channel}-end\`);\n`
     apiContent += `      ipcRenderer.removeAllListeners(\`\${channel}-data\`);\n`

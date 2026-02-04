@@ -30,20 +30,30 @@ export class IpcHandlerRegistry {
     }
 
     private registerHandlers(
-        controller: any,
+        controller: Controller,
         prefix: string,
-        handlers: { [methodName: string]: string },
-        registerFn: (channel: string, listener: (event: Electron.IpcMainEvent | Electron.IpcMainInvokeEvent, ...args: any[]) => any) => void
-    ) {
+        handlers: Record<string, string>,
+        registerFn: (
+            channel: string,
+            listener: (
+                event: Electron.IpcMainEvent | Electron.IpcMainInvokeEvent,
+                ...args: unknown[]
+            ) => unknown
+        ) => void
+    ): void {
         for (const methodName in handlers) {
             if (Object.prototype.hasOwnProperty.call(handlers, methodName)) {
                 const handlerName = handlers[methodName];
                 const channel = `${prefix}:${handlerName}`;
 
                 registerFn(channel, async (event, ...args) => {
-                    // eslint-disable-next-line @typescript-eslint/ban-types
-                    const method = controller[methodName] as Function;
-                    // Pass the event object as the first argument to the handler method
+                    const maybeMethod = (controller as Record<string, unknown>)[methodName];
+                    if (typeof maybeMethod !== 'function') {
+                        throw new Error(`IPC handler '${channel}' is not a function.`);
+                    }
+
+                    const method = maybeMethod as (...handlerArgs: unknown[]) => unknown;
+                    // Pass the event object as the final argument to the handler method.
                     return method.apply(controller, [...args, event]);
                 });
             }
