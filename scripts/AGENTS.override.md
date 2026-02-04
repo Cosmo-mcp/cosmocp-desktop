@@ -24,5 +24,5 @@ When adding/changing IPC controllers:
 - Update controllers and decorators first (`src/main/controllers/*`).
 - Run `npm run generate-api`.
 - If generation fails or produces incorrect imports/types, fix `scripts/generate-api.ts` rather than hand-editing `src/preload/api.ts`.
-- Add a small test for the generator when changing behavior (string snapshots are acceptable).
+- No need to add test for `scripts/generate-api.ts`
 

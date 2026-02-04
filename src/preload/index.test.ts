@@ -33,6 +33,7 @@ describe("preload index", () => {
       "modelProvider",
       "message",
       "persona",
+      "mcpServer",
       "streaming",
     ])
     expect(api).not.toHaveProperty("ipcRenderer")
