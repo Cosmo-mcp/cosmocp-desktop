@@ -24,6 +24,10 @@ jobs:
           node-version: '22.19.0'
       - name: Install dependencies
         run: npm install
+      - name: Run root tests
+        run: npm run test
+      - name: Run renderer tests
+        run: npm run test --prefix src/renderer
       - name: Extract version from tag
         shell: bash
         run: |
