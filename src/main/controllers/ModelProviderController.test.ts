@@ -23,14 +23,45 @@ describe("ModelProviderController", () => {
     expect(result.id).toBe("provider-id")
   })
 
-  it("requests providers without api keys", async () => {
+  it("delegates provider retrieval methods", async () => {
     const service = {
+      getProviderForId: vi.fn().mockResolvedValue(undefined),
       getProviders: vi.fn().mockResolvedValue([]),
+      getProvidersWithModels: vi.fn().mockResolvedValue([]),
     } as unknown as ModelProviderService
     const controller = new ModelProviderController(service)
 
-    await controller.getProviders()
+    await controller.getProviderForId("provider-id")
+    expect(service.getProviderForId).toHaveBeenCalledWith("provider-id")
 
+    await controller.getProviders()
     expect(service.getProviders).toHaveBeenCalledWith({ withApiKey: false })
+
+    await controller.getProvidersWithModels()
+    expect(service.getProvidersWithModels).toHaveBeenCalledTimes(1)
+  })
+
+  it("delegates deletes, updates, and model listing", async () => {
+    const service = {
+      deleteProvider: vi.fn().mockResolvedValue(undefined),
+      updateProvider: vi.fn().mockResolvedValue({ id: "provider-id" } as ProviderWithModels),
+      getModelsForProviderUsingModelsDotDev: vi.fn().mockResolvedValue([]),
+    } as unknown as ModelProviderService
+    const controller = new ModelProviderController(service)
+
+    await controller.deleteProvider("provider-id")
+    expect(service.deleteProvider).toHaveBeenCalledWith("provider-id")
+
+    await controller.updateProvider("provider-id", { name: "Updated" } as ModelProviderCreateInput, [])
+    expect(service.updateProvider).toHaveBeenCalledWith("provider-id", { name: "Updated" }, [])
+
+    const provider: ModelProviderCreateInput = {
+      name: "OpenAI",
+      apiKey: "secret",
+      type: ModelProviderTypeEnum.OPENAI,
+      apiUrl: "",
+    }
+    await controller.getAvailableModelsFromProviders(provider)
+    expect(service.getModelsForProviderUsingModelsDotDev).toHaveBeenCalledWith(provider)
   })
 })
