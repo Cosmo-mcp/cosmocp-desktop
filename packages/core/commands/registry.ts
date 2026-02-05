@@ -24,7 +24,19 @@ export const mergeSlashCommands = (
     const normalizedUserCommands = userCommands.map((command) =>
         normalizeDefinition(command, false)
     );
-    return [...normalizedBuiltIns, ...normalizedUserCommands];
+    const uniqueByName = new Map<string, SlashCommandDefinition>();
+
+    for (const command of normalizedBuiltIns) {
+        uniqueByName.set(command.name, command);
+    }
+
+    for (const command of normalizedUserCommands) {
+        if (!uniqueByName.has(command.name)) {
+            uniqueByName.set(command.name, command);
+        }
+    }
+
+    return Array.from(uniqueByName.values());
 };
 
 // Find a command by name across both built-in and user-defined sets.
