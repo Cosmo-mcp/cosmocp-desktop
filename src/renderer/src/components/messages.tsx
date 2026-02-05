@@ -20,6 +20,7 @@ import {Source, Sources, SourcesContent, SourcesTrigger} from "@/components/ai-e
 import {Loader} from "@/components/ai-elements/loader";
 import {UIMessage} from "ai";
 import {PreviewAttachment} from "@/components/preview-attachment";
+import { Tool, ToolHeader, ToolContent, ToolInput, ToolOutput } from './ai-elements/tool';
 
 
 interface MessagesProps {
@@ -244,6 +245,42 @@ function PureMessages({
                                                     />
                                                 </div>
                                             );
+                                                                                    case 'tool-call': {
+                                                // Tool call contains input parameters
+                                                const toolPart = part as any;
+                                                return (
+                                                    <Tool key={`${message.id}-${i}`}>
+                                                        <ToolHeader
+                                                            title={toolPart.toolName}
+                                                            type={`tool-${toolPart.toolName}`}
+                                                            state="input-available"
+                                                        />
+                                                        <ToolContent>
+                                                            <ToolInput input={toolPart.input} />
+                                                        </ToolContent>
+                                                    </Tool>
+                                                );
+                                            }
+                                            case 'tool-result': {
+                                                // Tool result contains output
+                                                const toolPart = part as any;
+                                                const isError = toolPart.output?.isError ?? false;
+                                                return (
+                                                    <Tool key={`${message.id}-${i}`}>
+                                                        <ToolHeader
+                                                            title={toolPart.toolName}
+                                                            type={`tool-${toolPart.toolName}`}
+                                                            state={isError ? 'output-error' : 'output-available'}
+                                                        />
+                                                        <ToolContent>
+                                                            <ToolOutput
+                                                                output={toolPart.output}
+                                                                errorText={isError ? toolPart.output?.errorText : undefined}
+                                                            />
+                                                        </ToolContent>
+                                                    </Tool>
+                                                );
+                                            }
                                         default:
                                             return null;
                                     }
