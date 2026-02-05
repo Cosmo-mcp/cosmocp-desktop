@@ -76,6 +76,13 @@ Add tests for any new UI behavior:
 
 If a test harness is missing, add it as part of the change rather than skipping tests.
 
+## Ignore Test 
+
+Very Important, do not add any test for files in the following folders
+
+- `src/components/ai-elements`
+- `src/components/ui`
+
 ## How to add a new page + sidebar entry
 
 Cosmo Studio uses the Next.js App Router. The main application shell (sidebar + header) is defined by the `(main)` route group layout.
