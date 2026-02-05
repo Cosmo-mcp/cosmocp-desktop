@@ -909,6 +909,7 @@ export const PromptInputMentionsTextarea = ({
   suggestionsPortalHost,
   ...props
 }: PromptInputMentionsTextareaProps) => {
+  const mentionsInputRef = useRef<any>(null);
   const controller = useOptionalPromptInputController();
   const attachments = usePromptInputAttachments();
   const [isComposing, setIsComposing] = useState(false);
@@ -981,9 +982,93 @@ export const PromptInputMentionsTextarea = ({
     }
   }, [externalValue, plainTextValue]);
 
+  const getSuggestionsCount = useCallback((suggestions: unknown) => {
+    if (!suggestions || typeof suggestions !== "object") {
+      return 0;
+    }
+
+    return Object.values(suggestions).reduce((acc, item) => {
+      const resultsLength =
+        item && typeof item === "object" && "results" in item
+          ? Array.isArray((item as any).results)
+            ? (item as any).results.length
+            : 0
+          : 0;
+      return acc + resultsLength;
+    }, 0);
+  }, []);
+
+  const handleMentionsKeyDownCapture: React.KeyboardEventHandler<
+    HTMLTextAreaElement | HTMLInputElement
+  > = (event) => {
+    const keyCodeByKey: Record<string, number> = {
+      Tab: 9,
+      Enter: 13,
+      Escape: 27,
+      ArrowUp: 38,
+      ArrowDown: 40,
+    };
+
+    const expectedKeyCode = keyCodeByKey[event.key];
+    if (!expectedKeyCode) {
+      return;
+    }
+
+    const instance = mentionsInputRef.current?.wrappedInstance
+      ? mentionsInputRef.current.wrappedInstance
+      : mentionsInputRef.current;
+    if (!instance) {
+      return;
+    }
+
+    const suggestionsCount = getSuggestionsCount(instance.state?.suggestions);
+    if (suggestionsCount === 0) {
+      return;
+    }
+
+    const hasSuggestionsElement = !!instance.suggestionsElement;
+    const eventKeyCode = (event as any).keyCode;
+    const shouldFallbackToKeyHandling =
+      !hasSuggestionsElement || eventKeyCode !== expectedKeyCode;
+
+    if (!shouldFallbackToKeyHandling) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    switch (event.key) {
+      case "Escape": {
+        instance.clearSuggestions?.();
+        return;
+      }
+      case "ArrowDown": {
+        instance.shiftFocus?.(+1);
+        return;
+      }
+      case "ArrowUp": {
+        instance.shiftFocus?.(-1);
+        return;
+      }
+      case "Enter":
+      case "Tab": {
+        instance.selectFocused?.();
+        return;
+      }
+      default: {
+        return;
+      }
+    }
+  };
+
   const handleKeyDown: ((
       event: React.KeyboardEvent<HTMLTextAreaElement> | React.KeyboardEvent<HTMLInputElement>,
   ) => void) = (e) => {
+    if (e.defaultPrevented) {
+      return;
+    }
+
     if (e.key === "Enter") {
       if (isComposing || e.nativeEvent.isComposing) {
         return;
@@ -1065,8 +1150,10 @@ export const PromptInputMentionsTextarea = ({
       onCompositionEnd={() => setIsComposing(false)}
       onCompositionStart={() => setIsComposing(true)}
       onKeyDown={handleKeyDown}
+      onKeyDownCapture={handleMentionsKeyDownCapture}
       onPaste={handlePaste}
       placeholder={placeholder}
+      ref={mentionsInputRef}
       suggestionsPortalHost={resolvedSuggestionsPortalHost}
       style={mentionsStyle}
       {...props}
