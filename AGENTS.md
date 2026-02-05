@@ -159,7 +159,7 @@ For renderer-specific implementation conventions, see `src/renderer/AGENTS.overr
 When you change code, always run:
 1. Lints: `npm run lint` (root) and `npm run lint` in `src/renderer`
 2. Tests: add/run targeted tests first, then full suite
-3. Build check (when relevant): renderer build + Electron start
+3. Build check (after every major change): Full build(`npm run package`) and start(`npm run dev`)
 
 ## 5) Testing policy (strict, 100%+ mindset)
 
