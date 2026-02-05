@@ -905,6 +905,8 @@ export const PromptInputMentionsTextarea = ({
   className,
   placeholder = "What would you like to know?",
   value,
+  allowSuggestionsAboveCursor = true,
+  suggestionsPortalHost,
   ...props
 }: PromptInputMentionsTextareaProps) => {
   const controller = useOptionalPromptInputController();
@@ -913,6 +915,9 @@ export const PromptInputMentionsTextarea = ({
   const initialTextValue = controller?.textInput.value ?? value ?? "";
   const [mentionsValue, setMentionsValue] = useState(initialTextValue);
   const [plainTextValue, setPlainTextValue] = useState(initialTextValue);
+  const resolvedSuggestionsPortalHost =
+    suggestionsPortalHost ??
+    (typeof document === "undefined" ? undefined : document.body);
 
   const mentionsStyle = useMemo<MentionsInputProps["style"]>(
     () => ({
@@ -940,12 +945,15 @@ export const PromptInputMentionsTextarea = ({
         color: "inherit",
       },
       suggestions: {
+        zIndex: 50,
         list: {
           backgroundColor: "hsl(var(--popover))",
           border: "1px solid hsl(var(--border))",
           borderRadius: "0.5rem",
           boxShadow:
             "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+          maxHeight: "16rem",
+          overflowY: "auto",
           padding: "0.25rem",
         },
         item: {
@@ -1052,12 +1060,14 @@ export const PromptInputMentionsTextarea = ({
     <MentionsInput
       className={cn("field-sizing-content max-h-48 min-h-16 flex-1 w-full", className)}
       name="message"
+      allowSuggestionsAboveCursor={allowSuggestionsAboveCursor}
       onChange={handleChange}
       onCompositionEnd={() => setIsComposing(false)}
       onCompositionStart={() => setIsComposing(true)}
       onKeyDown={handleKeyDown}
       onPaste={handlePaste}
       placeholder={placeholder}
+      suggestionsPortalHost={resolvedSuggestionsPortalHost}
       style={mentionsStyle}
       {...props}
       {...valueProps}
