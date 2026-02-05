@@ -245,42 +245,40 @@ function PureMessages({
                                                     />
                                                 </div>
                                             );
-                                                                                    case 'tool-call': {
-                                                // Tool call contains input parameters
-                                                const toolPart = part as any;
-                                                return (
-                                                    <Tool key={`${message.id}-${i}`}>
-                                                        <ToolHeader
-                                                            title={toolPart.toolName}
-                                                            type={`tool-${toolPart.toolName}`}
-                                                            state="input-available"
+                                        case 'tool-call': {
+                                            const toolPart = part as any;
+                                            return (
+                                                <Tool key={`${message.id}-${i}`}>
+                                                    <ToolHeader
+                                                        title={toolPart.toolName}
+                                                        type={`tool-${toolPart.toolName}`}
+                                                        state="input-available"
+                                                    />
+                                                    <ToolContent>
+                                                        <ToolInput input={toolPart.input} />
+                                                    </ToolContent>
+                                                </Tool>
+                                            );
+                                        }
+                                        case 'tool-result': {
+                                            const toolPart = part as any;
+                                            const isError = toolPart.output?.isError ?? false;
+                                            return (
+                                                <Tool key={`${message.id}-${i}`}>
+                                                    <ToolHeader
+                                                        title={toolPart.toolName}
+                                                        type={`tool-${toolPart.toolName}`}
+                                                        state={isError ? 'output-error' : 'output-available'}
+                                                    />
+                                                    <ToolContent>
+                                                        <ToolOutput
+                                                            output={toolPart.output}
+                                                            errorText={isError ? toolPart.output?.errorText : undefined}
                                                         />
-                                                        <ToolContent>
-                                                            <ToolInput input={toolPart.input} />
-                                                        </ToolContent>
-                                                    </Tool>
-                                                );
-                                            }
-                                            case 'tool-result': {
-                                                // Tool result contains output
-                                                const toolPart = part as any;
-                                                const isError = toolPart.output?.isError ?? false;
-                                                return (
-                                                    <Tool key={`${message.id}-${i}`}>
-                                                        <ToolHeader
-                                                            title={toolPart.toolName}
-                                                            type={`tool-${toolPart.toolName}`}
-                                                            state={isError ? 'output-error' : 'output-available'}
-                                                        />
-                                                        <ToolContent>
-                                                            <ToolOutput
-                                                                output={toolPart.output}
-                                                                errorText={isError ? toolPart.output?.errorText : undefined}
-                                                            />
-                                                        </ToolContent>
-                                                    </Tool>
-                                                );
-                                            }
+                                                    </ToolContent>
+                                                </Tool>
+                                            );
+                                        }
                                         default:
                                             return null;
                                     }
