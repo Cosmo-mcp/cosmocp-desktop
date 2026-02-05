@@ -15,14 +15,19 @@ import {
     PromptInputButton,
     PromptInputFooter,
     PromptInputHeader,
+    PromptInputMentionsTextarea,
+    type PromptInputMessage,
     PromptInputProvider,
+    PromptInputSelect,
+    PromptInputSelectContent,
+    PromptInputSelectItem,
+    PromptInputSelectTrigger,
+    PromptInputSelectValue,
     PromptInputSubmit,
-    PromptInputTextarea,
-    PromptInputTools,
-    type PromptInputMessage
+    PromptInputTools
 } from './ai-elements/prompt-input';
 import type {UseChatHelpers} from '@ai-sdk/react';
-import {Chat, ProviderWithModels} from "core/dto";
+import {Chat, Persona, ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -40,11 +45,26 @@ import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {logger} from "../../logger";
 
+const parsePersonaDirective = (text: string) => {
+    const match = text.match(/^\s*@persona(?:\s*[:=])?\s*(?:"([^"]+)"|'([^']+)'|([^\s]+))\s*/i);
+    if (!match) {
+        return {text, personaName: undefined};
+    }
+
+    const personaName = match[1] ?? match[2] ?? match[3];
+    const remainingText = text.slice(match[0].length).trimStart();
+    return {
+        text: remainingText,
+        personaName,
+    };
+};
+
 export function MultimodalInput({
                                     chat,
                                     status,
                                     sendMessage,
                                     onModelChange,
+                                    onPersonaChange,
                                 }: {
     chat: Chat;
     status: UseChatHelpers<UIMessage>['status'];
@@ -53,14 +73,22 @@ export function MultimodalInput({
     className?: string;
     stillAnswering?: boolean,
     onModelChange: (providerName: string, modelId: string) => void;
+    onPersonaChange: (personaId: string | null) => void;
 }) {
     const [input, setInput] = useState<string>('');
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
+    const [personas, setPersonas] = useState<Persona[]>([]);
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
             .then(fetchedProviders => setProviders(fetchedProviders))
+            .catch(error => logger.error(error));
+    }, []);
+
+    useEffect(() => {
+        window.api.persona.getAll()
+            .then(fetchedPersonas => setPersonas(fetchedPersonas))
             .catch(error => logger.error(error));
     }, []);
 
@@ -87,7 +115,7 @@ export function MultimodalInput({
         if (firstProvider) {
             const firstModel = firstProvider.models[0];
             if (firstModel) {
-               onModelChange(firstProvider.name, firstModel.modelId);
+                onModelChange(firstProvider.name, firstModel.modelId);
             }
         }
     }, [providers, chat.selectedProvider, chat.selectedModelId, onModelChange]);
@@ -97,18 +125,35 @@ export function MultimodalInput({
             return;
         }
         const modelId = chat.selectedProvider + ":" + chat.selectedModelId
+        const {text: cleanedText} = parsePersonaDirective(message.text);
 
         sendMessage({
-            text: message.text,
+            text: cleanedText,
             files: message.files
         }, {
-            metadata: {modelId}
+            metadata: {modelId, personaId: chat.selectedPersonaId}
         }).catch((error) => {
             toast.error(error.message);
         }).finally(() => {
             setInput('');
         })
     }, [chat.selectedModelId, chat.selectedProvider, sendMessage]);
+
+    const personaOptions = useMemo(() => {
+        return personas
+            .map((persona) => ({
+                id: persona.id ?? persona.name ?? '',
+                name: persona.name ?? ''
+            }))
+            .filter((persona) => persona.id && persona.name);
+    }, [personas]);
+
+    const personaMentionData = useMemo(() => {
+        return personaOptions.map((persona) => ({
+            id: persona.id,
+            display: persona.name
+        }));
+    }, [personaOptions]);
 
     return (
         <PromptInputProvider>
@@ -119,8 +164,10 @@ export function MultimodalInput({
                     </PromptInputAttachments>
                 </PromptInputHeader>
                 <PromptInputBody>
-                    <PromptInputTextarea
-                        onChange={(e) => setInput(e.target.value)}
+                    <PromptInputMentionsTextarea
+                        mentionData={personaMentionData}
+                        onChange={(value) => setInput(value)}
+                        onMentionAdd={(id) => onPersonaChange(id as string)}
                         value={input}
                     />
                 </PromptInputBody>
@@ -130,7 +177,8 @@ export function MultimodalInput({
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <span>
-                                        <PromptInputActionMenuTrigger disabled={!selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE)}>
+                                        <PromptInputActionMenuTrigger
+                                            disabled={!selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE)}>
                                         </PromptInputActionMenuTrigger>
                                     </span>
                                 </TooltipTrigger>
@@ -194,6 +242,24 @@ export function MultimodalInput({
                                 </ModelSelectorList>
                             </ModelSelectorContent>
                         </ModelSelector>
+                        <PromptInputSelect
+                            onValueChange={onPersonaChange}
+                            value={chat.selectedPersonaId as string}
+                        >
+                            <PromptInputSelectTrigger className="w-max">
+                                <PromptInputSelectValue placeholder="Persona"/>
+                            </PromptInputSelectTrigger>
+                            <PromptInputSelectContent>
+                                {personaOptions.map((persona) => (
+                                    <PromptInputSelectItem
+                                        key={persona.id}
+                                        value={persona.id}
+                                    >
+                                        {persona.name}
+                                    </PromptInputSelectItem>
+                                ))}
+                            </PromptInputSelectContent>
+                        </PromptInputSelect>
                     </PromptInputTools>
                     <PromptInputSubmit
                         disabled={!input || !chat.selectedModelId || status !== 'ready'}

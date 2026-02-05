@@ -3,7 +3,7 @@ import {CORETYPES} from "core/types/types";
 import {ChatService} from "core/services/ChatService";
 import {IpcController, IpcHandler} from "../ipc/Decorators";
 import {Controller} from "./Controller";
-import {Chat, ChatWithMessages, ModelIdentifier, NewChat} from "core/dto";
+import {Chat, ChatWithMessages, ModelIdentifier, NewChat, PersonaIdentifier} from "core/dto";
 
 @injectable()
 @IpcController("chat")
@@ -49,6 +49,11 @@ export class ChatController implements Controller {
     @IpcHandler("updateSelectedModelForChat")
     public async updateSelectedModelForChat(id: string, modelIdentifier: ModelIdentifier): Promise<void> {
         return this.chatService.updateSelectedModelForChat(id, modelIdentifier);
+    }
+
+    @IpcHandler("updateSelectedPersonaForChat")
+    public async updateSelectedPersonaForChat(id: string, personaIdentifier: PersonaIdentifier): Promise<void> {
+        return this.chatService.updateSelectedPersonaForChat(id, personaIdentifier);
     }
 
     @IpcHandler("updateSelectedChat")

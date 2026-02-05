@@ -7,6 +7,8 @@ import {ModelProviderController} from "./controllers/ModelProviderController";
 import {Controller} from "./controllers/Controller";
 import {StreamingChatController} from "./controllers/StreamingChatController";
 import {MessageController} from "./controllers/MessageController";
+import {PersonaController} from "./controllers/PersonaController";
+import {McpServerController} from "./controllers/McpServerController";
 
 const container = new Container({parent: coreContainer});
 
@@ -17,5 +19,7 @@ container.bind<Controller>(TYPES.Controller).to(ChatController).inSingletonScope
 container.bind<Controller>(TYPES.Controller).to(ModelProviderController).inSingletonScope();
 container.bind<Controller>(TYPES.Controller).to(StreamingChatController).inSingletonScope();
 container.bind<Controller>(TYPES.Controller).to(MessageController).inSingletonScope();
+container.bind<Controller>(TYPES.Controller).to(PersonaController).inSingletonScope();
+container.bind<Controller>(TYPES.Controller).to(McpServerController).inSingletonScope();
 
 export default container;

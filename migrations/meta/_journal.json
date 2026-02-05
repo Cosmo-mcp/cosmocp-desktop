@@ -127,6 +127,27 @@
       "when": 1767334318034,
       "tag": "0017_black_wasp",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1768210093485,
+      "tag": "0018_curvy_tigra",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1768965003725,
+      "tag": "0019_silver_mentor",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1770056844407,
+      "tag": "0020_woozy_donald_blake",
+      "breakpoints": true
     }
   ]
 }

@@ -147,3 +147,5 @@ src/renderer/next-env.d.ts
 /database
 /cosmo
 /cosmodb
+# next-agents-md
+.next-docs/

@@ -13,9 +13,9 @@
     "next:dev": "cd src/renderer && npm run dev",
     "dev": "concurrently -k \"npm run next:dev\" \"npm run start\"",
     "start": "npm i && cross-env NODE_ENV=development electron-forge start",
-    "package": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge package",
-    "make": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge make",
-    "publish": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production && electron-forge publish",
+    "package": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production electron-forge package",
+    "make": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production electron-forge make",
+    "publish": "cd src/renderer && npm run build && cd ../.. && cross-env NODE_ENV=production electron-forge publish",
     "lint": "gts lint",
     "fix": "gts fix",
     "db:generate": "drizzle-kit generate",
@@ -24,7 +24,10 @@
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
-    "db:up": "drizzle-kit up"
+    "db:up": "drizzle-kit up",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": {
@@ -46,6 +49,7 @@
     "@electron/fuses": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
+    "@vitest/coverage-v8": "^1.6.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.8",
@@ -57,24 +61,27 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
-    "vite-tsconfig-paths": "^6.0.4"
+    "vite-tsconfig-paths": "^6.0.4",
+    "vitest": "^1.6.0"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "3.0.14",
     "@ai-sdk/google": "3.0.9",
     "@ai-sdk/openai": "3.0.11",
+    "@ai-sdk/provider": "^3.0.4",
+    "@ai-sdk/mcp": "1.0.9",
     "@electric-sql/pglite": "0.3.15",
     "@stepperize/react": "5.1.9",
     "ai": "6.0.37",
     "dotenv": "17.2.3",
     "drizzle-orm": "0.45.1",
     "drizzle-zod": "0.8.3",
+    "electron-log": "5.4.3",
     "electron-squirrel-startup": "1.0.1",
     "inversify": "7.11.0",
     "ollama-ai-provider-v2": "3.0.1",
     "reflect-metadata": "0.2.2",
     "update-electron-app": "^3.1.2",
-    "zod": "4.3.5",
-    "electron-log": "5.4.3"
+    "zod": "4.3.5"
   }
 }

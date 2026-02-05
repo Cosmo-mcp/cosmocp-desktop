@@ -7,6 +7,8 @@ import {Controller} from "./Controller";
 import {CORETYPES} from "core/types/types";
 import {ModelProviderService} from "core/services/ModelProviderService";
 import {MessageService} from "core/services/MessageService";
+import {PersonaService} from "core/services/PersonaService";
+import {McpClientManager} from "core/services/McpClientManager";
 import {logger} from "../logger";
 
 @injectable()
@@ -17,14 +19,29 @@ export class StreamingChatController implements Controller {
     constructor(@inject(CORETYPES.ModelProviderService)
                 private modelProviderService: ModelProviderService,
                 @inject(CORETYPES.MessageService)
-                private messageService: MessageService) {
+                private messageService: MessageService,
+                @inject(CORETYPES.PersonaService)
+                private personaService: PersonaService,
+                @inject(CORETYPES.McpClientManager)
+                private mcpClientManager: McpClientManager) {
     }
 
     @IpcOn("sendMessage")
     public async sendMessage(args: ChatSendMessageArgs, event: IpcMainEvent) {
         const modelProviderRegistry = await this.modelProviderService.getModelProviderRegistry();
         const webContents = event.sender as WebContents;
-        const modelMessages: ModelMessage[] = convertToModelMessages(args.messages);
+        const modelMessages: ModelMessage[] = await convertToModelMessages(args.messages);
+        const persona = args.personaId
+            ? await this.personaService.getById(args.personaId)
+            : args.personaName
+                ? await this.personaService.getByName(args.personaName)
+                : undefined;
+        if (persona?.details) {
+            modelMessages.unshift({
+                role: "system",
+                content: persona.details,
+            });
+        }
 
         const controller = new AbortController();
         this.activeStreams.set(args.streamChannel, controller);
@@ -45,6 +62,7 @@ export class StreamingChatController implements Controller {
                 // model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 messages: modelMessages,
+                tools: await this.mcpClientManager.getAllTools(),
                 abortSignal: controller.signal,
                 experimental_transform: smoothStream({delayInMs: 30}),
                 onFinish: (result) => {
@@ -110,7 +128,7 @@ export class StreamingChatController implements Controller {
 
     @IpcRendererOn("data")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onData(channel: string, listener: (data: any) => void): () => void {
+    public onData(channel: string, listener: (data: unknown) => void): () => void {
         return () => {
         };
     }
@@ -124,7 +142,7 @@ export class StreamingChatController implements Controller {
 
     @IpcRendererOn("error")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onError(channel: string, listener: (error: any) => void): () => void {
+    public onError(channel: string, listener: (error: unknown) => void): () => void {
         return () => {
         };
     }

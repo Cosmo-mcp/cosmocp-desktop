@@ -10,8 +10,15 @@ import {
     Message,
     NewModel,
     ProviderWithModels,
-    ChatWithMessages, ModelIdentifier
-} from 'core/dto';
+    ChatWithMessages,
+    ModelIdentifier,
+    PersonaIdentifier,
+    Persona,
+    NewPersona,
+    McpServer,
+    McpServerCreateInput,
+    McpServerUpdateInput
+} from '../../packages/core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
     getAllChats(searchQuery: string | null): Promise<Chat[]>;
@@ -22,6 +29,7 @@ export interface ChatApi {
     updatePinnedStatusForChat(id: string, pinned: boolean): Promise<void>;
     getSelectedModelForChat(id: string): Promise<string | null>;
     updateSelectedModelForChat(id: string, modelIdentifier: ModelIdentifier): Promise<void>;
+    updateSelectedPersonaForChat(id: string, personaIdentifier: PersonaIdentifier): Promise<void>;
     updateSelectedChat(id: string): Promise<void>;
 }
 
@@ -42,12 +50,35 @@ export interface MessageApi {
     delete(id: string): Promise<void>;
 }
 
+export interface PersonaApi {
+    getAll(): Promise<Persona[]>;
+    getById(id: string): Promise<Persona | undefined>;
+    getByName(name: string): Promise<Persona | undefined>;
+    create(newPersona: NewPersona): Promise<Persona>;
+    update(id: string, updates: Partial<NewPersona>): Promise<Persona>;
+    delete(id: string): Promise<void>;
+}
+
+export interface McpServerApi {
+    getAll(): Promise<McpServer[]>;
+    getAllEnabled(): Promise<McpServer[]>;
+    getById(id: string): Promise<McpServer | undefined>;
+    getByName(name: string): Promise<McpServer | undefined>;
+    create(data: McpServerCreateInput): Promise<McpServer>;
+    update(id: string, updates: McpServerUpdateInput): Promise<McpServer>;
+    delete(id: string): Promise<void>;
+    enable(id: string): Promise<McpServer>;
+    disable(id: string): Promise<McpServer>;
+    refreshClient(id: string): Promise<void>;
+    getClientCount(): Promise<number>;
+}
+
 export interface StreamingApi {
     sendMessage(args: ChatSendMessageArgs): void;
     abortMessage(args: ChatAbortArgs): void;
-    onData: (channel: string, listener: (data: any) => void) => void;
+    onData: (channel: string, listener: (data: unknown) => void) => void;
     onEnd: (channel: string, listener: () => void) => void;
-    onError: (channel: string, listener: (error: any) => void) => void;
+    onError: (channel: string, listener: (error: unknown) => void) => void;
     removeListeners: (channel: string) => void;
 }
 
@@ -55,6 +86,8 @@ export interface Api {
   chat: ChatApi;
   modelProvider: ModelProviderApi;
   message: MessageApi;
+  persona: PersonaApi;
+  mcpServer: McpServerApi;
   streaming: StreamingApi;
 }
 
@@ -68,6 +101,7 @@ export const api: Api = {
     updatePinnedStatusForChat: (id: string, pinned: boolean) => ipcRenderer.invoke('chat:updatePinnedStatusForChat', id, pinned),
     getSelectedModelForChat: (id: string) => ipcRenderer.invoke('chat:getSelectedModelForChat', id),
     updateSelectedModelForChat: (id: string, modelIdentifier: ModelIdentifier) => ipcRenderer.invoke('chat:updateSelectedModelForChat', id, modelIdentifier),
+    updateSelectedPersonaForChat: (id: string, personaIdentifier: PersonaIdentifier) => ipcRenderer.invoke('chat:updateSelectedPersonaForChat', id, personaIdentifier),
     updateSelectedChat: (id: string) => ipcRenderer.invoke('chat:updateSelectedChat', id)
   },
   modelProvider: {
@@ -85,21 +119,42 @@ export const api: Api = {
     update: (id: string, updates: Partial<NewMessage>) => ipcRenderer.invoke('message:update', id, updates),
     delete: (id: string) => ipcRenderer.invoke('message:delete', id)
   },
+  persona: {
+    getAll: () => ipcRenderer.invoke('persona:getAll'),
+    getById: (id: string) => ipcRenderer.invoke('persona:getById', id),
+    getByName: (name: string) => ipcRenderer.invoke('persona:getByName', name),
+    create: (newPersona: NewPersona) => ipcRenderer.invoke('persona:create', newPersona),
+    update: (id: string, updates: Partial<NewPersona>) => ipcRenderer.invoke('persona:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('persona:delete', id)
+  },
+  mcpServer: {
+    getAll: () => ipcRenderer.invoke('mcpServer:getAll'),
+    getAllEnabled: () => ipcRenderer.invoke('mcpServer:getAllEnabled'),
+    getById: (id: string) => ipcRenderer.invoke('mcpServer:getById', id),
+    getByName: (name: string) => ipcRenderer.invoke('mcpServer:getByName', name),
+    create: (data: McpServerCreateInput) => ipcRenderer.invoke('mcpServer:create', data),
+    update: (id: string, updates: McpServerUpdateInput) => ipcRenderer.invoke('mcpServer:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('mcpServer:delete', id),
+    enable: (id: string) => ipcRenderer.invoke('mcpServer:enable', id),
+    disable: (id: string) => ipcRenderer.invoke('mcpServer:disable', id),
+    refreshClient: (id: string) => ipcRenderer.invoke('mcpServer:refreshClient', id),
+    getClientCount: () => ipcRenderer.invoke('mcpServer:getClientCount')
+  },
   streaming: {
     sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('streamingChat:sendMessage', args),
     abortMessage: (args: ChatAbortArgs) => ipcRenderer.send('streamingChat:abortMessage', args),
-    onData: (channel: string, listener: (data: any) => void) => {
-      const subscription = (_event: any, data: any) => listener(data);
+    onData: (channel: string, listener: (data: unknown) => void) => {
+      const subscription = (_event: unknown, data: unknown) => listener(data);
       ipcRenderer.on(`${channel}-data`, subscription);
     },
     onEnd: (channel: string, listener: () => void) => {
       ipcRenderer.on(`${channel}-end`, listener);
     },
-    onError: (channel: string, listener: (error: any) => void) => {
-      const subscription = (_event: any, error: any) => listener(error);
+    onError: (channel: string, listener: (error: unknown) => void) => {
+      const subscription = (_event: unknown, error: unknown) => listener(error);
       ipcRenderer.on(`${channel}-error`, subscription);
     },
-    removeListeners: (channel) => {
+    removeListeners: (channel: string) => {
       ipcRenderer.removeAllListeners(`${channel}-error`);
       ipcRenderer.removeAllListeners(`${channel}-end`);
       ipcRenderer.removeAllListeners(`${channel}-data`);
