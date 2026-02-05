@@ -8,11 +8,11 @@ import {Card} from "@/components/ui/card";
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {Input} from "@/components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Textarea} from "@/components/ui/textarea";
 import {ConfirmDialog} from "@/components/confirm-dialog";
-import {ScrollArea} from "@/components/ui/scroll-area";
 import type {SlashCommandCreateInput, SlashCommandDefinition, SlashCommandUpdateInput} from "core/dto";
-import {CheckIcon, Edit, Trash2} from "lucide-react";
+import {Edit, Trash2} from "lucide-react";
 import {logger} from "../../logger";
 
 type ArgumentMode = "none" | "optional";
@@ -38,6 +38,7 @@ export function SlashCommandManagement() {
     });
     const [formState, setFormState] = useState(buildDefaultFormState());
 
+    // Refresh the list so UI reflects newly created or updated commands.
     const loadCommands = useCallback(async () => {
         try {
             const list = await window.api.slashCommand.listAll();
@@ -54,19 +55,25 @@ export function SlashCommandManagement() {
         loadCommands();
     }, [loadCommands]);
 
+    // Reset state before opening the create dialog.
     const handleOpenDialog = () => {
         setEditingCommand(null);
         setFormState(buildDefaultFormState());
         setIsDialogOpen(true);
     };
 
+    // Clear transient form state when closing the dialog.
     const handleCloseDialog = () => {
         setIsDialogOpen(false);
         setEditingCommand(null);
         setFormState(buildDefaultFormState());
     };
 
+    // Load command details into the form for editing.
     const handleEdit = (command: SlashCommandDefinition) => {
+        if (command.builtIn) {
+            return;
+        }
         setEditingCommand(command);
         setFormState({
             name: command.name,
@@ -78,6 +85,7 @@ export function SlashCommandManagement() {
         setIsDialogOpen(true);
     };
 
+    // Save the current form state as a new or updated command.
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         if (isSubmitting) {
@@ -116,10 +124,12 @@ export function SlashCommandManagement() {
         }
     };
 
+    // Prompt for deletion confirmation for a custom command.
     const handleDeleteClick = (commandId: string) => {
         setDeleteConfirmation({isOpen: true, commandId});
     };
 
+    // Execute the delete after confirmation.
     const handleConfirmDelete = async () => {
         if (!deleteConfirmation.commandId) {
             return;
@@ -137,12 +147,7 @@ export function SlashCommandManagement() {
         }
     };
 
-    const commandGroups = useMemo(() => {
-        return {
-            builtIn: commands.filter((command) => command.builtIn),
-            custom: commands.filter((command) => !command.builtIn),
-        };
-    }, [commands]);
+    const hasCommands = commands.length > 0;
 
     if (isLoading) {
         return <div className="text-sm text-muted-foreground">Loading commands...</div>;
@@ -161,91 +166,63 @@ export function SlashCommandManagement() {
             </div>
 
             <Card className="p-3">
-                <ScrollArea className="h-[360px] pr-2">
-                    <div className="space-y-6">
-                        <section className="space-y-3">
-                            <div className="flex items-center gap-2">
-                                <h3 className="text-sm font-semibold">Built-in</h3>
-                                <Badge variant="secondary">Read-only</Badge>
-                            </div>
-                            {commandGroups.builtIn.length === 0 ? (
-                                <p className="text-xs text-muted-foreground">No built-in commands yet.</p>
-                            ) : (
-                                <div className="space-y-2">
-                                    {commandGroups.builtIn.map((command) => (
-                                        <div
-                                            key={command.name}
-                                            className="flex flex-col gap-1 rounded-md border border-border bg-background p-3"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-medium">{command.name}</span>
-                                                    <Badge variant="outline">Built-in</Badge>
-                                                </div>
-                                                <CheckIcon className="size-4 text-muted-foreground"/>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">{command.description}</p>
-                                            {command.argumentLabel && (
-                                                <p className="text-xs text-muted-foreground">
-                                                    Optional argument: {command.argumentLabel}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </section>
-
-                        <section className="space-y-3">
-                            <div className="flex items-center gap-2">
-                                <h3 className="text-sm font-semibold">Custom</h3>
-                                <Badge variant="secondary">Editable</Badge>
-                            </div>
-                            {commandGroups.custom.length === 0 ? (
-                                <p className="text-xs text-muted-foreground">No custom commands yet.</p>
-                            ) : (
-                                <div className="space-y-2">
-                                    {commandGroups.custom.map((command) => (
-                                        <div
-                                            key={command.id}
-                                            className="flex flex-col gap-2 rounded-md border border-border bg-background p-3"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="font-medium">{command.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{command.description}</p>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Button
-                                                        size="icon"
-                                                        variant="ghost"
-                                                        aria-label={`Edit ${command.name}`}
-                                                        onClick={() => handleEdit(command)}
-                                                    >
-                                                        <Edit className="size-4"/>
-                                                    </Button>
-                                                    <Button
-                                                        size="icon"
-                                                        variant="ghost"
-                                                        aria-label={`Delete ${command.name}`}
-                                                        onClick={() => handleDeleteClick(command.id as string)}
-                                                    >
-                                                        <Trash2 className="size-4"/>
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                            {command.argumentLabel && (
-                                                <p className="text-xs text-muted-foreground">
-                                                    Optional argument: {command.argumentLabel}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </section>
+                {hasCommands ? (
+                    <div className="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[160px]">Name</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead className="w-[160px]">Type</TableHead>
+                                    <TableHead className="w-[180px]">Argument</TableHead>
+                                    <TableHead className="w-[120px] text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {commands.map((command) => (
+                                    <TableRow key={command.id ?? command.name}>
+                                        <TableCell className="font-medium">{command.name}</TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {command.description}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={command.builtIn ? "outline" : "secondary"}>
+                                                {command.builtIn ? "Built-in" : "Custom"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {command.argumentLabel ?? "—"}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                aria-label={`Edit ${command.name}`}
+                                                onClick={() => handleEdit(command)}
+                                                disabled={command.builtIn}
+                                            >
+                                                <Edit className="size-4"/>
+                                            </Button>
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                aria-label={`Delete ${command.name}`}
+                                                onClick={() => handleDeleteClick(command.id as string)}
+                                                disabled={command.builtIn}
+                                            >
+                                                <Trash2 className="size-4"/>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </div>
-                </ScrollArea>
+                ) : (
+                    <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+                        No commands yet. Create one to get started.
+                    </div>
+                )}
             </Card>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

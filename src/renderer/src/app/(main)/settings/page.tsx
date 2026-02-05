@@ -5,7 +5,6 @@ import {Card, CardContent} from "@/components/ui/card";
 import {cn} from "@/lib/utils";
 import {ProviderManagement} from "@/components/provider-management";
 import {SiteFooter} from "@/components/site-footer";
-import {SlashCommandManagement} from "@/components/slash-command-management";
 
 export default function SettingsPage() {
     const [selectedSetting, setSelectedSettings] = useState("Provider");
@@ -13,9 +12,6 @@ export default function SettingsPage() {
     const settingsItems = [
         {
             name: "Provider",
-        },
-        {
-            name: "Slash Commands",
         },
     ];
     return (
@@ -43,9 +39,6 @@ export default function SettingsPage() {
                     <CardContent>
                         {selectedSetting === "Provider" && (
                             <ProviderManagement/>
-                        )}
-                        {selectedSetting === "Slash Commands" && (
-                            <SlashCommandManagement/>
                         )}
                     </CardContent>
                 </Card>
