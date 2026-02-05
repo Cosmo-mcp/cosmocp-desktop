@@ -925,7 +925,7 @@ export const PromptInputMentionsTextarea = ({
       control: {
         backgroundColor: "transparent",
         border: 0,
-        color: "hsl(var(--foreground))",
+        color: "var(--foreground)",
         fontFamily: "inherit",
         fontSize: "0.875rem",
         lineHeight: "1.25rem",
@@ -948,8 +948,8 @@ export const PromptInputMentionsTextarea = ({
       suggestions: {
         zIndex: 50,
         list: {
-          backgroundColor: "hsl(var(--popover))",
-          border: "1px solid hsl(var(--border))",
+          backgroundColor: "var(--popover)",
+          border: "1px solid var(--border)",
           borderRadius: "0.5rem",
           boxShadow:
             "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
@@ -960,10 +960,10 @@ export const PromptInputMentionsTextarea = ({
         item: {
           padding: "0.5rem 0.75rem",
           borderRadius: "0.375rem",
-          color: "hsl(var(--foreground))",
+          color: "var(--foreground)",
           "&focused": {
-            backgroundColor: "hsl(var(--accent))",
-            color: "hsl(var(--accent-foreground))",
+            backgroundColor: "var(--accent)",
+            color: "var(--accent-foreground)",
           },
         },
       },
