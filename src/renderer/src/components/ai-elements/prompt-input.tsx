@@ -1161,7 +1161,7 @@ export const PromptInputMentionsTextarea = ({
     >
       <Mention
         appendSpaceOnAdd
-        className="rounded bg-accent px-1 text-accent-foreground"
+        className="rounded bg-accent"
         data={mentionData}
         displayTransform={(_id, display) => display}
         markup="@[__display__](__id__)"
