@@ -320,8 +320,12 @@ export function SlashCommandManagement() {
             </Dialog>
 
             <ConfirmDialog
-                isOpen={deleteConfirmation.isOpen}
-                onClose={() => setDeleteConfirmation({isOpen: false, commandId: null})}
+                open={deleteConfirmation.isOpen}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeleteConfirmation({isOpen: open, commandId: null})
+                    }
+                }}
                 onConfirm={handleConfirmDelete}
                 title="Delete command?"
                 description="This action cannot be undone."

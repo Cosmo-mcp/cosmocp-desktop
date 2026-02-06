@@ -1,0 +1,1 @@
+ALTER TABLE "Message" ALTER COLUMN "createdAt" SET DEFAULT now();

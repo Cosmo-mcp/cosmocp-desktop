@@ -18,7 +18,7 @@ export type Chat = InferSelectModel<typeof chat>;
 
 // DTOs for new database entry
 export type NewChat = InferInsertModel<typeof chat>;
-export type NewMessage = Omit<Message, "id" | "createdAt">;
+export type NewMessage = InferInsertModel<typeof message>;
 
 // The full model, retrieved from the database with a decrypted apiKey.
 export type ModelProvider = InferSelectModel<typeof modelProvider>;

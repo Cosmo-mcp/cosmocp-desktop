@@ -22,7 +22,7 @@ import {
     SlashCommandDefinition,
     SlashCommandExecution,
     SlashCommandUpdateInput,
-} from 'core/dto';
+} from '../../packages/core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
     getAllChats(searchQuery: string | null): Promise<Chat[]>;
