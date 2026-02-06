@@ -30,7 +30,7 @@ export const message = pgTable("Message", {
     text: text("text"),
     reasoning: text("reasoning"),
     modelIdentifier: text("modelIdentifier"),
-    createdAt: timestamp("createdAt").notNull(),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
 });
 
 export const messageRelations = relations(message, ({one}) => ({

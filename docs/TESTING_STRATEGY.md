@@ -17,13 +17,15 @@ The quality bar is “no untested behavior”. New code should ship with unit + 
   - Error handling.
 - Prefer isolated DB instances per test suite:
   - Use ephemeral directories and run migrations deterministically.
+  - Add unit coverage for slash command parsing/template rendering.
 
 ### `src/main`
 
 - Integration test IPC controllers:
   - Validation behavior at the boundary.
   - Calls into core services via DI.
-  - Streaming controllers emit `*-data`, `*-end`, `*-error` consistently.
+- Streaming controllers emit `*-data`, `*-end`, `*-error` consistently.
+  - Slash command controller validates input and delegates to core services.
 
 ### `src/preload`
 
@@ -36,6 +38,7 @@ The quality bar is “no untested behavior”. New code should ship with unit + 
 
 - Component tests for UI behavior:
   - Chat selection, message rendering, search highlighting, model/persona selection.
+  - Slash command management screens and dropdown integration.
 - Mock `window.api` for unit tests; do not require Electron runtime.
 
 ## Automation / E2E
@@ -50,4 +53,3 @@ Use Playwright in Electron mode to cover:
 E2E tests should run in CI and be resilient:
 - Avoid timing flakiness by waiting on visible UI states and deterministic test data.
 - Prefer seeding DB or using a test-only DB directory per run.
-

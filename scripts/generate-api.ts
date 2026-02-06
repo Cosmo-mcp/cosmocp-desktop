@@ -6,12 +6,21 @@ import {ModelProviderController} from '../src/main/controllers/ModelProviderCont
 import {StreamingChatController} from '../src/main/controllers/StreamingChatController';
 import {MessageController} from "../src/main/controllers/MessageController";
 import {PersonaController} from "../src/main/controllers/PersonaController";
+import {SlashCommandController} from "../src/main/controllers/SlashCommandController";
 import {McpServerController} from "../src/main/controllers/McpServerController";
 import {generateApiContent, type ControllerSource} from "./generate-api-lib";
 
 const apiFilePath = path.resolve(__dirname, '../src/preload/api.ts');
 
-const controllers = [ChatController, ModelProviderController, StreamingChatController, MessageController, PersonaController, McpServerController];
+const controllers = [
+    ChatController,
+    ModelProviderController,
+    StreamingChatController,
+    MessageController,
+    PersonaController,
+    SlashCommandController,
+    McpServerController
+];
 
 const controllerPaths = {
     'ChatController': path.resolve(__dirname, '../src/main/controllers/ChatController.ts'),
@@ -20,6 +29,7 @@ const controllerPaths = {
     'MessageController': path.resolve(__dirname, '../src/main/controllers/MessageController.ts'),
     'PersonaController': path.resolve(__dirname, '../src/main/controllers/PersonaController.ts'),
     'McpServerController': path.resolve(__dirname, '../src/main/controllers/McpServerController.ts'),
+    'SlashCommandController': path.resolve(__dirname, '../src/main/controllers/SlashCommandController.ts'),
 };
 
 const controllerFileContents: { [key: string]: string } = {};

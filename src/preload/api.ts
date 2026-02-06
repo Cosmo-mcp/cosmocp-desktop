@@ -17,7 +17,11 @@ import {
     NewPersona,
     McpServer,
     McpServerCreateInput,
-    McpServerUpdateInput
+    McpServerUpdateInput,
+    SlashCommandCreateInput,
+    SlashCommandDefinition,
+    SlashCommandExecution,
+    SlashCommandUpdateInput,
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
@@ -59,6 +63,14 @@ export interface PersonaApi {
     delete(id: string): Promise<void>;
 }
 
+export interface SlashCommandApi {
+    listAll(): Promise<SlashCommandDefinition[]>;
+    create(input: SlashCommandCreateInput): Promise<SlashCommandDefinition>;
+    update(id: string, updates: SlashCommandUpdateInput): Promise<SlashCommandDefinition>;
+    delete(id: string): Promise<void>;
+    execute(input: {input: string}): Promise<SlashCommandExecution>;
+}
+
 export interface McpServerApi {
     getAll(): Promise<McpServer[]>;
     getAllEnabled(): Promise<McpServer[]>;
@@ -87,6 +99,7 @@ export interface Api {
   modelProvider: ModelProviderApi;
   message: MessageApi;
   persona: PersonaApi;
+  slashCommand: SlashCommandApi;
   mcpServer: McpServerApi;
   streaming: StreamingApi;
 }
@@ -126,6 +139,13 @@ export const api: Api = {
     create: (newPersona: NewPersona) => ipcRenderer.invoke('persona:create', newPersona),
     update: (id: string, updates: Partial<NewPersona>) => ipcRenderer.invoke('persona:update', id, updates),
     delete: (id: string) => ipcRenderer.invoke('persona:delete', id)
+  },
+  slashCommand: {
+    listAll: () => ipcRenderer.invoke('slashCommand:listAll'),
+    create: (input: SlashCommandCreateInput) => ipcRenderer.invoke('slashCommand:create', input),
+    update: (id: string, updates: SlashCommandUpdateInput) => ipcRenderer.invoke('slashCommand:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('slashCommand:delete', id),
+    execute: (input: {input: string}) => ipcRenderer.invoke('slashCommand:execute', input)
   },
   mcpServer: {
     getAll: () => ipcRenderer.invoke('mcpServer:getAll'),
