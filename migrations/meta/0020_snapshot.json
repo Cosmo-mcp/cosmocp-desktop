@@ -1,5 +1,5 @@
 {
-  "id": "54178373-310c-41db-a9d9-7717c7aa3510",
+  "id": "d9e1ea71-59b6-411f-ba18-9e5757218f3d",
   "prevId": "1465eb0a-c8bb-4b39-aec5-976174c23979",
   "version": "7",
   "dialect": "postgresql",
@@ -400,8 +400,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.SlashCommand": {
-      "name": "SlashCommand",
+    "public.McpServer": {
+      "name": "McpServer",
       "schema": "",
       "columns": {
         "id": {
@@ -421,19 +421,26 @@
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
-        },
-        "template": {
-          "name": "template",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "argumentLabel": {
-          "name": "argumentLabel",
-          "type": "text",
-          "primaryKey": false,
           "notNull": false
+        },
+        "transport_type": {
+          "name": "transport_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "config": {
+          "name": "config",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
         },
         "createdAt": {
           "name": "createdAt",
@@ -454,8 +461,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "SlashCommand_name_unique": {
-          "name": "SlashCommand_name_unique",
+        "McpServer_name_unique": {
+          "name": "McpServer_name_unique",
           "nullsNotDistinct": false,
           "columns": [
             "name"

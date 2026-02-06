@@ -8,3 +8,5 @@ CREATE TABLE "SlashCommand" (
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "SlashCommand_name_unique" UNIQUE("name")
 );
+--> statement-breakpoint
+ALTER TABLE "Message" ALTER COLUMN "createdAt" SET DEFAULT now();
