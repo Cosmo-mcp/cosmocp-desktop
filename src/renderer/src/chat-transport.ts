@@ -14,8 +14,8 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
 
         const stream = new ReadableStream<UIMessageChunk>({
             start(controller) {
-                const onData = (chunk: UIMessageChunk) => {
-                    controller.enqueue(chunk);
+                const onData = (chunk: unknown) => {
+                    controller.enqueue(chunk as UIMessageChunk);
                 }
                 const onEnd = () => {
                     cleanup();
@@ -55,8 +55,8 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
 
         const stream = new ReadableStream<UIMessageChunk>({
             start(controller) {
-                const onData = (chunk: UIMessageChunk) => {
-                    controller.enqueue(chunk);
+                const onData = (chunk: unknown) => {
+                    controller.enqueue(chunk as UIMessageChunk);
                 }
                 const onEnd = () => {
                     cleanup();
