@@ -1,9 +1,23 @@
 import log from "electron-log/main";
+import os from "os";
 import path from "path";
 import {app} from "electron";
 
 log.initialize();
 
+function resolveLogDir(): string {
+    try {
+        if (app && typeof app.getPath === "function") {
+            return path.join(app.getPath("userData"), "logs");
+        }
+    } catch {
+        // Ignore: this file can be imported by non-Electron tooling (e.g. API generator scripts).
+    }
+
+    return path.join(os.tmpdir(), "cosmo-studio-logs");
+}
+
+const logDir = resolveLogDir();
 // Keep logging available in non-Electron contexts (tests, codegen).
 const resolveLogDir = () => {
     if (!app || typeof app.getPath !== "function") {

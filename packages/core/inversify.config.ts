@@ -12,6 +12,9 @@ import {PersonaRepository} from "./repositories/PersonaRepository";
 import {PersonaService} from "./services/PersonaService";
 import {SlashCommandRepository} from "./repositories/SlashCommandRepository";
 import {SlashCommandService} from "./services/SlashCommandService";
+import {McpServerRepository} from "./repositories/McpServerRepository";
+import {McpServerService} from "./services/McpServerService";
+import {McpClientManager} from "./services/McpClientManager";
 
 const coreContainer = new Container();
 
@@ -24,6 +27,7 @@ coreContainer.bind<MessageRepository>(CORETYPES.MessageRepository).to(MessageRep
 coreContainer.bind<ModelProviderRepository>(CORETYPES.ModelProviderRepository).to(ModelProviderRepository).inSingletonScope();
 coreContainer.bind<PersonaRepository>(CORETYPES.PersonaRepository).to(PersonaRepository).inSingletonScope();
 coreContainer.bind<SlashCommandRepository>(CORETYPES.SlashCommandRepository).to(SlashCommandRepository).inSingletonScope();
+coreContainer.bind<McpServerRepository>(CORETYPES.McpServerRepository).to(McpServerRepository).inSingletonScope();
 
 // Services
 coreContainer.bind<ChatService>(CORETYPES.ChatService).to(ChatService).inSingletonScope();
@@ -31,5 +35,7 @@ coreContainer.bind<MessageService>(CORETYPES.MessageService).to(MessageService).
 coreContainer.bind<ModelProviderService>(CORETYPES.ModelProviderService).to(ModelProviderService).inSingletonScope();
 coreContainer.bind<PersonaService>(CORETYPES.PersonaService).to(PersonaService).inSingletonScope();
 coreContainer.bind<SlashCommandService>(CORETYPES.SlashCommandService).to(SlashCommandService).inSingletonScope();
+coreContainer.bind<McpServerService>(CORETYPES.McpServerService).to(McpServerService).inSingletonScope();
+coreContainer.bind<McpClientManager>(CORETYPES.McpClientManager).to(McpClientManager).inSingletonScope();
 
 export {coreContainer};

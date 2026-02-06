@@ -905,21 +905,27 @@ export const PromptInputMentionsTextarea = ({
   className,
   placeholder = "What would you like to know?",
   value,
+  allowSuggestionsAboveCursor = true,
+  suggestionsPortalHost,
   ...props
 }: PromptInputMentionsTextareaProps) => {
+  const mentionsInputRef = useRef<any>(null);
   const controller = useOptionalPromptInputController();
   const attachments = usePromptInputAttachments();
   const [isComposing, setIsComposing] = useState(false);
   const initialTextValue = controller?.textInput.value ?? value ?? "";
   const [mentionsValue, setMentionsValue] = useState(initialTextValue);
   const [plainTextValue, setPlainTextValue] = useState(initialTextValue);
+  const resolvedSuggestionsPortalHost =
+    suggestionsPortalHost ??
+    (typeof document === "undefined" ? undefined : document.body);
 
   const mentionsStyle = useMemo<MentionsInputProps["style"]>(
     () => ({
       control: {
         backgroundColor: "transparent",
         border: 0,
-        color: "hsl(var(--foreground))",
+        color: "var(--foreground)",
         fontFamily: "inherit",
         fontSize: "0.875rem",
         lineHeight: "1.25rem",
@@ -940,21 +946,24 @@ export const PromptInputMentionsTextarea = ({
         color: "inherit",
       },
       suggestions: {
+        zIndex: 50,
         list: {
-          backgroundColor: "hsl(var(--popover))",
-          border: "1px solid hsl(var(--border))",
+          backgroundColor: "var(--popover)",
+          border: "1px solid var(--border)",
           borderRadius: "0.5rem",
           boxShadow:
             "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+          maxHeight: "16rem",
+          overflowY: "auto",
           padding: "0.25rem",
         },
         item: {
           padding: "0.5rem 0.75rem",
           borderRadius: "0.375rem",
-          color: "hsl(var(--foreground))",
+          color: "var(--foreground)",
           "&focused": {
-            backgroundColor: "hsl(var(--accent))",
-            color: "hsl(var(--accent-foreground))",
+            backgroundColor: "var(--accent)",
+            color: "var(--accent-foreground)",
           },
         },
       },
@@ -973,9 +982,93 @@ export const PromptInputMentionsTextarea = ({
     }
   }, [externalValue, plainTextValue]);
 
+  const getSuggestionsCount = useCallback((suggestions: unknown) => {
+    if (!suggestions || typeof suggestions !== "object") {
+      return 0;
+    }
+
+    return Object.values(suggestions).reduce((acc, item) => {
+      const resultsLength =
+        item && typeof item === "object" && "results" in item
+          ? Array.isArray((item as any).results)
+            ? (item as any).results.length
+            : 0
+          : 0;
+      return acc + resultsLength;
+    }, 0);
+  }, []);
+
+  const handleMentionsKeyDownCapture: React.KeyboardEventHandler<
+    HTMLTextAreaElement | HTMLInputElement
+  > = (event) => {
+    const keyCodeByKey: Record<string, number> = {
+      Tab: 9,
+      Enter: 13,
+      Escape: 27,
+      ArrowUp: 38,
+      ArrowDown: 40,
+    };
+
+    const expectedKeyCode = keyCodeByKey[event.key];
+    if (!expectedKeyCode) {
+      return;
+    }
+
+    const instance = mentionsInputRef.current?.wrappedInstance
+      ? mentionsInputRef.current.wrappedInstance
+      : mentionsInputRef.current;
+    if (!instance) {
+      return;
+    }
+
+    const suggestionsCount = getSuggestionsCount(instance.state?.suggestions);
+    if (suggestionsCount === 0) {
+      return;
+    }
+
+    const hasSuggestionsElement = !!instance.suggestionsElement;
+    const eventKeyCode = (event as any).keyCode;
+    const shouldFallbackToKeyHandling =
+      !hasSuggestionsElement || eventKeyCode !== expectedKeyCode;
+
+    if (!shouldFallbackToKeyHandling) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    switch (event.key) {
+      case "Escape": {
+        instance.clearSuggestions?.();
+        return;
+      }
+      case "ArrowDown": {
+        instance.shiftFocus?.(+1);
+        return;
+      }
+      case "ArrowUp": {
+        instance.shiftFocus?.(-1);
+        return;
+      }
+      case "Enter":
+      case "Tab": {
+        instance.selectFocused?.();
+        return;
+      }
+      default: {
+        return;
+      }
+    }
+  };
+
   const handleKeyDown: ((
       event: React.KeyboardEvent<HTMLTextAreaElement> | React.KeyboardEvent<HTMLInputElement>,
   ) => void) = (e) => {
+    if (e.defaultPrevented) {
+      return;
+    }
+
     if (e.key === "Enter") {
       if (isComposing || e.nativeEvent.isComposing) {
         return;
@@ -1052,19 +1145,23 @@ export const PromptInputMentionsTextarea = ({
     <MentionsInput
       className={cn("field-sizing-content max-h-48 min-h-16 flex-1 w-full", className)}
       name="message"
+      allowSuggestionsAboveCursor={allowSuggestionsAboveCursor}
       onChange={handleChange}
       onCompositionEnd={() => setIsComposing(false)}
       onCompositionStart={() => setIsComposing(true)}
       onKeyDown={handleKeyDown}
+      onKeyDownCapture={handleMentionsKeyDownCapture}
       onPaste={handlePaste}
       placeholder={placeholder}
+      ref={mentionsInputRef}
+      suggestionsPortalHost={resolvedSuggestionsPortalHost}
       style={mentionsStyle}
       {...props}
       {...valueProps}
     >
       <Mention
         appendSpaceOnAdd
-        className="rounded bg-accent px-1 text-accent-foreground"
+        className="rounded bg-accent"
         data={mentionData}
         displayTransform={(_id, display) => display}
         markup="@[__display__](__id__)"

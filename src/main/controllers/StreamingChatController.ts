@@ -8,6 +8,7 @@ import {CORETYPES} from "core/types/types";
 import {ModelProviderService} from "core/services/ModelProviderService";
 import {MessageService} from "core/services/MessageService";
 import {PersonaService} from "core/services/PersonaService";
+import {McpClientManager} from "core/services/McpClientManager";
 import {logger} from "../logger";
 
 @injectable()
@@ -20,7 +21,9 @@ export class StreamingChatController implements Controller {
                 @inject(CORETYPES.MessageService)
                 private messageService: MessageService,
                 @inject(CORETYPES.PersonaService)
-                private personaService: PersonaService) {
+                private personaService: PersonaService,
+                @inject(CORETYPES.McpClientManager)
+                private mcpClientManager: McpClientManager) {
     }
 
     @IpcOn("sendMessage")
@@ -59,6 +62,7 @@ export class StreamingChatController implements Controller {
                 // model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 messages: modelMessages,
+                tools: await this.mcpClientManager.getAllTools(),
                 abortSignal: controller.signal,
                 experimental_transform: smoothStream({delayInMs: 30}),
                 onFinish: (result) => {
@@ -124,7 +128,7 @@ export class StreamingChatController implements Controller {
 
     @IpcRendererOn("data")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onData(channel: string, listener: (data: any) => void): () => void {
+    public onData(channel: string, listener: (data: unknown) => void): () => void {
         return () => {
         };
     }
@@ -138,7 +142,7 @@ export class StreamingChatController implements Controller {
 
     @IpcRendererOn("error")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onError(channel: string, listener: (error: any) => void): () => void {
+    public onError(channel: string, listener: (error: unknown) => void): () => void {
         return () => {
         };
     }
