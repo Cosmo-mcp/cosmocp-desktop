@@ -32,7 +32,7 @@ export function AppSidebar() {
             icon: CircleUserRound,
         },
         {
-            title: "Slash Commands",
+            title: "Commands",
             url: "./slash-commands",
             icon: Slash,
         },
