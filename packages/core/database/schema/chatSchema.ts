@@ -29,6 +29,7 @@ export const message = pgTable("Message", {
     role: messageRole("role"),
     text: text("text"),
     reasoning: text("reasoning"),
+    modelIdentifier: text("modelIdentifier"),
     createdAt: timestamp("createdAt").notNull(),
 });
 

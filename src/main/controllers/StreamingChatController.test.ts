@@ -140,8 +140,13 @@ describe("StreamingChatController", () => {
       role: "assistant",
       text: "assistant",
       reasoning: "reasoning",
+      modelIdentifier: "provider:model",
     })
 
+    expect(webContents.send).toHaveBeenCalledWith("chan-data", {
+      type: "message-metadata",
+      messageMetadata: {modelId: "provider:model"},
+    })
     expect(webContents.send).toHaveBeenCalledWith("chan-data", {chunk: 1})
     expect(webContents.send).toHaveBeenCalledWith("chan-data", {chunk: 2})
     expect(webContents.send).toHaveBeenCalledWith("chan-end")

@@ -27,11 +27,17 @@ export class MessageService {
                 parts.push({type: 'reasoning', text: message.reasoning});
             }
 
-            return {
+            const metadata = message.modelIdentifier
+                ? {modelId: message.modelIdentifier}
+                : undefined;
+
+            const base = {
                 id: message.id,
                 role: message.role,
-                parts: parts
+                parts: parts,
             };
+
+            return metadata ? {...base, metadata} : base;
         });
     }
 
