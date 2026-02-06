@@ -12,16 +12,17 @@ import {
     ProviderWithModels,
     ChatWithMessages,
     ModelIdentifier,
+    PersonaIdentifier,
     Persona,
     NewPersona,
+    McpServer,
+    McpServerCreateInput,
+    McpServerUpdateInput,
     SlashCommandCreateInput,
     SlashCommandDefinition,
     SlashCommandExecution,
     SlashCommandUpdateInput,
-    McpServer,
-    McpServerCreateInput,
-    McpServerUpdateInput
-} from '../../packages/core/dto';
+} from 'core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
     getAllChats(searchQuery: string | null): Promise<Chat[]>;
