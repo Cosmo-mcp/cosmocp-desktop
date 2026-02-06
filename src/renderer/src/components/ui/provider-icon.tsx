@@ -1,5 +1,6 @@
 import React from "react";
 import {ModelProviderTypeEnum} from "core/database/schema/modelProviderSchema";
+import {cn} from "@/lib/utils";
 
 type ThemeType = "light" | "dark";
 
@@ -7,6 +8,7 @@ type ProviderIconProps = {
     type: ModelProviderTypeEnum;
     size?: number;
     theme?: string;
+    className?: string;
 };
 
 const iconMap = {
@@ -26,7 +28,7 @@ const iconMap = {
     },
 };
 
-const ProviderIcon = ({ type, size = 20, theme }: ProviderIconProps) => {
+const ProviderIcon = ({ type, size = 20, theme, className }: ProviderIconProps) => {
     const normalizedTheme: ThemeType = theme === "light" ? "light" : "dark";
     const iconPath = iconMap[normalizedTheme][type];
 
@@ -37,7 +39,7 @@ const ProviderIcon = ({ type, size = 20, theme }: ProviderIconProps) => {
             alt={`${type} icon`}
             width={size}
             height={size}
-            className="mr-2 rounded-sm"
+            className={cn("mr-2 rounded-sm", className)}
         />
     );
 };

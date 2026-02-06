@@ -27,6 +27,7 @@ export class MessageRepository {
                 role: newMessage.role,
                 text: newMessage.text,
                 reasoning: newMessage.reasoning,
+                modelIdentifier: newMessage.modelIdentifier,
                 createdAt: now,
             }).returning();
 

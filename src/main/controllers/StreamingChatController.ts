@@ -71,6 +71,7 @@ export class StreamingChatController implements Controller {
                         role: 'assistant',
                         text: result.text ?? null,
                         reasoning: result.reasoningText ?? null,
+                        modelIdentifier: args.modelIdentifier,
                     });
                     this.activeStreams.delete(args.streamChannel);
                     if (!webContents.isDestroyed()) {
@@ -93,6 +94,15 @@ export class StreamingChatController implements Controller {
                     this.activeStreams.delete(args.streamChannel);
                 }
             });
+
+            if (!webContents.isDestroyed()) {
+                webContents.send(`${args.streamChannel}-data`, {
+                    type: 'message-metadata',
+                    messageMetadata: {
+                        modelId: args.modelIdentifier,
+                    },
+                });
+            }
 
             for await (const chunk of result.toUIMessageStream({
                 sendReasoning: true,

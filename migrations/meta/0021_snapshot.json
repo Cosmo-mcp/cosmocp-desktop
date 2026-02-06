@@ -1,6 +1,6 @@
 {
-  "id": "c8bac2ff-664d-4cd7-adbb-d8badd2f1c67",
-  "prevId": "54178373-310c-41db-a9d9-7717c7aa3510",
+  "id": "98b93234-7fc0-4e6e-8c5f-cc2ea019b545",
+  "prevId": "d9e1ea71-59b6-411f-ba18-9e5757218f3d",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -119,6 +119,12 @@
         },
         "reasoning": {
           "name": "reasoning",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "modelIdentifier": {
+          "name": "modelIdentifier",
           "type": "text",
           "primaryKey": false,
           "notNull": false

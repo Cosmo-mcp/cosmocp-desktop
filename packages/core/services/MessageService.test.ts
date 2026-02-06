@@ -34,6 +34,7 @@ describe("MessageService", () => {
         role: "assistant",
         text: null,
         reasoning: "thinking",
+        modelIdentifier: "openai:gpt-4o",
         createdAt: now,
       } as unknown as Message,
       {
@@ -60,7 +61,12 @@ describe("MessageService", () => {
     expect(repository.getMessagesByChatId).toHaveBeenCalledWith("c")
     expect(uiMessages).toEqual([
       {id: "t", role: "user", parts: [{type: "text", text: "hello"}]},
-      {id: "r", role: "assistant", parts: [{type: "reasoning", text: "thinking"}]},
+      {
+        id: "r",
+        role: "assistant",
+        parts: [{type: "reasoning", text: "thinking"}],
+        metadata: {modelId: "openai:gpt-4o"},
+      },
       {
         id: "both",
         role: "assistant",
@@ -98,4 +104,3 @@ describe("MessageService", () => {
     expect(repository.delete).toHaveBeenCalledWith("m")
   })
 })
-

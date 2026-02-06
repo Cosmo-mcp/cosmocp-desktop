@@ -155,6 +155,13 @@
       "when": 1770340278296,
       "tag": "0021_late_jack_power",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1770336692741,
+      "tag": "0021_model_identifier_message",
+      "breakpoints": true
     }
   ]
 }
