@@ -148,6 +148,13 @@
       "when": 1770010476739,
       "tag": "0020_glossy_captain_flint",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1770340278296,
+      "tag": "0021_late_jack_power",
+      "breakpoints": true
     }
   ]
 }
