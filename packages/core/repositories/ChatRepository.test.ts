@@ -145,6 +145,7 @@ describe("ChatRepository", () => {
         role: "assistant",
         text: "answer",
         reasoning: "steps",
+        modelIdentifier: "google:gemini-flash-lite-latest",
         createdAt: new Date("2024-01-01T00:00:20Z"),
       },
     ])
@@ -160,6 +161,7 @@ describe("ChatRepository", () => {
           {type: "text", text: "answer"},
           {type: "reasoning", text: "steps"},
         ],
+        metadata: {modelId: "google:gemini-flash-lite-latest"},
       },
     ])
 
