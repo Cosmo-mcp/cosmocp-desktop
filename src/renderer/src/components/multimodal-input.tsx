@@ -14,7 +14,6 @@ import {
     PromptInputFooter,
     PromptInputHeader,
     type PromptInputMessage,
-    PromptInputMentionsTextarea,
     PromptInputProvider,
     PromptInputSelect,
     PromptInputSelectContent,
@@ -22,6 +21,7 @@ import {
     PromptInputSelectTrigger,
     PromptInputSelectValue,
     PromptInputSubmit,
+    PromptInputTextarea,
     PromptInputTools,
     usePromptInputAttachments,
 } from './ai-elements/prompt-input';
@@ -165,13 +165,6 @@ export function MultimodalInput({
             .filter((persona) => persona.id && persona.name);
     }, [personas]);
 
-    const personaMentionData = useMemo(() => {
-        return personaOptions.map((persona) => ({
-            id: persona.id,
-            display: persona.name
-        }));
-    }, [personaOptions]);
-
     return (
         <PromptInputProvider>
             <PromptInputContent
@@ -180,7 +173,6 @@ export function MultimodalInput({
                 input={input}
                 modelSelectorOpen={modelSelectorOpen}
                 onModelChange={onModelChange}
-                personaMentionData={personaMentionData}
                 personaOptions={personaOptions}
                 providers={providers}
                 selectedModelInfo={selectedModelInfo}
@@ -201,7 +193,6 @@ function PromptInputContent({
     input,
     modelSelectorOpen,
     onModelChange,
-    personaMentionData,
     personaOptions,
     providers,
     selectedModelInfo,
@@ -216,7 +207,6 @@ function PromptInputContent({
     input: string;
     modelSelectorOpen: boolean;
     onModelChange: (providerName: string, modelId: string) => void;
-    personaMentionData: { id: string; display: string }[];
     personaOptions: { id: string; name: string }[];
     providers: ProviderWithModels[];
     selectedModelInfo: { inputModalities: string[] } | undefined;
@@ -241,10 +231,8 @@ function PromptInputContent({
                 </Attachments>
             </PromptInputHeader>
             <PromptInputBody>
-                <PromptInputMentionsTextarea
-                    mentionData={personaMentionData}
-                    onChange={(value) => setInput(value)}
-                    onMentionAdd={(id) => handlePersonaSelection(String(id))}
+                <PromptInputTextarea
+                    onChange={(e) => setInput(e.target.value)}
                     value={input}
                 />
             </PromptInputBody>
