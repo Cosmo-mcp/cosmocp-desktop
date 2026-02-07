@@ -63,6 +63,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { nanoid } from "nanoid";
+import { Mention, MentionsInput, MentionsInputProps } from "react-mentions";
 import {
   Children,
   createContext,
@@ -182,7 +183,7 @@ export const PromptInputProvider = ({
   >([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   // oxlint-disable-next-line eslint(no-empty-function)
-  const openRef = useRef<() => void>(() => {});
+  const openRef = useRef<() => void>(() => { });
 
   const add = useCallback((files: File[] | FileList) => {
     const incoming = [...files];
@@ -564,13 +565,13 @@ export const PromptInput = ({
       usingProvider
         ? controller?.attachments.clear()
         : setItems((prev) => {
-            for (const file of prev) {
-              if (file.url) {
-                URL.revokeObjectURL(file.url);
-              }
+          for (const file of prev) {
+            if (file.url) {
+              URL.revokeObjectURL(file.url);
             }
-            return [];
-          }),
+          }
+          return [];
+        }),
     [usingProvider, controller]
   );
 
@@ -727,9 +728,9 @@ export const PromptInput = ({
       const text = usingProvider
         ? controller.textInput.value
         : (() => {
-            const formData = new FormData(form);
-            return (formData.get("message") as string) || "";
-          })();
+          const formData = new FormData(form);
+          return (formData.get("message") as string) || "";
+        })();
 
       // Reset form immediately after capturing text to avoid race condition
       // where user input during async blob conversion would be lost
@@ -921,15 +922,15 @@ export const PromptInputTextarea = ({
 
   const controlledProps = controller
     ? {
-        onChange: (e: ChangeEvent<HTMLTextAreaElement>) => {
-          controller.textInput.setInput(e.currentTarget.value);
-          onChange?.(e);
-        },
-        value: controller.textInput.value,
-      }
+      onChange: (e: ChangeEvent<HTMLTextAreaElement>) => {
+        controller.textInput.setInput(e.currentTarget.value);
+        onChange?.(e);
+      },
+      value: controller.textInput.value,
+    }
     : {
-        onChange,
-      };
+      onChange,
+    };
 
   return (
     <InputGroupTextarea
@@ -943,6 +944,291 @@ export const PromptInputTextarea = ({
       {...props}
       {...controlledProps}
     />
+  );
+};
+
+export type PromptInputMentionsTextareaProps = Omit<
+  MentionsInputProps,
+  "children" | "onChange" | "value"
+> & {
+  mentionData: { id: string; display: string }[];
+  onMentionAdd?: (id: string | number, display: string) => void;
+  onChange?: (value: string) => void;
+  value?: string;
+  placeholder?: string;
+};
+
+export const PromptInputMentionsTextarea = ({
+  onChange,
+  onMentionAdd,
+  mentionData,
+  className,
+  placeholder = "What would you like to know?",
+  value,
+  allowSuggestionsAboveCursor = true,
+  suggestionsPortalHost,
+  ...props
+}: PromptInputMentionsTextareaProps) => {
+  const mentionsInputRef = useRef<any>(null);
+  const controller = useOptionalPromptInputController();
+  const attachments = usePromptInputAttachments();
+  const [isComposing, setIsComposing] = useState(false);
+  const initialTextValue = controller?.textInput.value ?? value ?? "";
+  const [mentionsValue, setMentionsValue] = useState(initialTextValue);
+  const [plainTextValue, setPlainTextValue] = useState(initialTextValue);
+  const resolvedSuggestionsPortalHost =
+    suggestionsPortalHost ??
+    (typeof document === "undefined" ? undefined : document.body);
+
+  const mentionsStyle = useMemo<MentionsInputProps["style"]>(
+    () => ({
+      control: {
+        backgroundColor: "transparent",
+        border: 0,
+        color: "var(--foreground)",
+        fontFamily: "inherit",
+        fontSize: "0.875rem",
+        lineHeight: "1.25rem",
+        minHeight: "4rem",
+        maxHeight: "12rem",
+        overflowY: "auto",
+        padding: "0.75rem 0",
+      },
+      highlighter: {
+        padding: "0.75rem 0",
+      },
+      input: {
+        margin: 0,
+        padding: "0.75rem",
+        border: 0,
+        outline: "none",
+        backgroundColor: "transparent",
+        color: "inherit",
+      },
+      suggestions: {
+        zIndex: 50,
+        list: {
+          backgroundColor: "var(--popover)",
+          border: "1px solid var(--border)",
+          borderRadius: "0.5rem",
+          boxShadow:
+            "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+          maxHeight: "16rem",
+          overflowY: "auto",
+          padding: "0.25rem",
+        },
+        item: {
+          padding: "0.5rem 0.75rem",
+          borderRadius: "0.375rem",
+          color: "var(--foreground)",
+          "&focused": {
+            backgroundColor: "var(--accent)",
+            color: "var(--accent-foreground)",
+          },
+        },
+      },
+    }),
+    []
+  );
+
+  const externalValue = controller ? controller.textInput.value : value;
+  useEffect(() => {
+    if (externalValue === undefined) {
+      return;
+    }
+    if (externalValue !== plainTextValue) {
+      setPlainTextValue(externalValue);
+      setMentionsValue(externalValue);
+    }
+  }, [externalValue, plainTextValue]);
+
+  const getSuggestionsCount = useCallback((suggestions: unknown) => {
+    if (!suggestions || typeof suggestions !== "object") {
+      return 0;
+    }
+
+    return Object.values(suggestions).reduce((acc, item) => {
+      const resultsLength =
+        item && typeof item === "object" && "results" in item
+          ? Array.isArray((item as any).results)
+            ? (item as any).results.length
+            : 0
+          : 0;
+      return acc + resultsLength;
+    }, 0);
+  }, []);
+
+  const handleMentionsKeyDownCapture: React.KeyboardEventHandler<
+    HTMLTextAreaElement | HTMLInputElement
+  > = (event) => {
+    const keyCodeByKey: Record<string, number> = {
+      Tab: 9,
+      Enter: 13,
+      Escape: 27,
+      ArrowUp: 38,
+      ArrowDown: 40,
+    };
+
+    const expectedKeyCode = keyCodeByKey[event.key];
+    if (!expectedKeyCode) {
+      return;
+    }
+
+    const instance = mentionsInputRef.current?.wrappedInstance
+      ? mentionsInputRef.current.wrappedInstance
+      : mentionsInputRef.current;
+    if (!instance) {
+      return;
+    }
+
+    const suggestionsCount = getSuggestionsCount(instance.state?.suggestions);
+    if (suggestionsCount === 0) {
+      return;
+    }
+
+    const hasSuggestionsElement = !!instance.suggestionsElement;
+    const eventKeyCode = (event as any).keyCode;
+    const shouldFallbackToKeyHandling =
+      !hasSuggestionsElement || eventKeyCode !== expectedKeyCode;
+
+    if (!shouldFallbackToKeyHandling) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    switch (event.key) {
+      case "Escape": {
+        instance.clearSuggestions?.();
+        return;
+      }
+      case "ArrowDown": {
+        instance.shiftFocus?.(+1);
+        return;
+      }
+      case "ArrowUp": {
+        instance.shiftFocus?.(-1);
+        return;
+      }
+      case "Enter":
+      case "Tab": {
+        instance.selectFocused?.();
+        return;
+      }
+      default: {
+        return;
+      }
+    }
+  };
+
+  const handleKeyDown: ((
+    event: React.KeyboardEvent<HTMLTextAreaElement> | React.KeyboardEvent<HTMLInputElement>,
+  ) => void) = (e) => {
+    if (e.defaultPrevented) {
+      return;
+    }
+
+    if (e.key === "Enter") {
+      if (isComposing || e.nativeEvent.isComposing) {
+        return;
+      }
+      if (e.shiftKey) {
+        return;
+      }
+      e.preventDefault();
+
+      const form = e.currentTarget.form;
+      const submitButton = form?.querySelector(
+        'button[type="submit"]'
+      ) as HTMLButtonElement | null;
+      if (submitButton?.disabled) {
+        return;
+      }
+
+      form?.requestSubmit();
+    }
+
+    if (
+      e.key === "Backspace" &&
+      e.currentTarget.value === "" &&
+      attachments.files.length > 0
+    ) {
+      e.preventDefault();
+      const lastAttachment = attachments.files.at(-1);
+      if (lastAttachment) {
+        attachments.remove(lastAttachment.id);
+      }
+    }
+  };
+
+  const handlePaste: ClipboardEventHandler<HTMLTextAreaElement> = (event) => {
+    const items = event.clipboardData?.items;
+
+    if (!items) {
+      return;
+    }
+
+    const files: File[] = [];
+
+    for (const item of items) {
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        if (file) {
+          files.push(file);
+        }
+      }
+    }
+
+    if (files.length > 0) {
+      event.preventDefault();
+      attachments.add(files);
+    }
+  };
+
+  const handleChange: MentionsInputProps["onChange"] = (
+    _event,
+    newValue,
+    newPlainTextValue
+  ) => {
+    setMentionsValue(newValue);
+    setPlainTextValue(newPlainTextValue);
+    if (controller) {
+      controller.textInput.setInput(newPlainTextValue);
+    }
+    onChange?.(newPlainTextValue);
+  };
+
+  const valueProps = { value: mentionsValue };
+
+  return (
+    <MentionsInput
+      className={cn("field-sizing-content max-h-48 min-h-16 flex-1 w-full", className)}
+      name="message"
+      allowSuggestionsAboveCursor={allowSuggestionsAboveCursor}
+      onChange={handleChange}
+      onCompositionEnd={() => setIsComposing(false)}
+      onCompositionStart={() => setIsComposing(true)}
+      onKeyDown={handleKeyDown}
+      onKeyDownCapture={handleMentionsKeyDownCapture}
+      onPaste={handlePaste}
+      placeholder={placeholder}
+      ref={mentionsInputRef}
+      suggestionsPortalHost={resolvedSuggestionsPortalHost}
+      style={mentionsStyle}
+      {...props}
+      {...valueProps}
+    >
+      <Mention
+        appendSpaceOnAdd
+        className="rounded bg-accent"
+        data={mentionData}
+        displayTransform={(_id, display) => display}
+        markup="@[__display__](__id__)"
+        onAdd={(id, display) => onMentionAdd?.(id, display)}
+        trigger="@"
+      />
+    </MentionsInput>
   );
 };
 
@@ -993,10 +1279,10 @@ export const PromptInputTools = ({
 export type PromptInputButtonTooltip =
   | string
   | {
-      content: ReactNode;
-      shortcut?: string;
-      side?: ComponentProps<typeof TooltipContent>["side"];
-    };
+    content: ReactNode;
+    shortcut?: string;
+    side?: ComponentProps<typeof TooltipContent>["side"];
+  };
 
 export type PromptInputButtonProps = ComponentProps<typeof InputGroupButton> & {
   tooltip?: PromptInputButtonTooltip;
