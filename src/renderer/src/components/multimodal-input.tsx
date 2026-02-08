@@ -180,20 +180,6 @@ export function MultimodalInput({
             .filter((persona) => persona.id && persona.name);
     }, [personas]);
 
-    const personaMentionData = useMemo(() => {
-        return personaOptions.map((persona) => ({
-            id: persona.id,
-            display: persona.name
-        }));
-    }, [personaOptions]);
-
-    const commandOptions = useMemo(() => {
-        return slashCommands.map((command) => ({
-            name: command.name,
-            description: command.description,
-            argumentLabel: command.argumentLabel ?? undefined,
-        }));
-    }, [slashCommands]);
     return (
         <PromptInputProvider>
             <PromptInputContent
@@ -302,35 +288,9 @@ function PromptInputContent({
                             </PromptInputButton>
                         </ModelSelectorTrigger>
                         <ModelSelectorContent>
-                            <ModelSelectorInput placeholder="Search models or commands..."/>
+                            <ModelSelectorInput placeholder="Search models"/>
                             <ModelSelectorList>
                                 <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
-                                {commandOptions.length > 0 && (
-                                    <>
-                                        <ModelSelectorGroup heading="Commands">
-                                            {commandOptions.map((command) => (
-                                                <ModelSelectorItem
-                                                    key={command.name}
-                                                    onSelect={() => {
-                                                        setModelSelectorOpen(false);
-                                                        const suffix = command.argumentLabel ? " " : "";
-                                                        setInput(`${command.name}${suffix}`);
-                                                    }}
-                                                    value={command.name}
-                                                >
-                                                    <ModelSelectorName>
-                                                        {command.name}{" "}
-                                                        <span className="text-xs text-muted-foreground">
-                                                                {command.description}
-                                                            </span>
-                                                    </ModelSelectorName>
-                                                    <Slash className="ml-auto size-4 text-muted-foreground"/>
-                                                </ModelSelectorItem>
-                                            ))}
-                                        </ModelSelectorGroup>
-                                        <ModelSelectorSeparator/>
-                                    </>
-                                )}
                                 {providers.map((provider) => (
                                     <ModelSelectorGroup heading={provider.name}
                                                         key={provider.name}>
