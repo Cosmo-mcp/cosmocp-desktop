@@ -1,18 +1,18 @@
 'use client'
-import {JSX, useCallback, useEffect, useState} from "react";
-import {ChatHistory} from "@/components/chat-history";
-import {Chat} from "core/dto";
-import {ChatHeader} from "@/components/chat-header";
-import {Messages} from "@/components/messages";
-import {MultimodalInput} from "@/components/multimodal-input";
-import {useChat} from "@ai-sdk/react";
-import {IpcChatTransport} from "@/chat-transport";
-import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty";
-import {MessageCirclePlus} from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {UIMessage} from "ai";
-import {toast} from "sonner"
-import {logger} from "../../../logger";
+import { JSX, useCallback, useEffect, useState } from "react";
+import { ChatHistory } from "@/components/chat-history";
+import { Chat } from "core/dto";
+import { ChatHeader } from "@/components/chat-header";
+import { Messages } from "@/components/messages";
+import { MultimodalInput } from "@/components/multimodal-input";
+import { useChat } from "@ai-sdk/react";
+import { IpcChatTransport } from "@/chat-transport";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { MessageCirclePlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { UIMessage } from "ai";
+import { toast } from "sonner"
+import { logger } from "../../../logger";
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -30,7 +30,8 @@ export default function Page(): JSX.Element {
         stop,
         regenerate,
         setMessages,
-        error
+        error,
+        addToolApprovalResponse
     } = useChat<UIMessage>({
         id: selectedChat?.id,
         transport: new IpcChatTransport(),
@@ -78,7 +79,7 @@ export default function Page(): JSX.Element {
     }, [selectedChat, setMessages]);
 
     const handleNewChat = () => {
-        window.api.chat.createChat({title: "New Chat"})
+        window.api.chat.createChat({ title: "New Chat" })
             .then(() => {
                 setRefreshHistory(true);
             });
@@ -227,6 +228,7 @@ export default function Page(): JSX.Element {
                                     searchQuery={searchQuery}
                                     currentMatchIndex={currentMatchIndex}
                                     onMatchesFound={handleMatchesFound}
+                                    addToolApprovalResponse={addToolApprovalResponse}
                                 />
                             </div>
                             <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full border-t">
@@ -244,7 +246,7 @@ export default function Page(): JSX.Element {
                             <Empty>
                                 <EmptyHeader>
                                     <EmptyMedia variant="icon">
-                                        <MessageCirclePlus/>
+                                        <MessageCirclePlus />
                                     </EmptyMedia>
                                     <EmptyTitle>Start a new Chat</EmptyTitle>
                                     <EmptyDescription>
