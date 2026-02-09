@@ -18,7 +18,7 @@ const normalizeRequired = (value: string | null | undefined, field: string) => {
     return value.trim();
 };
 
-const validateTransportConfig = (transportType: string, config: any) => {
+const validateTransportConfig = (transportType: string, config: unknown) => {
     if (!config || typeof config !== 'object') {
         throw new Error('Transport config is required and must be an object.');
     }

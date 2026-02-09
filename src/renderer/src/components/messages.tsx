@@ -71,7 +71,6 @@ interface MessagesProps {
 function PureMessages({
                           status,
                           messages,
-                          regenerate,
                       searchQuery,
                       currentMatchIndex,
                       onMatchesFound

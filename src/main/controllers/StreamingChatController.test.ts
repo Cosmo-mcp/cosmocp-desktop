@@ -32,6 +32,50 @@ vi.mock("ai", () => ({
 
 import {StreamingChatController} from "./StreamingChatController"
 
+type SendMessageEvent = Parameters<StreamingChatController["sendMessage"]>[1]
+type WebContentsMock = {
+  isDestroyed: () => boolean
+  send: (...args: unknown[]) => void
+}
+type MessagePart = ChatSendMessageArgs["messages"][number]["parts"]
+type StreamTextOnFinishEvent = {
+  text?: string
+  reasoningText?: string
+}
+type StreamTextOnErrorEvent = {
+  error: unknown
+  lastError?: unknown
+}
+type StreamTextOnAbortEvent = {
+  steps: unknown[]
+}
+
+interface StreamTextMockOptions {
+  abortSignal: AbortSignal
+  onFinish?: (event: StreamTextOnFinishEvent) => void | Promise<void>
+  onError?: (event: StreamTextOnErrorEvent) => void | Promise<void>
+  onAbort?: (event: StreamTextOnAbortEvent) => void | Promise<void>
+}
+
+const createUserMessage = (
+  parts: MessagePart
+): ChatSendMessageArgs["messages"][number] => ({
+  id: "m1",
+  role: "user",
+  parts,
+})
+
+const createIpcEvent = (webContents: WebContentsMock): SendMessageEvent =>
+  ({sender: webContents} as unknown as SendMessageEvent)
+
+const createAsyncIterable = <T,>(items: T[]): AsyncIterable<T> => ({
+  async *[Symbol.asyncIterator]() {
+    for (const item of items) {
+      yield item
+    }
+  },
+})
+
 describe("StreamingChatController", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -81,11 +125,11 @@ describe("StreamingChatController", () => {
 
     ai.convertToModelMessages.mockResolvedValue([{role: "user", content: "hi"}])
 
-    ai.streamText.mockImplementation((options: any) => ({
+    ai.streamText.mockImplementation((options: StreamTextMockOptions) => ({
       toUIMessageStream: async function* () {
         yield {chunk: 1}
         yield {chunk: 2}
-        options.onFinish?.({text: "assistant", reasoningText: "reasoning"})
+        await options.onFinish?.({text: "assistant", reasoningText: "reasoning"})
       },
     }))
 
@@ -100,7 +144,7 @@ describe("StreamingChatController", () => {
       isDestroyed: vi.fn(() => false),
       send: vi.fn(),
     }
-    const event = {sender: webContents} as any
+    const event = createIpcEvent(webContents)
 
     const args: ChatSendMessageArgs = {
       chatId: "chat-id",
@@ -108,14 +152,10 @@ describe("StreamingChatController", () => {
       modelIdentifier: "provider:model" as never,
       personaId: "persona-id",
       messages: [
-        {
-          id: "m1",
-          role: "user",
-          parts: [
-            {type: "text", text: "Hello"},
-            {type: "reasoning", text: "Think"},
-          ],
-        } as any,
+        createUserMessage([
+          {type: "text", text: "Hello"},
+          {type: "reasoning", text: "Think"},
+        ]),
       ],
     }
 
@@ -172,11 +212,12 @@ describe("StreamingChatController", () => {
     } as unknown as McpClientManager
 
     ai.convertToModelMessages.mockResolvedValue([{role: "user", content: "hi"}])
-    ai.streamText.mockImplementation((options: any) => ({
-      toUIMessageStream: async function* () {
-        options.onFinish?.({text: "", reasoningText: ""})
-      },
-    }))
+    ai.streamText.mockImplementation((options: StreamTextMockOptions) => {
+      void options.onFinish?.({text: "", reasoningText: ""})
+      return {
+        toUIMessageStream: () => createAsyncIterable<unknown>([]),
+      }
+    })
 
     const controller = new StreamingChatController(
       modelProviderService,
@@ -188,7 +229,7 @@ describe("StreamingChatController", () => {
       isDestroyed: vi.fn(() => false),
       send: vi.fn(),
     }
-    const event = {sender: webContents} as any
+    const event = createIpcEvent(webContents)
 
     await controller.sendMessage(
       {
@@ -196,7 +237,7 @@ describe("StreamingChatController", () => {
         streamChannel: "chan",
         modelIdentifier: "provider:model" as never,
         personaName: "Persona",
-        messages: [{id: "m1", role: "user", parts: [{type: "text", text: "Hello"}]} as any],
+        messages: [createUserMessage([{type: "text", text: "Hello"}])],
       },
       event
     )
@@ -239,13 +280,13 @@ describe("StreamingChatController", () => {
       isDestroyed: vi.fn(() => false),
       send: vi.fn(),
     }
-    const event = {sender: webContents} as any
+    const event = createIpcEvent(webContents)
 
     const args: ChatSendMessageArgs = {
       chatId: "chat-id",
       streamChannel: "chan",
       modelIdentifier: "provider:model" as never,
-      messages: [{id: "m1", role: "user", parts: [{type: "text", text: "Hello"}]} as any],
+      messages: [createUserMessage([{type: "text", text: "Hello"}])],
     }
 
     await controller.sendMessage(args, event)
@@ -275,11 +316,11 @@ describe("StreamingChatController", () => {
 
     ai.convertToModelMessages.mockResolvedValue([])
 
-    let capturedOptions: any
-    ai.streamText.mockImplementation((options: any) => {
+    let capturedOptions: StreamTextMockOptions | undefined
+    ai.streamText.mockImplementation((options: StreamTextMockOptions) => {
       capturedOptions = options
       return {
-        toUIMessageStream: async function* () {},
+        toUIMessageStream: () => createAsyncIterable<unknown>([]),
       }
     })
 
@@ -293,20 +334,20 @@ describe("StreamingChatController", () => {
       isDestroyed: vi.fn(() => false),
       send: vi.fn(),
     }
-    const event = {sender: webContents} as any
+    const event = createIpcEvent(webContents)
 
     await controller.sendMessage(
       {
         chatId: "chat-id",
         streamChannel: "chan",
         modelIdentifier: "provider:model" as never,
-        messages: [{id: "m1", role: "user", parts: [{type: "text", text: "Hello"}]} as any],
+        messages: [createUserMessage([{type: "text", text: "Hello"}])],
       },
       event
     )
 
     ai.RetryError.isInstance.mockReturnValue(true)
-    await capturedOptions.onError({error: "original", lastError: "retry-last"})
+    await capturedOptions?.onError?.({error: "original", lastError: "retry-last"})
 
     expect(logger.error).toHaveBeenCalledWith("Stream error:", expect.anything())
     expect(webContents.send).toHaveBeenCalledWith("chan-error", "retry-last")
@@ -352,12 +393,12 @@ describe("StreamingChatController", () => {
     } as unknown as McpClientManager
 
     ai.convertToModelMessages.mockResolvedValue([])
-    ai.streamText.mockImplementation((options: any) => {
-      options.abortSignal.addEventListener("abort", () => options.onAbort?.())
+    ai.streamText.mockImplementation((options: StreamTextMockOptions) => {
+      options.abortSignal.addEventListener("abort", () => {
+        void options.onAbort?.({steps: []})
+      })
       return {
-        toUIMessageStream: async function* () {
-          yield {chunk: 1}
-        },
+        toUIMessageStream: () => createAsyncIterable([{chunk: 1}]),
       }
     })
 
@@ -371,14 +412,14 @@ describe("StreamingChatController", () => {
       isDestroyed: vi.fn(() => true),
       send: vi.fn(),
     }
-    const event = {sender: webContents} as any
+    const event = createIpcEvent(webContents)
 
     await controller.sendMessage(
       {
         chatId: "chat-id",
         streamChannel: "chan",
         modelIdentifier: "provider:model" as never,
-        messages: [{id: "m1", role: "user", parts: [{type: "text", text: "Hello"}]} as any],
+        messages: [createUserMessage([{type: "text", text: "Hello"}])],
       },
       event
     )

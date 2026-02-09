@@ -1,8 +1,27 @@
 'use client';
 
-import type {UIMessage} from 'ai';
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {toast} from 'sonner';
+import {
+    ModelSelector,
+    ModelSelectorContent,
+    ModelSelectorEmpty,
+    ModelSelectorGroup,
+    ModelSelectorInput,
+    ModelSelectorItem,
+    ModelSelectorList,
+    ModelSelectorLogo,
+    ModelSelectorName,
+    ModelSelectorTrigger
+} from "@/components/ai-elements/model-selector";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { UseChatHelpers } from '@ai-sdk/react';
+import type { UIMessage } from 'ai';
+import { ModelModalityEnum } from "core/database/schema/modelProviderSchema";
+import type { Chat, CommandDefinition, Persona, ProviderWithModels } from "core/dto";
+import { CheckIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { logger } from "../../logger";
+import { Attachment, AttachmentPreview, AttachmentRemove, Attachments, } from './ai-elements/attachments';
 import {
     PromptInput,
     PromptInputActionAddAttachments,
@@ -25,26 +44,6 @@ import {
     PromptInputTools,
     usePromptInputAttachments,
 } from './ai-elements/prompt-input';
-import {Attachment, AttachmentPreview, AttachmentRemove, Attachments,} from './ai-elements/attachments';
-import type {UseChatHelpers} from '@ai-sdk/react';
-import type {Chat, Persona, ProviderWithModels, CommandDefinition} from "core/dto";
-import {
-    ModelSelector,
-    ModelSelectorContent,
-    ModelSelectorEmpty,
-    ModelSelectorGroup,
-    ModelSelectorInput,
-    ModelSelectorItem,
-    ModelSelectorList,
-    ModelSelectorLogo,
-    ModelSelectorName,
-    ModelSelectorSeparator,
-    ModelSelectorTrigger
-} from "@/components/ai-elements/model-selector";
-import {CheckIcon, Slash} from "lucide-react";
-import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
-import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
-import {logger} from "../../logger";
 
 const parsePersonaDirective = (text: string) => {
     const match = text.match(/^\s*@persona(?:\s*[:=])?\s*(?:"([^"]+)"|'([^']+)'|([^\s]+))\s*/i);
@@ -81,9 +80,6 @@ export function MultimodalInput({
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const [personas, setPersonas] = useState<Persona[]>([]);
     const [commands, setCommands] = useState<CommandDefinition[]>([]);
-    const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(
-        chat.selectedPersonaId ?? null
-    );
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
@@ -102,10 +98,6 @@ export function MultimodalInput({
             .then(fetchedCommands => setCommands(fetchedCommands))
             .catch(error => logger.error(error));
     }, []);
-
-    useEffect(() => {
-        setSelectedPersonaId(chat.selectedPersonaId ?? null);
-    }, [chat.id, chat.selectedPersonaId]);
 
     const selectedModelInfo = useMemo(() => {
         if (providers.length === 0) return undefined;
@@ -158,16 +150,15 @@ export function MultimodalInput({
             text: resolvedText,
             files: message.files
         }, {
-            metadata: {modelId, personaId: selectedPersonaId}
+            metadata: {modelId, personaId: chat.selectedPersonaId ?? null}
         }).catch((error) => {
             toast.error(error.message);
         }).finally(() => {
             setInput('');
         })
-    }, [chat.selectedModelId, chat.selectedProvider, selectedPersonaId, sendMessage]);
+    }, [chat.selectedModelId, chat.selectedProvider, chat.selectedPersonaId, sendMessage]);
 
     const handlePersonaSelection = useCallback((personaId: string | null) => {
-        setSelectedPersonaId(personaId);
         onPersonaChange(personaId);
     }, [onPersonaChange]);
 
@@ -191,7 +182,7 @@ export function MultimodalInput({
                 personaOptions={personaOptions}
                 providers={providers}
                 selectedModelInfo={selectedModelInfo}
-                selectedPersonaId={selectedPersonaId}
+                selectedPersonaId={chat.selectedPersonaId ?? null}
                 setInput={setInput}
                 setModelSelectorOpen={setModelSelectorOpen}
                 status={status}
