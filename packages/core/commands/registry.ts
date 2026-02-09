@@ -1,13 +1,13 @@
-import type {SlashCommand, SlashCommandDefinition} from "../dto";
-import {builtInSlashCommands} from "./builtins";
-import {normalizeSlashCommandName} from "./parser";
+import type {Command, CommandDefinition} from "../dto";
+import {builtInCommands} from "./builtins";
+import {normalizeCommandName} from "./parser";
 
 const normalizeDefinition = (
-    command: SlashCommand | SlashCommandDefinition,
+    command: Command | CommandDefinition,
     builtIn: boolean
-): SlashCommandDefinition => ({
+): CommandDefinition => ({
     id: "id" in command ? command.id : undefined,
-    name: normalizeSlashCommandName(command.name),
+    name: normalizeCommandName(command.name),
     description: command.description,
     template: command.template,
     argumentLabel: command.argumentLabel ?? undefined,
@@ -15,16 +15,16 @@ const normalizeDefinition = (
 });
 
 // Merge built-in commands with user-defined commands for display and execution.
-export const mergeSlashCommands = (
-    userCommands: SlashCommand[]
-): SlashCommandDefinition[] => {
-    const normalizedBuiltIns = builtInSlashCommands.map((command) =>
+export const mergeCommands = (
+    userCommands: Command[]
+): CommandDefinition[] => {
+    const normalizedBuiltIns = builtInCommands.map((command) =>
         normalizeDefinition(command, true)
     );
     const normalizedUserCommands = userCommands.map((command) =>
         normalizeDefinition(command, false)
     );
-    const uniqueByName = new Map<string, SlashCommandDefinition>();
+    const uniqueByName = new Map<string, CommandDefinition>();
 
     for (const command of normalizedBuiltIns) {
         uniqueByName.set(command.name, command);
@@ -40,10 +40,10 @@ export const mergeSlashCommands = (
 };
 
 // Find a command by name across both built-in and user-defined sets.
-export const findSlashCommand = (
-    allCommands: SlashCommandDefinition[],
+export const findCommand = (
+    allCommands: CommandDefinition[],
     name: string
-): SlashCommandDefinition | undefined => {
-    const normalizedName = normalizeSlashCommandName(name);
+): CommandDefinition | undefined => {
+    const normalizedName = normalizeCommandName(name);
     return allCommands.find((command) => command.name === normalizedName);
 };

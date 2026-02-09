@@ -17,7 +17,7 @@ The quality bar is “no untested behavior”. New code should ship with unit + 
   - Error handling.
 - Prefer isolated DB instances per test suite:
   - Use ephemeral directories and run migrations deterministically.
-  - Add unit coverage for slash command parsing/template rendering.
+  - Add unit coverage for command parsing/template rendering.
 
 ### `src/main`
 
@@ -25,7 +25,7 @@ The quality bar is “no untested behavior”. New code should ship with unit + 
   - Validation behavior at the boundary.
   - Calls into core services via DI.
 - Streaming controllers emit `*-data`, `*-end`, `*-error` consistently.
-  - Slash command controller validates input and delegates to core services.
+  - Command controller validates input and delegates to core services.
 
 ### `src/preload`
 
@@ -38,7 +38,7 @@ The quality bar is “no untested behavior”. New code should ship with unit + 
 
 - Component tests for UI behavior:
   - Chat selection, message rendering, search highlighting, model/persona selection.
-  - Slash command management screens and dropdown integration.
+  - Command management screens and dropdown integration.
 - Mock `window.api` for unit tests; do not require Electron runtime.
 
 ## Automation / E2E

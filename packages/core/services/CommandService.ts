@@ -1,19 +1,19 @@
 import {inject, injectable} from "inversify";
 import {CORETYPES} from "../types/types";
-import {SlashCommandRepository} from "../repositories/SlashCommandRepository";
+import {CommandRepository} from "../repositories/CommandRepository";
 import {
-    SlashCommand,
-    SlashCommandCreateInput,
-    SlashCommandDefinition,
-    SlashCommandExecution,
-    SlashCommandUpdateInput,
+    Command,
+    CommandCreateInput,
+    CommandDefinition,
+    CommandExecution,
+    CommandUpdateInput,
 } from "../dto";
 import {
-    findSlashCommand,
-    mergeSlashCommands,
+    findCommand,
+    mergeCommands,
 } from "../commands/registry";
-import {normalizeSlashCommandName, parseSlashCommandInput} from "../commands/parser";
-import {renderSlashCommandTemplate} from "../commands/template";
+import {normalizeCommandName, parseCommandInput} from "../commands/parser";
+import {renderCommandTemplate} from "../commands/template";
 
 // Ensure required text inputs are present before persistence.
 const normalizeRequired = (value: string | null | undefined, field: string) => {
@@ -25,22 +25,22 @@ const normalizeRequired = (value: string | null | undefined, field: string) => {
 };
 
 @injectable()
-export class SlashCommandService {
+export class CommandService {
     constructor(
-        @inject(CORETYPES.SlashCommandRepository)
-        private slashCommandRepository: SlashCommandRepository
+        @inject(CORETYPES.CommandRepository)
+        private commandRepository: CommandRepository
     ) {
     }
 
     // Provide a combined list of built-in and user-defined commands.
-    public async listAll(): Promise<SlashCommandDefinition[]> {
-        const userCommands = await this.slashCommandRepository.getAll();
-        return mergeSlashCommands(userCommands);
+    public async listAll(): Promise<CommandDefinition[]> {
+        const userCommands = await this.commandRepository.getAll();
+        return mergeCommands(userCommands);
     }
 
     // Persist a new user-defined command with validation and normalization.
-    public async create(input: SlashCommandCreateInput): Promise<SlashCommandDefinition> {
-        const name = normalizeSlashCommandName(normalizeRequired(input.name, "Name"));
+    public async create(input: CommandCreateInput): Promise<CommandDefinition> {
+        const name = normalizeCommandName(normalizeRequired(input.name, "Name"));
         if (name.length < 2) {
             throw new Error("Command name must start with / and include at least one character.");
         }
@@ -50,12 +50,12 @@ export class SlashCommandService {
         const argumentLabel = input.argumentLabel?.trim() || null;
 
         const allCommands = await this.listAll();
-        const existing = findSlashCommand(allCommands, name);
+        const existing = findCommand(allCommands, name);
         if (existing) {
             throw new Error(`Command "${name}" already exists.`);
         }
 
-        const created = await this.slashCommandRepository.create({
+        const created = await this.commandRepository.create({
             name,
             description,
             template,
@@ -73,21 +73,21 @@ export class SlashCommandService {
     }
 
     // Update a user-defined command and keep it distinct from built-ins.
-    public async update(id: string, updates: SlashCommandUpdateInput): Promise<SlashCommandDefinition> {
-        const existing = await this.slashCommandRepository.getById(id);
+    public async update(id: string, updates: CommandUpdateInput): Promise<CommandDefinition> {
+        const existing = await this.commandRepository.getById(id);
         if (!existing) {
             throw new Error("Command not found.");
         }
 
-        const normalizedUpdates: SlashCommandUpdateInput = {
+        const normalizedUpdates: CommandUpdateInput = {
             ...updates,
         };
 
         if (updates.name !== undefined) {
-            const name = normalizeSlashCommandName(normalizeRequired(updates.name, "Name"));
+            const name = normalizeCommandName(normalizeRequired(updates.name, "Name"));
             normalizedUpdates.name = name;
             const allCommands = await this.listAll();
-            const match = findSlashCommand(allCommands, name);
+            const match = findCommand(allCommands, name);
             if (match && match.id !== existing.id) {
                 throw new Error(`Command "${name}" already exists.`);
             }
@@ -105,7 +105,7 @@ export class SlashCommandService {
             normalizedUpdates.argumentLabel = updates.argumentLabel?.trim() || null;
         }
 
-        const updated = await this.slashCommandRepository.update(existing.id, normalizedUpdates);
+        const updated = await this.commandRepository.update(existing.id, normalizedUpdates);
 
         return {
             id: updated.id,
@@ -119,27 +119,27 @@ export class SlashCommandService {
 
     // Remove a user-defined command by id.
     public async delete(id: string): Promise<void> {
-        const existing = await this.slashCommandRepository.getById(id);
+        const existing = await this.commandRepository.getById(id);
         if (!existing) {
             throw new Error("Command not found.");
         }
-        await this.slashCommandRepository.delete(id);
+        await this.commandRepository.delete(id);
     }
 
-    // Translate a slash command string into a resolved prompt to send.
-    public async execute(input: string): Promise<SlashCommandExecution> {
-        const parsed = parseSlashCommandInput(input);
+    // Translate a command string into a resolved prompt to send.
+    public async execute(input: string): Promise<CommandExecution> {
+        const parsed = parseCommandInput(input);
         if (!parsed) {
-            throw new Error("Invalid slash command.");
+            throw new Error("Invalid command.");
         }
 
         const allCommands = await this.listAll();
-        const command = findSlashCommand(allCommands, parsed.name);
+        const command = findCommand(allCommands, parsed.name);
         if (!command) {
             throw new Error(`Command "${parsed.name}" not found.`);
         }
 
-        const resolvedText = renderSlashCommandTemplate(command.template, parsed.argument);
+        const resolvedText = renderCommandTemplate(command.template, parsed.argument);
         return {
             name: command.name,
             argument: parsed.argument,
@@ -148,7 +148,7 @@ export class SlashCommandService {
     }
 
     // Provide all user-defined commands for management screens.
-    public async listUserCommands(): Promise<SlashCommand[]> {
-        return this.slashCommandRepository.getAll();
+    public async listUserCommands(): Promise<Command[]> {
+        return this.commandRepository.getAll();
     }
 }

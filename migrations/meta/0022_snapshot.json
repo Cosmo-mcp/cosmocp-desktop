@@ -407,8 +407,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.SlashCommand": {
-      "name": "SlashCommand",
+    "public.Command": {
+      "name": "Command",
       "schema": "",
       "columns": {
         "id": {
@@ -461,8 +461,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "SlashCommand_name_unique": {
-          "name": "SlashCommand_name_unique",
+        "Command_name_unique": {
+          "name": "Command_name_unique",
           "nullsNotDistinct": false,
           "columns": [
             "name"

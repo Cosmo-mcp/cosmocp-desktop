@@ -1,10 +1,10 @@
-export interface ParsedSlashCommand {
+export interface ParsedCommand {
     name: string;
     argument?: string;
 }
 
 // Normalize the name to ensure a leading slash and consistent casing.
-export const normalizeSlashCommandName = (value: string): string => {
+export const normalizeCommandName = (value: string): string => {
     const trimmed = value.trim();
     if (!trimmed) {
         return "";
@@ -13,14 +13,14 @@ export const normalizeSlashCommandName = (value: string): string => {
 };
 
 // Parse the input into a single command name and optional argument.
-export const parseSlashCommandInput = (input: string): ParsedSlashCommand | null => {
+export const parseCommandInput = (input: string): ParsedCommand | null => {
     const trimmed = input.trim();
     if (!trimmed.startsWith("/")) {
         return null;
     }
 
     const [rawName, ...rest] = trimmed.split(/\s+/);
-    const name = normalizeSlashCommandName(rawName);
+    const name = normalizeCommandName(rawName);
     if (!name || name.length < 2) {
         return null;
     }

@@ -1,5 +1,5 @@
 // Build a prompt string from a command template and optional argument.
-export const renderSlashCommandTemplate = (
+export const renderCommandTemplate = (
     template: string,
     argument?: string
 ): string => {

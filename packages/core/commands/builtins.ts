@@ -1,7 +1,7 @@
-import type {SlashCommandDefinition} from "../dto";
+import type {CommandDefinition} from "../dto";
 
 // Provide built-in commands that ship with the app.
-export const builtInSlashCommands: SlashCommandDefinition[] = [
+export const builtInCommands: CommandDefinition[] = [
     {
         name: "/summarize",
         description: "Summarize the current conversation.",

@@ -37,7 +37,7 @@ describe("preload index", () => {
       "modelProvider",
       "message",
       "persona",
-      "slashCommand",
+      "command",
       "mcpServer",
       "streaming",
     ])

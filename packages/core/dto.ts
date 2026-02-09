@@ -6,7 +6,7 @@ import {
     model,
     modelProvider,
     persona,
-    slashCommand,
+    command,
 } from "./database/schema/schema";
 import {UIMessage} from "ai";
 
@@ -44,15 +44,15 @@ export type Persona = InferSelectModel<typeof persona>;
 export type NewPersona = InferInsertModel<typeof persona>;
 export type PersonaCreateInput = Omit<NewPersona, 'id' | 'createdAt' | 'updatedAt'>;
 
-export type SlashCommand = InferSelectModel<typeof slashCommand>;
-export type NewSlashCommand = InferInsertModel<typeof slashCommand>;
-export type SlashCommandCreateInput = Omit<
-    NewSlashCommand,
+export type Command = InferSelectModel<typeof command>;
+export type NewCommand = InferInsertModel<typeof command>;
+export type CommandCreateInput = Omit<
+    NewCommand,
     'id' | 'createdAt' | 'updatedAt'
 >;
-export type SlashCommandUpdateInput = Partial<SlashCommandCreateInput>;
+export type CommandUpdateInput = Partial<CommandCreateInput>;
 
-export interface SlashCommandDefinition {
+export interface CommandDefinition {
     id?: string;
     name: string;
     description: string;
@@ -61,7 +61,7 @@ export interface SlashCommandDefinition {
     builtIn: boolean;
 }
 
-export interface SlashCommandExecution {
+export interface CommandExecution {
     name: string;
     argument?: string;
     resolvedText: string;

@@ -1,12 +1,12 @@
 'use client';
 
-import {SlashCommandManagement} from "@/components/slash-command-management";
+import {CommandManagement} from "@/components/command-management";
 
 // Provide a dedicated sidebar destination for command management.
-export default function SlashCommandsPage() {
+export default function CommandsPage() {
     return (
         <div className="flex h-full w-full flex-col p-4">
-            <SlashCommandManagement/>
+            <CommandManagement/>
         </div>
     );
 }

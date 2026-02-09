@@ -119,10 +119,10 @@ import {
     McpServer,
     McpServerCreateInput,
     McpServerUpdateInput,
-    SlashCommandCreateInput,
-    SlashCommandDefinition,
-    SlashCommandExecution,
-    SlashCommandUpdateInput,
+    CommandCreateInput,
+    CommandDefinition,
+    CommandExecution,
+    CommandUpdateInput,
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 `

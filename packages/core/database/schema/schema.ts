@@ -1,5 +1,5 @@
 export * from './chatSchema';
 export * from './modelProviderSchema';
 export * from './personaSchema';
-export * from './slashCommandSchema';
+export * from './commandSchema';
 export * from './mcpServerSchema';

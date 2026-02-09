@@ -1,24 +1,24 @@
 import {describe, expect, it} from "vitest";
-import {normalizeSlashCommandName, parseSlashCommandInput} from "../parser";
+import {normalizeCommandName, parseCommandInput} from "../parser";
 
-describe("parseSlashCommandInput", () => {
+describe("parseCommandInput", () => {
     it("normalizes names with a leading slash", () => {
-        expect(normalizeSlashCommandName("summarize")).toBe("/summarize");
+        expect(normalizeCommandName("summarize")).toBe("/summarize");
     });
 
     it("returns null for non-command input", () => {
-        expect(parseSlashCommandInput("hello world")).toBeNull();
+        expect(parseCommandInput("hello world")).toBeNull();
     });
 
     it("parses a command without an argument", () => {
-        expect(parseSlashCommandInput("/summarize")).toEqual({
+        expect(parseCommandInput("/summarize")).toEqual({
             name: "/summarize",
             argument: undefined,
         });
     });
 
     it("parses a command with a single argument", () => {
-        expect(parseSlashCommandInput("/summarize focus on key points")).toEqual({
+        expect(parseCommandInput("/summarize focus on key points")).toEqual({
             name: "/summarize",
             argument: "focus on key points",
         });

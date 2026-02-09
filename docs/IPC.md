@@ -53,15 +53,15 @@ Streaming uses fire-and-forget channels plus renderer subscriptions:
 5. Update renderer usage through `window.api`.
 6. Add tests covering success + failure paths.
 
-## Slash command endpoints
+## Command endpoints
 
-The `slashCommand` IPC group provides dynamic command management:
+The `command` IPC group provides dynamic command management:
 
-- `slashCommand:listAll` → list built-in + user-defined commands.
-- `slashCommand:create` → create a custom command.
-- `slashCommand:update` → update a custom command.
-- `slashCommand:delete` → delete a custom command.
-- `slashCommand:execute` → resolve a slash command string into its final prompt.
+- `command:listAll` → list built-in + user-defined commands.
+- `command:create` → create a custom command.
+- `command:update` → update a custom command.
+- `command:delete` → delete a custom command.
+- `command:execute` → resolve a command string into its final prompt.
 
 ## Security checklist
 

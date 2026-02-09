@@ -1,9 +1,9 @@
 import {describe, expect, it} from "vitest";
-import {mergeSlashCommands} from "../registry";
+import {mergeCommands} from "../registry";
 
-describe("mergeSlashCommands", () => {
+describe("mergeCommands", () => {
     it("deduplicates by name while keeping built-ins", () => {
-        const merged = mergeSlashCommands([
+        const merged = mergeCommands([
             {
                 id: "1",
                 name: "/summarize",

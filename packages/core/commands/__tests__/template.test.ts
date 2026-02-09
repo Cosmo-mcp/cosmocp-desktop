@@ -1,19 +1,19 @@
 import {describe, expect, it} from "vitest";
-import {renderSlashCommandTemplate} from "../template";
+import {renderCommandTemplate} from "../template";
 
-describe("renderSlashCommandTemplate", () => {
+describe("renderCommandTemplate", () => {
     it("returns the template when no argument is provided", () => {
-        expect(renderSlashCommandTemplate("Summarize the chat.")).toBe("Summarize the chat.");
+        expect(renderCommandTemplate("Summarize the chat.")).toBe("Summarize the chat.");
     });
 
     it("injects the argument into the template placeholder", () => {
-        expect(renderSlashCommandTemplate("Summarize {{input}}.", "this response")).toBe(
+        expect(renderCommandTemplate("Summarize {{input}}.", "this response")).toBe(
             "Summarize this response."
         );
     });
 
     it("appends the argument when no placeholder exists", () => {
-        expect(renderSlashCommandTemplate("Summarize the chat.", "focus on decisions")).toBe(
+        expect(renderCommandTemplate("Summarize the chat.", "focus on decisions")).toBe(
             "Summarize the chat.\n\nfocus on decisions"
         );
     });

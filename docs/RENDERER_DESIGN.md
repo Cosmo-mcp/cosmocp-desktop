@@ -18,7 +18,7 @@ This document captures UI/UX conventions so new features match the existing Cosm
 - Settings:
   - Left rail of settings sections
   - Right content card for selected setting
-  - Slash Commands section for managing built-in and custom commands
+  - Commands section for managing built-in and custom commands
 
 ## Stack
 
@@ -53,7 +53,7 @@ This document captures UI/UX conventions so new features match the existing Cosm
 - Streaming chat:
   - Always handle failure states (toast + recoverable UI).
   - Clean up IPC listeners when streams end/cancel.
-- Slash commands:
+- Commands:
   - List commands dynamically (built-ins + custom).
   - Allow optional single-argument input and show hints in the UI.
 - Errors:

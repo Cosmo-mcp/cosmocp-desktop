@@ -1,10 +1,10 @@
 import {describe, expect, it, vi} from "vitest";
-import {SlashCommandController} from "../SlashCommandController";
-import type {SlashCommandDefinition, SlashCommandExecution} from "core/dto";
+import {CommandController} from "../CommandController";
+import type {CommandDefinition, CommandExecution} from "core/dto";
 
-describe("SlashCommandController", () => {
+describe("CommandController", () => {
     it("returns the list of commands from the service", async () => {
-        const commands: SlashCommandDefinition[] = [
+        const commands: CommandDefinition[] = [
             {
                 name: "/summarize",
                 description: "Summarize the chat.",
@@ -16,12 +16,12 @@ describe("SlashCommandController", () => {
             listAll: vi.fn().mockResolvedValue(commands),
         };
 
-        const controller = new SlashCommandController(service as never);
+        const controller = new CommandController(service as never);
         await expect(controller.listAll()).resolves.toEqual(commands);
     });
 
     it("executes a command via the service", async () => {
-        const execution: SlashCommandExecution = {
+        const execution: CommandExecution = {
             name: "/summarize",
             resolvedText: "Summarize the chat.",
         };
@@ -29,7 +29,7 @@ describe("SlashCommandController", () => {
             execute: vi.fn().mockResolvedValue(execution),
         };
 
-        const controller = new SlashCommandController(service as never);
+        const controller = new CommandController(service as never);
         await expect(controller.execute({input: "/summarize"})).resolves.toEqual(execution);
     });
 });

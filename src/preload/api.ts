@@ -18,10 +18,10 @@ import {
     McpServer,
     McpServerCreateInput,
     McpServerUpdateInput,
-    SlashCommandCreateInput,
-    SlashCommandDefinition,
-    SlashCommandExecution,
-    SlashCommandUpdateInput,
+    CommandCreateInput,
+    CommandDefinition,
+    CommandExecution,
+    CommandUpdateInput,
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
@@ -63,12 +63,12 @@ export interface PersonaApi {
     delete(id: string): Promise<void>;
 }
 
-export interface SlashCommandApi {
-    listAll(): Promise<SlashCommandDefinition[]>;
-    create(input: SlashCommandCreateInput): Promise<SlashCommandDefinition>;
-    update(id: string, updates: SlashCommandUpdateInput): Promise<SlashCommandDefinition>;
+export interface CommandApi {
+    listAll(): Promise<CommandDefinition[]>;
+    create(input: CommandCreateInput): Promise<CommandDefinition>;
+    update(id: string, updates: CommandUpdateInput): Promise<CommandDefinition>;
     delete(id: string): Promise<void>;
-    execute(input: {input: string}): Promise<SlashCommandExecution>;
+    execute(input: {input: string}): Promise<CommandExecution>;
 }
 
 export interface McpServerApi {
@@ -99,7 +99,7 @@ export interface Api {
   modelProvider: ModelProviderApi;
   message: MessageApi;
   persona: PersonaApi;
-  slashCommand: SlashCommandApi;
+  command: CommandApi;
   mcpServer: McpServerApi;
   streaming: StreamingApi;
 }
@@ -140,12 +140,12 @@ export const api: Api = {
     update: (id: string, updates: Partial<NewPersona>) => ipcRenderer.invoke('persona:update', id, updates),
     delete: (id: string) => ipcRenderer.invoke('persona:delete', id)
   },
-  slashCommand: {
-    listAll: () => ipcRenderer.invoke('slashCommand:listAll'),
-    create: (input: SlashCommandCreateInput) => ipcRenderer.invoke('slashCommand:create', input),
-    update: (id: string, updates: SlashCommandUpdateInput) => ipcRenderer.invoke('slashCommand:update', id, updates),
-    delete: (id: string) => ipcRenderer.invoke('slashCommand:delete', id),
-    execute: (input: {input: string}) => ipcRenderer.invoke('slashCommand:execute', input)
+  command: {
+    listAll: () => ipcRenderer.invoke('command:listAll'),
+    create: (input: CommandCreateInput) => ipcRenderer.invoke('command:create', input),
+    update: (id: string, updates: CommandUpdateInput) => ipcRenderer.invoke('command:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('command:delete', id),
+    execute: (input: {input: string}) => ipcRenderer.invoke('command:execute', input)
   },
   mcpServer: {
     getAll: () => ipcRenderer.invoke('mcpServer:getAll'),

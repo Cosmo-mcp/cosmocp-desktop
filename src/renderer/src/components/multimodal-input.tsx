@@ -27,7 +27,7 @@ import {
 } from './ai-elements/prompt-input';
 import {Attachment, AttachmentPreview, AttachmentRemove, Attachments,} from './ai-elements/attachments';
 import type {UseChatHelpers} from '@ai-sdk/react';
-import type {Chat, Persona, ProviderWithModels, SlashCommandDefinition} from "core/dto";
+import type {Chat, Persona, ProviderWithModels, CommandDefinition} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -80,7 +80,7 @@ export function MultimodalInput({
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const [personas, setPersonas] = useState<Persona[]>([]);
-    const [slashCommands, setSlashCommands] = useState<SlashCommandDefinition[]>([]);
+    const [commands, setCommands] = useState<CommandDefinition[]>([]);
     const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(
         chat.selectedPersonaId ?? null
     );
@@ -98,8 +98,8 @@ export function MultimodalInput({
     }, []);
 
     useEffect(() => {
-        window.api.slashCommand.listAll()
-            .then(fetchedCommands => setSlashCommands(fetchedCommands))
+        window.api.command.listAll()
+            .then(fetchedCommands => setCommands(fetchedCommands))
             .catch(error => logger.error(error));
     }, []);
 
@@ -145,7 +145,7 @@ export function MultimodalInput({
 
         if (cleanedText.trim().startsWith("/")) {
             try {
-                const result = await window.api.slashCommand.execute({input: cleanedText});
+                const result = await window.api.command.execute({input: cleanedText});
                 resolvedText = result.resolvedText;
             } catch (error) {
                 const message = error instanceof Error ? error.message : "Failed to execute command.";

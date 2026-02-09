@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from "vitest";
 import {render, screen, waitFor} from "@testing-library/react";
-import {SlashCommandManagement} from "../slash-command-management";
+import {CommandManagement} from "../command-management";
 
 vi.mock("electron-log/renderer", () => ({
     default: {
@@ -13,7 +13,7 @@ vi.mock("electron-log/renderer", () => ({
     },
 }));
 
-describe("SlashCommandManagement", () => {
+describe("CommandManagement", () => {
     it("renders built-in commands from the API", async () => {
         const listAll = vi.fn().mockResolvedValue([
             {
@@ -26,7 +26,7 @@ describe("SlashCommandManagement", () => {
 
         Object.defineProperty(window, "api", {
             value: {
-                slashCommand: {
+                command: {
                     listAll,
                     create: vi.fn(),
                     update: vi.fn(),
@@ -36,7 +36,7 @@ describe("SlashCommandManagement", () => {
             writable: true,
         });
 
-        render(<SlashCommandManagement/>);
+        render(<CommandManagement/>);
 
         await waitFor(() => {
             expect(listAll).toHaveBeenCalled();

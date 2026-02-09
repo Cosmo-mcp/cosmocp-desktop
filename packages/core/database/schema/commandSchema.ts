@@ -1,6 +1,6 @@
 import {pgTable, text, timestamp, uuid} from "drizzle-orm/pg-core";
 
-export const slashCommand = pgTable("SlashCommand", {
+export const command = pgTable("Command", {
     id: uuid("id").primaryKey().notNull().defaultRandom(),
     name: text("name").notNull().unique(),
     description: text("description").notNull(),

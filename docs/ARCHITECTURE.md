@@ -58,13 +58,13 @@ Cosmo Studio is an Electron desktop application with a static-exported Next.js U
 - Drizzle schema and DB manager (`packages/core/database/*`).
 - Repositories and services (`packages/core/repositories/*`, `packages/core/services/*`).
 - DI container (`packages/core/inversify.config.ts`) used as the parent container for main.
-- Slash command registry and parsing utilities (`packages/core/commands/*`), including built-ins and user-defined commands stored in the DB.
+- Command registry and parsing utilities (`packages/core/commands/*`), including built-ins and user-defined commands stored in the DB.
 
-### Slash command flow (high-level)
+### Command flow (high-level)
 
-1. Renderer gathers slash commands for UI (settings + dropdown) via `window.api.slashCommand.listAll()`.
-2. User submits a slash command (typed or selected).
-3. Main resolves the command through `SlashCommandController` → `SlashCommandService`.
+1. Renderer gathers commands for UI (settings + dropdown) via `window.api.command.listAll()`.
+2. User submits a command (typed or selected).
+3. Main resolves the command through `CommandController` → `CommandService`.
 4. The resolved prompt is sent through the normal chat streaming pipeline.
 
 ## Build pipeline (how packaging works)

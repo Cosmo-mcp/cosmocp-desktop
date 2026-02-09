@@ -11,7 +11,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Textarea} from "@/components/ui/textarea";
 import {ConfirmDialog} from "@/components/confirm-dialog";
-import type {SlashCommandCreateInput, SlashCommandDefinition, SlashCommandUpdateInput} from "core/dto";
+import type {CommandCreateInput, CommandDefinition, CommandUpdateInput} from "core/dto";
 import {Edit, Trash2} from "lucide-react";
 import {logger} from "../../logger";
 
@@ -26,12 +26,12 @@ const buildDefaultFormState = () => ({
     argumentLabel: "",
 });
 
-export function SlashCommandManagement() {
-    const [commands, setCommands] = useState<SlashCommandDefinition[]>([]);
+export function CommandManagement() {
+    const [commands, setCommands] = useState<CommandDefinition[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [editingCommand, setEditingCommand] = useState<SlashCommandDefinition | null>(null);
+    const [editingCommand, setEditingCommand] = useState<CommandDefinition | null>(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState<{isOpen: boolean; commandId: string | null}>({
         isOpen: false,
         commandId: null,
@@ -41,11 +41,11 @@ export function SlashCommandManagement() {
     // Refresh the list so UI reflects newly created or updated commands.
     const loadCommands = useCallback(async () => {
         try {
-            const list = await window.api.slashCommand.listAll();
+            const list = await window.api.command.listAll();
             setCommands(list);
         } catch (error) {
-            logger.error("Failed to load slash commands", error);
-            toast.error("Failed to load slash commands");
+            logger.error("Failed to load commands", error);
+            toast.error("Failed to load commands");
         } finally {
             setIsLoading(false);
         }
@@ -70,7 +70,7 @@ export function SlashCommandManagement() {
     };
 
     // Load command details into the form for editing.
-    const handleEdit = (command: SlashCommandDefinition) => {
+    const handleEdit = (command: CommandDefinition) => {
         if (command.builtIn) {
             return;
         }
@@ -102,15 +102,15 @@ export function SlashCommandManagement() {
 
         try {
             if (editingCommand) {
-                const updatePayload: SlashCommandUpdateInput = {
+                const updatePayload: CommandUpdateInput = {
                     ...payloadBase,
                 };
-                const updated = await window.api.slashCommand.update(editingCommand.id as string, updatePayload);
+                const updated = await window.api.command.update(editingCommand.id as string, updatePayload);
                 setCommands((prev) => prev.map((command) => (command.id === updated.id ? updated : command)));
                 toast.success("Command updated");
             } else {
-                const createPayload: SlashCommandCreateInput = payloadBase;
-                const created = await window.api.slashCommand.create(createPayload);
+                const createPayload: CommandCreateInput = payloadBase;
+                const created = await window.api.command.create(createPayload);
                 setCommands((prev) => [...prev, created]);
                 toast.success("Command created");
             }
@@ -118,7 +118,7 @@ export function SlashCommandManagement() {
         } catch (error) {
             const message = error instanceof Error ? error.message : "Failed to save command.";
             toast.error(message);
-            logger.error("Failed to save slash command", error);
+            logger.error("Failed to save command", error);
         } finally {
             setIsSubmitting(false);
         }
@@ -137,13 +137,13 @@ export function SlashCommandManagement() {
         const commandId = deleteConfirmation.commandId;
         setDeleteConfirmation({isOpen: false, commandId: null});
         try {
-            await window.api.slashCommand.delete(commandId);
+            await window.api.command.delete(commandId);
             setCommands((prev) => prev.filter((command) => command.id !== commandId));
             toast.success("Command deleted");
         } catch (error) {
             const message = error instanceof Error ? error.message : "Failed to delete command.";
             toast.error(message);
-            logger.error("Failed to delete slash command", error);
+            logger.error("Failed to delete command", error);
         }
     };
 
@@ -157,7 +157,7 @@ export function SlashCommandManagement() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-lg font-medium">Slash Commands</h2>
+                    <h2 className="text-lg font-medium">Commands</h2>
                     <p className="text-xs text-muted-foreground mt-1">
                         Create quick prompts that start with a slash and optionally take one argument.
                     </p>
