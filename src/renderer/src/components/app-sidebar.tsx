@@ -33,7 +33,7 @@ export function AppSidebar() {
         },
         {
             title: "Command",
-            url: "./commands",
+            url: "./command",
             icon: Slash,
         },
     ]
