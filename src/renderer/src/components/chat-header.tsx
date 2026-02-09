@@ -35,12 +35,17 @@ export function ChatHeader({
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (isSearchOpen) {
-            setTimeout(() => inputRef.current?.focus(), 0);
-        } else {
-            setSearchQuery("");
-            onClearSearch();
+        if (!isSearchOpen) {
+            return;
         }
+
+        const timeoutId = window.setTimeout(() => {
+            inputRef.current?.focus();
+        }, 0);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
     }, [isSearchOpen]);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,9 +60,11 @@ export function ChatHeader({
             }
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, isSearchOpen]);
+    }, [searchQuery, isSearchOpen, onSearch]);
 
     const handleCloseSearch = () => {
+        setSearchQuery("");
+        onClearSearch();
         setIsSearchOpen(false);
     };
 
