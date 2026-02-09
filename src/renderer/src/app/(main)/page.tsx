@@ -27,10 +27,8 @@ export default function Page(): JSX.Element {
         messages,
         sendMessage,
         status,
-        stop,
         regenerate,
         setMessages,
-        error,
         addToolApprovalResponse
     } = useChat<UIMessage>({
         id: selectedChat?.id,

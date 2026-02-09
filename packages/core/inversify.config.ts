@@ -10,6 +10,8 @@ import {ModelProviderRepository} from "./repositories/ModelProviderRepository";
 import {ModelProviderService} from "./services/ModelProviderService";
 import {PersonaRepository} from "./repositories/PersonaRepository";
 import {PersonaService} from "./services/PersonaService";
+import {CommandRepository} from "./repositories/CommandRepository";
+import {CommandService} from "./services/CommandService";
 import {McpServerRepository} from "./repositories/McpServerRepository";
 import {McpServerService} from "./services/McpServerService";
 import {McpClientManager} from "./services/McpClientManager";
@@ -24,6 +26,7 @@ coreContainer.bind<ChatRepository>(CORETYPES.ChatRepository).to(ChatRepository).
 coreContainer.bind<MessageRepository>(CORETYPES.MessageRepository).to(MessageRepository).inSingletonScope();
 coreContainer.bind<ModelProviderRepository>(CORETYPES.ModelProviderRepository).to(ModelProviderRepository).inSingletonScope();
 coreContainer.bind<PersonaRepository>(CORETYPES.PersonaRepository).to(PersonaRepository).inSingletonScope();
+coreContainer.bind<CommandRepository>(CORETYPES.CommandRepository).to(CommandRepository).inSingletonScope();
 coreContainer.bind<McpServerRepository>(CORETYPES.McpServerRepository).to(McpServerRepository).inSingletonScope();
 
 // Services
@@ -31,6 +34,7 @@ coreContainer.bind<ChatService>(CORETYPES.ChatService).to(ChatService).inSinglet
 coreContainer.bind<MessageService>(CORETYPES.MessageService).to(MessageService).inSingletonScope();
 coreContainer.bind<ModelProviderService>(CORETYPES.ModelProviderService).to(ModelProviderService).inSingletonScope();
 coreContainer.bind<PersonaService>(CORETYPES.PersonaService).to(PersonaService).inSingletonScope();
+coreContainer.bind<CommandService>(CORETYPES.CommandService).to(CommandService).inSingletonScope();
 coreContainer.bind<McpServerService>(CORETYPES.McpServerService).to(McpServerService).inSingletonScope();
 coreContainer.bind<McpClientManager>(CORETYPES.McpClientManager).to(McpClientManager).inSingletonScope();
 

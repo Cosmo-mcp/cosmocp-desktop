@@ -1,6 +1,6 @@
 {
-  "id": "98b93234-7fc0-4e6e-8c5f-cc2ea019b545",
-  "prevId": "d9e1ea71-59b6-411f-ba18-9e5757218f3d",
+  "id": "48120251-aa54-4fb9-afae-15028b77f220",
+  "prevId": "98b93234-7fc0-4e6e-8c5f-cc2ea019b545",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -133,7 +133,8 @@
           "name": "createdAt",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -396,6 +397,72 @@
       "uniqueConstraints": {
         "Persona_name_unique": {
           "name": "Persona_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.Command": {
+      "name": "Command",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "template": {
+          "name": "template",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "argumentLabel": {
+          "name": "argumentLabel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Command_name_unique": {
+          "name": "Command_name_unique",
           "nullsNotDistinct": false,
           "columns": [
             "name"

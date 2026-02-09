@@ -1,11 +1,12 @@
 import {inject, injectable} from "inversify";
-import {createMCPClient} from "@ai-sdk/mcp";
+import {createMCPClient, type MCPClient} from "@ai-sdk/mcp";
+import type {ToolSet} from "ai";
 import {CORETYPES} from "../types/types";
 import {McpServerService} from "./McpServerService";
 import {HttpTransportConfig, SseTransportConfig, StdioTransportConfig} from "../dto";
 
 interface McpClientInstance {
-    client: Awaited<ReturnType<typeof createMCPClient>>;
+    client: MCPClient;
     serverId: string;
     serverName: string;
 }
@@ -79,9 +80,7 @@ export class McpClientManager {
             }
             case 'stdio': {
                 const config = server.config as StdioTransportConfig;
-                // Dynamic require to avoid ts-node module resolution issues
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                const {Experimental_StdioMCPTransport} = require("@ai-sdk/mcp/mcp-stdio");
+                const {Experimental_StdioMCPTransport} = await import("@ai-sdk/mcp/mcp-stdio");
                 const stdioTransport = new Experimental_StdioMCPTransport({
                     command: config.command,
                     args: config.args,
@@ -107,22 +106,22 @@ export class McpClientManager {
     /**
      * Get a client by server ID
      */
-    public getClient(serverId: string): Awaited<ReturnType<typeof createMCPClient>> | undefined {
+    public getClient(serverId: string): MCPClient | undefined {
         return this.clients.get(serverId)?.client;
     }
 
     /**
      * Get all active clients
      */
-    public getAllClients(): Array<Awaited<ReturnType<typeof createMCPClient>>> {
+    public getAllClients(): MCPClient[] {
         return Array.from(this.clients.values()).map(instance => instance.client);
     }
 
     /**
      * Get all tools from all active clients
      */
-    public async getAllTools(): Promise<Record<string, any>> {
-        const allTools: Record<string, any> = {};
+    public async getAllTools(): Promise<ToolSet> {
+        const allTools: ToolSet = {};
 
         for (const instance of this.clients.values()) {
             try {

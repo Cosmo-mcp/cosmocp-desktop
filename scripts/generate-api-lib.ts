@@ -118,8 +118,11 @@ import {
     NewPersona,
     McpServer,
     McpServerCreateInput,
-    McpServerUpdateInput
-    NewPersona
+    McpServerUpdateInput,
+    CommandCreateInput,
+    CommandDefinition,
+    CommandExecution,
+    CommandUpdateInput,
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 `

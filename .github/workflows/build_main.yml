@@ -1,4 +1,4 @@
-name: Build
+name: Build Main
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build on ${{ matrix.os }}
+  main-build:
+    name: Main build on ${{ matrix.os }}
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
@@ -25,24 +25,25 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run root tests (coverage)
-        if: matrix.os == 'ubuntu-latest'
-        run: npm run test:coverage
+      - name: Run root lint
+        run: npm run lint
+
+      - name: Run renderer lint
+        run: npm run lint --prefix src/renderer
 
       - name: Run root tests
-        if: matrix.os != 'ubuntu-latest'
         run: npm run test
 
-      - name: Run renderer tests (coverage)
-        if: matrix.os == 'ubuntu-latest'
-        run: npm run test:coverage --prefix src/renderer
-
       - name: Run renderer tests
-        if: matrix.os != 'ubuntu-latest'
         run: npm run test --prefix src/renderer
 
+      - name: Run root tests (coverage)
+        run: npm run test:coverage
+
+      - name: Run renderer tests (coverage)
+        run: npm run test:coverage --prefix src/renderer
+
       - name: Upload coverage artifacts
-        if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.os }}
@@ -53,7 +54,7 @@ jobs:
       - name: Build application
         run: npm run make
 
-      - name: Upload artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}

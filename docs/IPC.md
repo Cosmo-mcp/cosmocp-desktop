@@ -53,10 +53,19 @@ Streaming uses fire-and-forget channels plus renderer subscriptions:
 5. Update renderer usage through `window.api`.
 6. Add tests covering success + failure paths.
 
+## Command endpoints
+
+The `command` IPC group provides dynamic command management:
+
+- `command:listAll` → list built-in + user-defined commands.
+- `command:create` → create a custom command.
+- `command:update` → update a custom command.
+- `command:delete` → delete a custom command.
+- `command:execute` → resolve a command string into its final prompt.
+
 ## Security checklist
 
 - Treat all renderer-provided values as untrusted.
 - Don’t expose raw `ipcRenderer` or Node APIs to the renderer.
 - Keep responses serializable; avoid sending class instances.
 - Never return secrets to the renderer (API keys, tokens).
-

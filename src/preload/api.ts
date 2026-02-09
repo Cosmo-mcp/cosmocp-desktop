@@ -17,7 +17,11 @@ import {
     NewPersona,
     McpServer,
     McpServerCreateInput,
-    McpServerUpdateInput
+    McpServerUpdateInput,
+    CommandCreateInput,
+    CommandDefinition,
+    CommandExecution,
+    CommandUpdateInput,
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
@@ -59,6 +63,14 @@ export interface PersonaApi {
     delete(id: string): Promise<void>;
 }
 
+export interface CommandApi {
+    listAll(): Promise<CommandDefinition[]>;
+    create(input: CommandCreateInput): Promise<CommandDefinition>;
+    update(id: string, updates: CommandUpdateInput): Promise<CommandDefinition>;
+    delete(id: string): Promise<void>;
+    execute(input: {input: string}): Promise<CommandExecution>;
+}
+
 export interface McpServerApi {
     getAll(): Promise<McpServer[]>;
     getAllEnabled(): Promise<McpServer[]>;
@@ -87,6 +99,7 @@ export interface Api {
   modelProvider: ModelProviderApi;
   message: MessageApi;
   persona: PersonaApi;
+  command: CommandApi;
   mcpServer: McpServerApi;
   streaming: StreamingApi;
 }
@@ -126,6 +139,13 @@ export const api: Api = {
     create: (newPersona: NewPersona) => ipcRenderer.invoke('persona:create', newPersona),
     update: (id: string, updates: Partial<NewPersona>) => ipcRenderer.invoke('persona:update', id, updates),
     delete: (id: string) => ipcRenderer.invoke('persona:delete', id)
+  },
+  command: {
+    listAll: () => ipcRenderer.invoke('command:listAll'),
+    create: (input: CommandCreateInput) => ipcRenderer.invoke('command:create', input),
+    update: (id: string, updates: CommandUpdateInput) => ipcRenderer.invoke('command:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('command:delete', id),
+    execute: (input: {input: string}) => ipcRenderer.invoke('command:execute', input)
   },
   mcpServer: {
     getAll: () => ipcRenderer.invoke('mcpServer:getAll'),
