@@ -14,7 +14,7 @@ import {
     useSidebar
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import {CircleUserRound, MessageCircle, SettingsIcon} from "lucide-react";
+import {CircleUserRound, MessageCircle, SettingsIcon, Slash} from "lucide-react";
 import {CosmoIcon} from "@/components/cosmo-icon";
 
 export function AppSidebar() {
@@ -30,7 +30,12 @@ export function AppSidebar() {
             title: "Persona",
             url: "./persona",
             icon: CircleUserRound,
-        }
+        },
+        {
+            title: "Commands",
+            url: "./commands",
+            icon: Slash,
+        },
     ]
     return (
         <Sidebar collapsible="icon" variant="inset">

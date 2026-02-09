@@ -1,8 +1,8 @@
 'use client';
 
-import type { UIMessage } from 'ai';
-import { useCallback, useEffect, useMemo, useState, } from 'react';
-import { toast } from 'sonner';
+import type {UIMessage} from 'ai';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {toast} from 'sonner';
 import {
     PromptInput,
     PromptInputActionAddAttachments,
@@ -25,14 +25,9 @@ import {
     PromptInputTools,
     usePromptInputAttachments,
 } from './ai-elements/prompt-input';
-import {
-    Attachment,
-    AttachmentPreview,
-    AttachmentRemove,
-    Attachments,
-} from './ai-elements/attachments';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import { Chat, Persona, ProviderWithModels } from "core/dto";
+import {Attachment, AttachmentPreview, AttachmentRemove, Attachments,} from './ai-elements/attachments';
+import type {UseChatHelpers} from '@ai-sdk/react';
+import type {Chat, Persona, ProviderWithModels, CommandDefinition} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -43,17 +38,18 @@ import {
     ModelSelectorList,
     ModelSelectorLogo,
     ModelSelectorName,
+    ModelSelectorSeparator,
     ModelSelectorTrigger
 } from "@/components/ai-elements/model-selector";
-import { CheckIcon } from "lucide-react";
-import { ModelModalityEnum } from "core/database/schema/modelProviderSchema";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { logger } from "../../logger";
+import {CheckIcon, Slash} from "lucide-react";
+import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
+import {logger} from "../../logger";
 
 const parsePersonaDirective = (text: string) => {
     const match = text.match(/^\s*@persona(?:\s*[:=])?\s*(?:"([^"]+)"|'([^']+)'|([^\s]+))\s*/i);
     if (!match) {
-        return { text, personaName: undefined };
+        return {text, personaName: undefined};
     }
 
     const personaName = match[1] ?? match[2] ?? match[3];
@@ -65,12 +61,12 @@ const parsePersonaDirective = (text: string) => {
 };
 
 export function MultimodalInput({
-    chat,
-    status,
-    sendMessage,
-    onModelChange,
-    onPersonaChange,
-}: {
+                                    chat,
+                                    status,
+                                    sendMessage,
+                                    onModelChange,
+                                    onPersonaChange,
+                                }: {
     chat: Chat;
     status: UseChatHelpers<UIMessage>['status'];
     messages: Array<UIMessage>;
@@ -84,6 +80,7 @@ export function MultimodalInput({
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const [personas, setPersonas] = useState<Persona[]>([]);
+    const [commands, setCommands] = useState<CommandDefinition[]>([]);
     const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(
         chat.selectedPersonaId ?? null
     );
@@ -97,6 +94,12 @@ export function MultimodalInput({
     useEffect(() => {
         window.api.persona.getAll()
             .then(fetchedPersonas => setPersonas(fetchedPersonas))
+            .catch(error => logger.error(error));
+    }, []);
+
+    useEffect(() => {
+        window.api.command.listAll()
+            .then(fetchedCommands => setCommands(fetchedCommands))
             .catch(error => logger.error(error));
     }, []);
 
@@ -132,18 +135,30 @@ export function MultimodalInput({
         }
     }, [providers, chat.selectedProvider, chat.selectedModelId, onModelChange]);
 
-    const submitForm = useCallback((message: PromptInputMessage) => {
+    const submitForm = useCallback(async (message: PromptInputMessage) => {
         if (!chat.selectedModelId) {
             return;
         }
         const modelId = chat.selectedProvider + ":" + chat.selectedModelId
-        const { text: cleanedText } = parsePersonaDirective(message.text);
+        const {text: cleanedText} = parsePersonaDirective(message.text);
+        let resolvedText = cleanedText;
+
+        if (cleanedText.trim().startsWith("/")) {
+            try {
+                const result = await window.api.command.execute({input: cleanedText});
+                resolvedText = result.resolvedText;
+            } catch (error) {
+                const message = error instanceof Error ? error.message : "Failed to execute command.";
+                toast.error(message);
+                return;
+            }
+        }
 
         sendMessage({
-            text: cleanedText,
+            text: resolvedText,
             files: message.files
         }, {
-            metadata: { modelId, personaId: selectedPersonaId }
+            metadata: {modelId, personaId: selectedPersonaId}
         }).catch((error) => {
             toast.error(error.message);
         }).finally(() => {
@@ -188,20 +203,20 @@ export function MultimodalInput({
 
 // Inner component that uses the attachments hook (must be inside PromptInputProvider)
 function PromptInputContent({
-    chat,
-    handlePersonaSelection,
-    input,
-    modelSelectorOpen,
-    onModelChange,
-    personaOptions,
-    providers,
-    selectedModelInfo,
-    selectedPersonaId,
-    setInput,
-    setModelSelectorOpen,
-    status,
-    submitForm,
-}: {
+                                chat,
+                                handlePersonaSelection,
+                                input,
+                                modelSelectorOpen,
+                                onModelChange,
+                                personaOptions,
+                                providers,
+                                selectedModelInfo,
+                                selectedPersonaId,
+                                setInput,
+                                setModelSelectorOpen,
+                                status,
+                                submitForm,
+                            }: {
     chat: Chat;
     handlePersonaSelection: (personaId: string | null) => void;
     input: string;
@@ -224,8 +239,8 @@ function PromptInputContent({
                 <Attachments>
                     {attachments.files.map((file) => (
                         <Attachment key={file.id} data={file} onRemove={() => attachments.remove(file.id)}>
-                            <AttachmentPreview />
-                            <AttachmentRemove />
+                            <AttachmentPreview/>
+                            <AttachmentRemove/>
                         </Attachment>
                     ))}
                 </Attachments>
@@ -256,7 +271,7 @@ function PromptInputContent({
                             </TooltipContent>
                         </Tooltip>
                         <PromptInputActionMenuContent>
-                            <PromptInputActionAddAttachments />
+                            <PromptInputActionAddAttachments/>
                         </PromptInputActionMenuContent>
                     </PromptInputActionMenu>
                     <ModelSelector
@@ -273,12 +288,12 @@ function PromptInputContent({
                             </PromptInputButton>
                         </ModelSelectorTrigger>
                         <ModelSelectorContent>
-                            <ModelSelectorInput placeholder="Search models..." />
+                            <ModelSelectorInput placeholder="Search models"/>
                             <ModelSelectorList>
                                 <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
                                 {providers.map((provider) => (
                                     <ModelSelectorGroup heading={provider.name}
-                                        key={provider.name}>
+                                                        key={provider.name}>
                                         {provider.models
                                             .map((m) => (
                                                 <ModelSelectorItem
@@ -295,10 +310,10 @@ function PromptInputContent({
                                                         provider={provider.type.toString()}
                                                     />
                                                     {chat.selectedProvider === provider.name &&
-                                                        chat.selectedModelId === m.modelId ? (
-                                                        <CheckIcon className="ml-auto size-4" />
+                                                    chat.selectedModelId === m.modelId ? (
+                                                        <CheckIcon className="ml-auto size-4"/>
                                                     ) : (
-                                                        <div className="ml-auto size-4" />
+                                                        <div className="ml-auto size-4"/>
                                                     )}
                                                 </ModelSelectorItem>
                                             ))}
@@ -312,7 +327,7 @@ function PromptInputContent({
                         value={selectedPersonaId ?? undefined}
                     >
                         <PromptInputSelectTrigger className="w-max">
-                            <PromptInputSelectValue placeholder="Persona" />
+                            <PromptInputSelectValue placeholder="Persona"/>
                         </PromptInputSelectTrigger>
                         <PromptInputSelectContent>
                             {personaOptions.map((persona) => (
