@@ -93,4 +93,23 @@ describe("IpcChatTransport", () => {
         await expect(stream.getReader().read()).rejects.toThrow("send failed");
         expect(streaming.removeListeners).toHaveBeenCalledWith("chat-stream-chat-3");
     });
+
+    it("fails early when model metadata is missing", async () => {
+        const streaming = createStreamingApiMock();
+        setWindowApi(streaming);
+
+        const transport = new IpcChatTransport();
+        const stream = await transport.sendMessages({
+            trigger: "submit-message",
+            chatId: "chat-4",
+            messageId: undefined,
+            messages: [] as UIMessage[],
+            abortSignal: undefined,
+            metadata: {} as never,
+        });
+
+        await expect(stream.getReader().read()).rejects.toThrow("Model identifier is required");
+        expect(streaming.sendMessage).not.toHaveBeenCalled();
+        expect(streaming.removeListeners).toHaveBeenCalledWith("chat-stream-chat-4");
+    });
 });

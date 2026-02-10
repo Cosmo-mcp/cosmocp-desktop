@@ -168,6 +168,9 @@ function PureMessages({
     }, [messages, providersByName]);
 
     useEffect(() => {
+        let highlightTimer: number | undefined;
+        let fallbackResetTimer: number | undefined;
+
         // Reset previous match style
         if (prevMatchIndexRef.current !== null) {
             const prevIndex = prevMatchIndexRef.current - 1;
@@ -180,9 +183,9 @@ function PureMessages({
 
         if (currentMatchIndex && currentMatchIndex > 0 && currentMatchIndex <= matches.length) {
             const matchIndex = currentMatchIndex - 1;
-            
+
             // We need a small delay to allow render to update the DOM with new IDs if search query changed
-            setTimeout(() => {
+            highlightTimer = window.setTimeout(() => {
                 const matchElement = document.getElementById(`match-${matchIndex}`);
                 if (matchElement) {
                     matchElement.scrollIntoView({behavior: 'smooth', block: 'center'});
@@ -198,7 +201,7 @@ function PureMessages({
                         if (element) {
                             element.scrollIntoView({behavior: 'smooth', block: 'center'});
                             element.classList.add('bg-muted');
-                            setTimeout(() => element.classList.remove('bg-muted'), 2000);
+                            fallbackResetTimer = window.setTimeout(() => element.classList.remove('bg-muted'), 2000);
                         }
                     }
                 }
@@ -206,6 +209,15 @@ function PureMessages({
         } else {
             prevMatchIndexRef.current = null;
         }
+
+        return () => {
+            if (highlightTimer) {
+                window.clearTimeout(highlightTimer);
+            }
+            if (fallbackResetTimer) {
+                window.clearTimeout(fallbackResetTimer);
+            }
+        };
     }, [currentMatchIndex, matches]);
 
     const highlightText = (text: string, query: string, messageId: string, partIndex: number) => {

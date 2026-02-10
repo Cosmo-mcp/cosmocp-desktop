@@ -117,8 +117,8 @@ export class ModelProviderRepository {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {providerId: _, ...modelRest} = getTableColumns(model);
 
-        // If apiKey is being updated, encrypt it
-        if (updateObject.apiKey) {
+        // If apiKey is being updated, always encrypt it before persistence.
+        if (updateObject.apiKey !== undefined) {
             updateObject.apiKey = this.encryptApiKey(updateObject.apiKey);
         }
 
@@ -128,11 +128,17 @@ export class ModelProviderRepository {
                 .where(eq(modelProvider.id, providerId))
                 .returning({...providerRest});
 
-            if (newModels && newModels.length > 0) {
-                // Delete existing models for this provider
+            if (newModels !== undefined) {
+                // Replace existing models for this provider (including explicit empty arrays).
                 await tx.delete(model).where(eq(model.providerId, providerId));
 
-                // Insert new models
+                if (newModels.length === 0) {
+                    return {
+                        ...updatedProvider,
+                        models: []
+                    };
+                }
+
                 const modelsWithProvider = newModels.map(newModel => ({
                     ...newModel,
                     createdAt: new Date(),

@@ -115,6 +115,56 @@ describe("ModelProviderRepository", () => {
     expect(storedModels.map((m) => m.modelId).sort()).toEqual(["new", "new2"])
   })
 
+  it("clears existing models when replacement list is explicitly empty", async () => {
+    const created = await repository.addProvider(
+      {
+        name: "OpenAI",
+        apiKey: "secret",
+        type: ModelProviderTypeEnum.OPENAI,
+        apiUrl: "",
+      } as ModelProviderCreateInput,
+      [
+        {name: "Old", modelId: "old", inputModalities: [], outputModalities: []} as unknown as NewModel,
+      ]
+    )
+
+    const updated = await repository.updateProvider(
+      created.id,
+      {name: "Updated"} as Partial<ModelProviderCreateInput>,
+      []
+    )
+
+    expect(updated.models).toEqual([])
+
+    const storedModels = await testDb.db.select().from(model).where(eq(model.providerId, created.id))
+    expect(storedModels).toEqual([])
+  })
+
+  it("encrypts api key updates even when set to an empty string", async () => {
+    const created = await repository.addProvider(
+      {
+        name: "OpenAI",
+        apiKey: "secret",
+        type: ModelProviderTypeEnum.OPENAI,
+        apiUrl: "",
+      } as ModelProviderCreateInput,
+      []
+    )
+
+    await repository.updateProvider(
+      created.id,
+      {apiKey: ""} as Partial<ModelProviderCreateInput>
+    )
+
+    expect(safeStorage.encryptString).toHaveBeenCalledWith("")
+    const [stored] = await testDb.db
+      .select()
+      .from(modelProvider)
+      .where(eq(modelProvider.id, created.id))
+      .limit(1)
+    expect(stored.apiKey).toBe(Buffer.from("enc:").toString("base64"))
+  })
+
   it("falls back to base64 when encryption is unavailable", async () => {
     safeStorage.isEncryptionAvailable.mockReturnValue(false)
 

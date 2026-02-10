@@ -98,8 +98,13 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 // Send to main process
                 const messages = options.messages;
 
-                const metadata = options?.metadata as {modelId: string; personaId?: string};
-                const modelId = metadata.modelId as string;
+                const metadata = options?.metadata as {modelId?: string; personaId?: string} | undefined;
+                const modelId = metadata?.modelId;
+                if (!modelId) {
+                    cleanup();
+                    controller.error(new Error('Model identifier is required before sending a message.'));
+                    return;
+                }
 
                 try {
                     window.api.streaming.sendMessage({

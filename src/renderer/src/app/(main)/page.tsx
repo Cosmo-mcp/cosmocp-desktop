@@ -1,5 +1,5 @@
 'use client'
-import {JSX, useCallback, useEffect, useState} from "react";
+import {JSX, useCallback, useEffect, useMemo, useState} from "react";
 import {ChatHistory} from "@/components/chat-history";
 import {Chat} from "core/dto";
 import {ChatHeader} from "@/components/chat-header";
@@ -22,6 +22,7 @@ export default function Page(): JSX.Element {
     const [searchQuery, setSearchQuery] = useState("");
     const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
     const [totalMatches, setTotalMatches] = useState(0);
+    const transport = useMemo(() => new IpcChatTransport(), []);
 
     const {
         messages,
@@ -31,7 +32,7 @@ export default function Page(): JSX.Element {
         setMessages,
     } = useChat<UIMessage>({
         id: selectedChat?.id,
-        transport: new IpcChatTransport(),
+        transport,
         onFinish: () => {
             setRefreshHistory(true);
         },
@@ -43,36 +44,63 @@ export default function Page(): JSX.Element {
     });
 
     useEffect(() => {
+        let active = true;
         window.api.chat.getAllChats(searchHistoryQuery)
             .then((chats) => {
+                if (!active) {
+                    return;
+                }
                 setChatHistory(chats);
-                if (chats && chats.length > 0) {
+                if (chats.length > 0) {
                     setSelectedChat(chats.find(chat => chat.selected) ?? chats[0]);
                 } else {
                     setSelectedChat(null);
+                    setMessages([]);
                 }
                 setRefreshHistory(false);
             })
             .catch((error) => {
-                console.log(error);
+                if (!active) {
+                    return;
+                }
                 logger.error(error);
+                toast.error("Failed to load chats");
+                setRefreshHistory(false);
             });
-    }, [refreshHistory, searchHistoryQuery]);
+
+        return () => {
+            active = false;
+        };
+    }, [refreshHistory, searchHistoryQuery, setMessages]);
 
     useEffect(() => {
-        if (selectedChat) {
-            window.api.message.getByChat(selectedChat.id)
-                .then((chat) => {
-                    if (chat) {
-                        setMessages(chat);
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                    logger.error(error)
-                });
+        if (!selectedChat) {
+            setMessages([]);
+            return;
         }
 
+        let active = true;
+        const chatId = selectedChat.id;
+        window.api.message.getByChat(chatId)
+            .then((chat) => {
+                if (!active || selectedChat.id !== chatId) {
+                    return;
+                }
+                if (chat) {
+                    setMessages(chat);
+                }
+            })
+            .catch((error) => {
+                if (!active) {
+                    return;
+                }
+                logger.error(error);
+                toast.error("Failed to load chat messages");
+            });
+
+        return () => {
+            active = false;
+        };
     }, [selectedChat, setMessages]);
 
     const handleNewChat = useCallback(async () => {

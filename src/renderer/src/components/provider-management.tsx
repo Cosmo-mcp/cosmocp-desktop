@@ -24,6 +24,7 @@ export function ProviderManagement() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isLoadingModels, setIsLoadingModels] = useState(false);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState<{isOpen: boolean, providerId: string | null}>({
         isOpen: false,
@@ -63,22 +64,71 @@ export function ProviderManagement() {
         loadProviders();
     }, []);
 
-    const handleOpenDialog = () => {
-        setIsOpen(true);
-        setError(null);
-        methods.goTo("step-1");
-    };
-
-    const handleCloseDialog = () => {
-        setIsOpen(false);
+    const resetDialogState = () => {
         setSelectedProviderType(null);
         setName('');
         setApiKey('');
         setApiUrl('');
         setError(null);
+        setIsSubmitting(false);
+        setIsLoadingModels(false);
         setEditingProvider(null);
         setSelectedModels([]);
         setModels([]);
+    };
+
+    const handleOpenDialog = () => {
+        resetDialogState();
+        setIsOpen(true);
+        methods.goTo("step-1");
+    };
+
+    const handleCloseDialog = () => {
+        setIsOpen(false);
+        resetDialogState();
+    };
+
+    const handleDialogOpenChange = (open: boolean) => {
+        if (!open) {
+            handleCloseDialog();
+            return;
+        }
+        setIsOpen(true);
+    };
+
+    const getErrorMessage = (error: unknown): string => {
+        if (error instanceof Error) {
+            return error.message;
+        }
+        return "Unexpected error";
+    };
+
+    const validateProviderForm = () => {
+        const trimmedName = name.trim();
+        const trimmedApiKey = apiKey.trim();
+        const trimmedApiUrl = apiUrl.trim();
+
+        if (!trimmedName) {
+            return "Name is required.";
+        }
+        if (!trimmedApiKey) {
+            return "API key is required.";
+        }
+
+        if (selectedProviderType === ModelProviderTypeEnum.CUSTOM && !trimmedApiUrl) {
+            return "API URL is required for custom providers.";
+        }
+
+        if (trimmedApiUrl) {
+            try {
+                // Validate URL format before hitting IPC/database.
+                new URL(trimmedApiUrl);
+            } catch {
+                return "API URL must be a valid URL.";
+            }
+        }
+
+        return null;
     };
 
     const handleProviderTypeChange = (type: string) => {
@@ -89,9 +139,41 @@ export function ProviderManagement() {
         methods.next();
     };
 
+    const loadModelsForSelectedProvider = async () => {
+        if (!selectedProviderType) {
+            return;
+        }
+        setIsLoadingModels(true);
+        setError(null);
+        setModels([]);
+        try {
+            const values = await window.api.modelProvider.getAvailableModelsFromProviders({
+                type: selectedProviderType,
+                apiKey,
+                apiUrl,
+                name
+            });
+            setModels(values);
+            if (values.length === 0) {
+                setError("No models found for this provider.");
+            }
+        } catch (error) {
+            logger.error(error);
+            setError("Failed to load models for this provider.");
+        } finally {
+            setIsLoadingModels(false);
+        }
+    };
+
     const handleAddProvider = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedProviderType || isSubmitting) return;
+
+        const validationError = validateProviderForm();
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
 
         setIsSubmitting(true);
         setError(null);
@@ -109,18 +191,18 @@ export function ProviderManagement() {
                 // Update existing provider
                 const updatedProvider = await window.api.modelProvider.updateProvider(editingProvider.id, providerData, selectedModels);
                 if (updatedProvider) {
-                    setProviders(providers.map(p => p.id === editingProvider.id ? updatedProvider : p));
+                    setProviders((prev) => prev.map(p => p.id === editingProvider.id ? updatedProvider : p));
                     handleCloseDialog();
                 }
             } else {
                 const newProvider = await window.api.modelProvider.addProvider(providerData, selectedModels);
                 if (newProvider) {
-                    setProviders([...providers, newProvider]);
+                    setProviders((prev) => [...prev, newProvider]);
                     handleCloseDialog();
                 }
             }
         } catch (err) {
-            const errorMessage = `Failed to ${editingProvider ? 'update' : 'add'} provider`;
+            const errorMessage = getErrorMessage(err);
             logger.error(`Failed to ${editingProvider ? 'update' : 'add'} provider:`, err);
             setError(errorMessage);
         } finally {
@@ -153,7 +235,7 @@ export function ProviderManagement() {
 
         try {
             await window.api.modelProvider.deleteProvider(providerId);
-            setProviders(providers.filter(p => p.id !== providerId));
+            setProviders((prev) => prev.filter(p => p.id !== providerId));
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to delete provider';
             logger.error('Failed to delete provider:', err);
@@ -164,19 +246,17 @@ export function ProviderManagement() {
     };
 
     const handleModelToggle = (modelId: string) => {
-        // Use Set for uniqueness checking
-        const modelIdSet = new Set(selectedModels.map(m => m.modelId));
-
-        if (modelIdSet.has(modelId)) {
-            // Remove model
-            setSelectedModels(selectedModels.filter(m => m.modelId !== modelId));
-        } else {
-            // Add model
-            const modelToAdd = models.find(m => m.modelId === modelId);
-            if (modelToAdd) {
-                setSelectedModels([...selectedModels, modelToAdd]);
+        setSelectedModels((prev) => {
+            const modelIdSet = new Set(prev.map(m => m.modelId));
+            if (modelIdSet.has(modelId)) {
+                return prev.filter(m => m.modelId !== modelId);
             }
-        }
+            const modelToAdd = models.find(m => m.modelId === modelId);
+            if (!modelToAdd) {
+                return prev;
+            }
+            return [...prev, modelToAdd];
+        });
     };
 
     if (loading) {
@@ -249,7 +329,7 @@ export function ProviderManagement() {
                 </Card>
             )}
 
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>{editingProvider ? 'Edit Provider' : 'Add Provider'}</DialogTitle>
@@ -342,7 +422,11 @@ export function ProviderManagement() {
                             //iterate over the models
                             <div className="space-y-4">
                                 <ScrollArea type="always" className="h-72 rounded-md border">
-                                    {models.length === 0 ? (<Loader/>) :
+                                    {isLoadingModels ? (
+                                        <Loader/>
+                                    ) : models.length === 0 ? (
+                                        <div className="p-3 text-sm text-muted-foreground">No models available.</div>
+                                    ) :
                                         models.map((model) => (
                                             <div key={model.modelId} className="flex items-center space-x-2 p-2">
                                                 <input
@@ -359,16 +443,16 @@ export function ProviderManagement() {
                                             </div>
                                         ))}
                                 </ScrollArea>
-                                {error && (
-                                    <div
-                                        className="p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
-                                        {error}
-                                    </div>
-                                )}
                             </div>
                         ))}
 
                     </React.Fragment>
+                    {error && (
+                        <div
+                            className="p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
+                            {error}
+                        </div>
+                    )}
                     <DialogFooter>
                         {!methods.isFirst && (
                             <Button
@@ -385,21 +469,7 @@ export function ProviderManagement() {
                                 disabled={(methods.current.id === 'step-1' && !selectedProviderType)}
                                 onClick={() => {
                                     if (methods.current.id === 'step-2') {
-                                        methods.beforeNext(() => {
-                                            window.api.modelProvider.getAvailableModelsFromProviders({
-                                                type: selectedProviderType as ModelProviderTypeEnum,
-                                                apiKey,
-                                                apiUrl,
-                                                name
-                                            }).then((values) => {
-                                                setModels(values);
-                                                // If editing and already have selected models, they'll stay selected
-                                                // because we set them in handleEditProvider
-                                            }).catch(error => {
-                                                logger.error(error);
-                                            });
-                                            return true;
-                                        });
+                                        void loadModelsForSelectedProvider();
                                     }
                                     methods.next()
                                 }}
@@ -436,4 +506,3 @@ export function ProviderManagement() {
         </div>
     );
 }
-
