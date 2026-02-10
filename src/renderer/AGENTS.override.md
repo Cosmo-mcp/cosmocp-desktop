@@ -10,6 +10,10 @@ This file applies to changes under `src/renderer/`.
   - Do not rely on server-only features (API routes, server actions, runtime secrets).
 - In Electron dev, the UI is served by `next dev` on `http://localhost:3000` and loaded by `src/main/index.ts`.
 
+## Development constraints (important)
+
+- The files under the folders `src/renderer/src/components/ui` and `src/renderer/src/components/ai-elements` should never be changed. These files are downloaded using npm. If the files are changed then at the next version upgrade for these files will either have conflict or override content. 
+
 ## Process boundary rules
 
 - Renderer must not import Node/Electron APIs.
