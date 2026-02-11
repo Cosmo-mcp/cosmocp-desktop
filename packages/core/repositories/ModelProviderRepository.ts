@@ -128,17 +128,11 @@ export class ModelProviderRepository {
                 .where(eq(modelProvider.id, providerId))
                 .returning({...providerRest});
 
-            if (newModels !== undefined) {
-                // Replace existing models for this provider (including explicit empty arrays).
+            if (newModels && newModels.length > 0) {
+                // Delete existing models for this provider
                 await tx.delete(model).where(eq(model.providerId, providerId));
 
-                if (newModels.length === 0) {
-                    return {
-                        ...updatedProvider,
-                        models: []
-                    };
-                }
-
+                // Insert new models
                 const modelsWithProvider = newModels.map(newModel => ({
                     ...newModel,
                     createdAt: new Date(),
