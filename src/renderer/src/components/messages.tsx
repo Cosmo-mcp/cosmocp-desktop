@@ -20,7 +20,7 @@ import { Source, Sources, SourcesContent, SourcesTrigger } from "@/components/ai
 import { Loader } from "@/components/ai-elements/loader";
 import { UIMessage } from "ai";
 import { PreviewAttachment } from "@/components/preview-attachment";
-import { Tool, ToolHeader, ToolContent, ToolInput, ToolOutput } from './ai-elements/tool';
+import { Tool, ToolHeader, ToolContent, ToolInput, ToolOutput, ToolPart } from './ai-elements/tool';
 import {
     Confirmation,
     ConfirmationTitle,
@@ -349,8 +349,8 @@ function PureMessages({
                                 default: {
                                     // Handle dynamic tool types (e.g., tool-getWeather, tool-searchFiles)
                                     if (part.type.startsWith('tool-')) {
-                                        const toolPart = part as any;
-                                        const { toolCallId, state = 'input-available' } = toolPart;
+                                        const toolPart = part as ToolPart;
+                                        const { state = 'input-available' } = toolPart;
                                         const approval = toolPart.approval;
                                         const toolName = part.type.slice(5); // Remove 'tool-' prefix
 
@@ -366,13 +366,13 @@ function PureMessages({
                                                     state={state}
                                                 />
                                                 <ToolContent>
-                                                    {toolPart.input && <ToolInput input={toolPart.input} />}
+                                                    {!!toolPart.input && <ToolInput input={toolPart.input} />}
                                                     {hasOutput ? (
                                                         <ToolOutput
                                                             output={toolPart.output}
-                                                            errorText={isError ? toolPart.output?.errorText : undefined}
+                                                            errorText={isError ? toolPart.errorText : undefined}
                                                         />
-                                                    ) : (
+                                                    ) : ( approval &&
                                                         <Confirmation approval={approval} state={state}>
                                                             <ConfirmationTitle>
                                                                 This tool requires your approval to run.
@@ -383,7 +383,7 @@ function PureMessages({
                                                                         variant="outline"
                                                                         onClick={() => {
                                                                             addToolApprovalResponse?.({
-                                                                                id: approval?.id,
+                                                                                id: approval.id,
                                                                                 approved: false,
                                                                                 reason: 'User denied tool call',
                                                                             });
@@ -394,7 +394,7 @@ function PureMessages({
                                                                     <ConfirmationAction
                                                                         onClick={() => {
                                                                             addToolApprovalResponse?.({
-                                                                                id: approval?.id,
+                                                                                id: approval.id,
                                                                                 approved: true,
                                                                             });
                                                                         }}
