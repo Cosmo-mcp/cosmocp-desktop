@@ -61,12 +61,26 @@ describe("ChatController", () => {
     await controller.updateSelectedModelForChat("c", modelIdentifier)
     expect(service.updateSelectedModelForChat).toHaveBeenCalledWith("c", modelIdentifier)
 
-    const personaIdentifier: PersonaIdentifier = {selectedPersonaId: "p"} as PersonaIdentifier
+    const personaIdentifier: PersonaIdentifier = {
+      selectedPersonaId: "00000000-0000-0000-0000-00000000d099",
+    } as PersonaIdentifier
     await controller.updateSelectedPersonaForChat("c", personaIdentifier)
     expect(service.updateSelectedPersonaForChat).toHaveBeenCalledWith("c", personaIdentifier)
 
     await controller.updateSelectedChat("c")
     expect(service.updateSelectedChat).toHaveBeenCalledWith("c")
   })
-})
 
+  it("normalizes empty selected persona id to null", async () => {
+    const service = {
+      updateSelectedPersonaForChat: vi.fn().mockResolvedValue(undefined),
+    } as unknown as ChatService
+
+    const controller = new ChatController(service)
+    await controller.updateSelectedPersonaForChat("c", {selectedPersonaId: ""})
+
+    expect(service.updateSelectedPersonaForChat).toHaveBeenCalledWith("c", {
+      selectedPersonaId: null,
+    })
+  })
+})
