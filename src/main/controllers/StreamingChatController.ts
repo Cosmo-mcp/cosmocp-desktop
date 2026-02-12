@@ -1,4 +1,4 @@
-import {convertToModelMessages, ModelMessage, RetryError, smoothStream, streamText, tool} from 'ai';
+import {convertToModelMessages, ModelMessage, RetryError, smoothStream, streamText} from 'ai';
 import {IpcMainEvent, WebContents} from "electron";
 import {inject, injectable} from "inversify";
 import {IpcController, IpcOn, IpcRendererOn} from "../ipc/Decorators";
@@ -10,7 +10,6 @@ import {MessageService} from "core/services/MessageService";
 import {PersonaService} from "core/services/PersonaService";
 import {McpClientManager} from "core/services/McpClientManager";
 import {logger} from "../logger";
-import z from 'zod';
 
 @injectable()
 @IpcController("streamingChat")
