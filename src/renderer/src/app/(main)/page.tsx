@@ -23,6 +23,15 @@ export default function Page(): JSX.Element {
     const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
     const [totalMatches, setTotalMatches] = useState(0);
 
+    const updateChatInHistory = useCallback((chatId: string, updates: Partial<Chat>) => {
+        setChatHistory(prev =>
+            prev.map(c => c.id === chatId ? { ...c, ...updates } : c)
+        );
+        setSelectedChat(prev =>
+            prev && prev.id === chatId ? { ...prev, ...updates } : prev
+        );
+    }, []);
+
     const {
         messages,
         sendMessage,
@@ -33,9 +42,24 @@ export default function Page(): JSX.Element {
     } = useChat<UIMessage>({
         id: selectedChat?.id,
         transport: new IpcChatTransport(),
-        sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
-        onFinish: () => {
-            //setRefreshHistory(true);
+        onFinish: ({ message }) => {
+            // locally update the chat history
+            if (!selectedChat) return;
+            const textPart = message.parts?.find(p => p.type === 'text') as { type: 'text'; text: string } | undefined;
+            const text = textPart?.text;
+            const updates: Partial<Chat> = {
+                lastMessage: text ? text.slice(0, 200) : selectedChat.lastMessage,
+                lastMessageAt: new Date(),
+            };
+            // Update title on first exchange (matches backend logic in MessageRepository)
+            const userMessages = messages.filter(m => m.role === 'user');
+            if (userMessages.length === 1) {
+                const userTextPart = userMessages[0].parts?.find(p => p.type === 'text') as { type: 'text'; text: string } | undefined;
+                if (userTextPart?.text) {
+                    updates.title = userTextPart.text.slice(0, 50);
+                }
+            }
+            updateChatInHistory(selectedChat.id, updates);
         },
         onError: (error) => {
             toast.error("Failed to Stream Data", {
@@ -78,10 +102,9 @@ export default function Page(): JSX.Element {
     }, [selectedChat, setMessages]);
 
     const handleNewChat = () => {
+        // TODO: return chat after creation, instead of reloading all chats
         window.api.chat.createChat({ title: "New Chat" })
-            .then(() => {
-                setRefreshHistory(true);
-            });
+            .then(() => setRefreshHistory(true));
     }
 
     const searchFromChatHistory = (searchQuery: string) => {
