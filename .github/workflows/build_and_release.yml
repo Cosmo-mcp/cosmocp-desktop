@@ -24,6 +24,31 @@ jobs:
           node-version: '22.19.0'
       - name: Install dependencies
         run: npm install
+
+      - name: Run root tests (coverage)
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run test:coverage
+
+      - name: Run root tests
+        if: matrix.os != 'ubuntu-latest'
+        run: npm run test
+
+      - name: Run renderer tests (coverage)
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run test:coverage --prefix src/renderer
+
+      - name: Run renderer tests
+        if: matrix.os != 'ubuntu-latest'
+        run: npm run test --prefix src/renderer
+
+      - name: Upload coverage artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: |
+            coverage
+            src/renderer/coverage
       - name: Extract version from tag
         shell: bash
         run: |

@@ -1,6 +1,3 @@
 
-// empty interface for controller classes to implement
-// this empty interface is used instead of any
-export interface Controller {
-
-}
+// Marker type for IPC controller bindings.
+export type Controller = object;

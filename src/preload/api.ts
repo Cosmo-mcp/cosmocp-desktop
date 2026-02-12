@@ -14,7 +14,14 @@ import {
     ModelIdentifier,
     PersonaIdentifier,
     Persona,
-    NewPersona
+    NewPersona,
+    McpServer,
+    McpServerCreateInput,
+    McpServerUpdateInput,
+    CommandCreateInput,
+    CommandDefinition,
+    CommandExecution,
+    CommandUpdateInput,
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
@@ -56,12 +63,34 @@ export interface PersonaApi {
     delete(id: string): Promise<void>;
 }
 
+export interface CommandApi {
+    listAll(): Promise<CommandDefinition[]>;
+    create(input: CommandCreateInput): Promise<CommandDefinition>;
+    update(id: string, updates: CommandUpdateInput): Promise<CommandDefinition>;
+    delete(id: string): Promise<void>;
+    execute(input: {input: string}): Promise<CommandExecution>;
+}
+
+export interface McpServerApi {
+    getAll(): Promise<McpServer[]>;
+    getAllEnabled(): Promise<McpServer[]>;
+    getById(id: string): Promise<McpServer | undefined>;
+    getByName(name: string): Promise<McpServer | undefined>;
+    create(data: McpServerCreateInput): Promise<McpServer>;
+    update(id: string, updates: McpServerUpdateInput): Promise<McpServer>;
+    delete(id: string): Promise<void>;
+    enable(id: string): Promise<McpServer>;
+    disable(id: string): Promise<McpServer>;
+    refreshClient(id: string): Promise<void>;
+    getClientCount(): Promise<number>;
+}
+
 export interface StreamingApi {
     sendMessage(args: ChatSendMessageArgs): void;
     abortMessage(args: ChatAbortArgs): void;
-    onData: (channel: string, listener: (data: any) => void) => void;
+    onData: (channel: string, listener: (data: unknown) => void) => void;
     onEnd: (channel: string, listener: () => void) => void;
-    onError: (channel: string, listener: (error: any) => void) => void;
+    onError: (channel: string, listener: (error: unknown) => void) => void;
     removeListeners: (channel: string) => void;
 }
 
@@ -70,6 +99,8 @@ export interface Api {
   modelProvider: ModelProviderApi;
   message: MessageApi;
   persona: PersonaApi;
+  command: CommandApi;
+  mcpServer: McpServerApi;
   streaming: StreamingApi;
 }
 
@@ -109,21 +140,41 @@ export const api: Api = {
     update: (id: string, updates: Partial<NewPersona>) => ipcRenderer.invoke('persona:update', id, updates),
     delete: (id: string) => ipcRenderer.invoke('persona:delete', id)
   },
+  command: {
+    listAll: () => ipcRenderer.invoke('command:listAll'),
+    create: (input: CommandCreateInput) => ipcRenderer.invoke('command:create', input),
+    update: (id: string, updates: CommandUpdateInput) => ipcRenderer.invoke('command:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('command:delete', id),
+    execute: (input: {input: string}) => ipcRenderer.invoke('command:execute', input)
+  },
+  mcpServer: {
+    getAll: () => ipcRenderer.invoke('mcpServer:getAll'),
+    getAllEnabled: () => ipcRenderer.invoke('mcpServer:getAllEnabled'),
+    getById: (id: string) => ipcRenderer.invoke('mcpServer:getById', id),
+    getByName: (name: string) => ipcRenderer.invoke('mcpServer:getByName', name),
+    create: (data: McpServerCreateInput) => ipcRenderer.invoke('mcpServer:create', data),
+    update: (id: string, updates: McpServerUpdateInput) => ipcRenderer.invoke('mcpServer:update', id, updates),
+    delete: (id: string) => ipcRenderer.invoke('mcpServer:delete', id),
+    enable: (id: string) => ipcRenderer.invoke('mcpServer:enable', id),
+    disable: (id: string) => ipcRenderer.invoke('mcpServer:disable', id),
+    refreshClient: (id: string) => ipcRenderer.invoke('mcpServer:refreshClient', id),
+    getClientCount: () => ipcRenderer.invoke('mcpServer:getClientCount')
+  },
   streaming: {
     sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('streamingChat:sendMessage', args),
     abortMessage: (args: ChatAbortArgs) => ipcRenderer.send('streamingChat:abortMessage', args),
-    onData: (channel: string, listener: (data: any) => void) => {
-      const subscription = (_event: any, data: any) => listener(data);
+    onData: (channel: string, listener: (data: unknown) => void) => {
+      const subscription = (_event: unknown, data: unknown) => listener(data);
       ipcRenderer.on(`${channel}-data`, subscription);
     },
     onEnd: (channel: string, listener: () => void) => {
       ipcRenderer.on(`${channel}-end`, listener);
     },
-    onError: (channel: string, listener: (error: any) => void) => {
-      const subscription = (_event: any, error: any) => listener(error);
+    onError: (channel: string, listener: (error: unknown) => void) => {
+      const subscription = (_event: unknown, error: unknown) => listener(error);
       ipcRenderer.on(`${channel}-error`, subscription);
     },
-    removeListeners: (channel) => {
+    removeListeners: (channel: string) => {
       ipcRenderer.removeAllListeners(`${channel}-error`);
       ipcRenderer.removeAllListeners(`${channel}-end`);
       ipcRenderer.removeAllListeners(`${channel}-data`);

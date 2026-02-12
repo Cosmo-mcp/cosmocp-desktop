@@ -1,33 +1,5 @@
 'use client';
 
-import type {UIMessage} from 'ai';
-import {useCallback, useEffect, useMemo, useState,} from 'react';
-import {toast} from 'sonner';
-import {
-    PromptInput,
-    PromptInputActionAddAttachments,
-    PromptInputActionMenu,
-    PromptInputActionMenuContent,
-    PromptInputActionMenuTrigger,
-    PromptInputAttachment,
-    PromptInputAttachments,
-    PromptInputBody,
-    PromptInputButton,
-    PromptInputFooter,
-    PromptInputHeader,
-    PromptInputMentionsTextarea,
-    type PromptInputMessage,
-    PromptInputProvider,
-    PromptInputSelect,
-    PromptInputSelectContent,
-    PromptInputSelectItem,
-    PromptInputSelectTrigger,
-    PromptInputSelectValue,
-    PromptInputSubmit,
-    PromptInputTools
-} from './ai-elements/prompt-input';
-import type {UseChatHelpers} from '@ai-sdk/react';
-import {Chat, Persona, ProviderWithModels} from "core/dto";
 import {
     ModelSelector,
     ModelSelectorContent,
@@ -40,10 +12,38 @@ import {
     ModelSelectorName,
     ModelSelectorTrigger
 } from "@/components/ai-elements/model-selector";
-import {CheckIcon} from "lucide-react";
-import {ModelModalityEnum} from "core/database/schema/modelProviderSchema";
-import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
-import {logger} from "../../logger";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { UseChatHelpers } from '@ai-sdk/react';
+import type { UIMessage } from 'ai';
+import { ModelModalityEnum } from "core/database/schema/modelProviderSchema";
+import type { Chat, CommandDefinition, Persona, ProviderWithModels } from "core/dto";
+import { CheckIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { logger } from "../../logger";
+import { Attachment, AttachmentPreview, AttachmentRemove, Attachments, } from './ai-elements/attachments';
+import {
+    PromptInput,
+    PromptInputActionAddAttachments,
+    PromptInputActionMenu,
+    PromptInputActionMenuContent,
+    PromptInputActionMenuTrigger,
+    PromptInputBody,
+    PromptInputButton,
+    PromptInputFooter,
+    PromptInputHeader,
+    type PromptInputMessage,
+    PromptInputProvider,
+    PromptInputSelect,
+    PromptInputSelectContent,
+    PromptInputSelectItem,
+    PromptInputSelectTrigger,
+    PromptInputSelectValue,
+    PromptInputSubmit,
+    PromptInputTextarea,
+    PromptInputTools,
+    usePromptInputAttachments,
+} from './ai-elements/prompt-input';
 
 const parsePersonaDirective = (text: string) => {
     const match = text.match(/^\s*@persona(?:\s*[:=])?\s*(?:"([^"]+)"|'([^']+)'|([^\s]+))\s*/i);
@@ -79,6 +79,7 @@ export function MultimodalInput({
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const [personas, setPersonas] = useState<Persona[]>([]);
+    const [commands, setCommands] = useState<CommandDefinition[]>([]);
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
@@ -89,6 +90,12 @@ export function MultimodalInput({
     useEffect(() => {
         window.api.persona.getAll()
             .then(fetchedPersonas => setPersonas(fetchedPersonas))
+            .catch(error => logger.error(error));
+    }, []);
+
+    useEffect(() => {
+        window.api.command.listAll()
+            .then(fetchedCommands => setCommands(fetchedCommands))
             .catch(error => logger.error(error));
     }, []);
 
@@ -120,24 +127,40 @@ export function MultimodalInput({
         }
     }, [providers, chat.selectedProvider, chat.selectedModelId, onModelChange]);
 
-    const submitForm = useCallback((message: PromptInputMessage) => {
+    const submitForm = useCallback(async (message: PromptInputMessage) => {
         if (!chat.selectedModelId) {
             return;
         }
         const modelId = chat.selectedProvider + ":" + chat.selectedModelId
         const {text: cleanedText} = parsePersonaDirective(message.text);
+        let resolvedText = cleanedText;
+
+        if (cleanedText.trim().startsWith("/")) {
+            try {
+                const result = await window.api.command.execute({input: cleanedText});
+                resolvedText = result.resolvedText;
+            } catch (error) {
+                const message = error instanceof Error ? error.message : "Failed to execute command.";
+                toast.error(message);
+                return;
+            }
+        }
 
         sendMessage({
-            text: cleanedText,
+            text: resolvedText,
             files: message.files
         }, {
-            metadata: {modelId, personaId: chat.selectedPersonaId}
+            metadata: {modelId, personaId: chat.selectedPersonaId ?? null}
         }).catch((error) => {
             toast.error(error.message);
         }).finally(() => {
             setInput('');
         })
-    }, [chat.selectedModelId, chat.selectedProvider, sendMessage]);
+    }, [chat.selectedModelId, chat.selectedProvider, chat.selectedPersonaId, sendMessage]);
+
+    const handlePersonaSelection = useCallback((personaId: string | null) => {
+        onPersonaChange(personaId);
+    }, [onPersonaChange]);
 
     const personaOptions = useMemo(() => {
         return personas
@@ -148,125 +171,172 @@ export function MultimodalInput({
             .filter((persona) => persona.id && persona.name);
     }, [personas]);
 
-    const personaMentionData = useMemo(() => {
-        return personaOptions.map((persona) => ({
-            id: persona.id,
-            display: persona.name
-        }));
-    }, [personaOptions]);
-
     return (
         <PromptInputProvider>
-            <PromptInput globalDrop multiple onSubmit={submitForm}>
-                <PromptInputHeader>
-                    <PromptInputAttachments>
-                        {(attachment) => <PromptInputAttachment data={attachment}/>}
-                    </PromptInputAttachments>
-                </PromptInputHeader>
-                <PromptInputBody>
-                    <PromptInputMentionsTextarea
-                        mentionData={personaMentionData}
-                        onChange={(value) => setInput(value)}
-                        onMentionAdd={(id) => onPersonaChange(id as string)}
-                        value={input}
-                    />
-                </PromptInputBody>
-                <PromptInputFooter>
-                    <PromptInputTools>
-                        <PromptInputActionMenu>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <span>
-                                        <PromptInputActionMenuTrigger
-                                            disabled={!selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE)}>
-                                        </PromptInputActionMenuTrigger>
-                                    </span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    {selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE) ? (
-                                        <p>Attach Images</p>
-                                    ) : (
-                                        <p>Images not supported by selected Model</p>
-                                    )}
-                                </TooltipContent>
-                            </Tooltip>
-                            <PromptInputActionMenuContent>
-                                <PromptInputActionAddAttachments/>
-                            </PromptInputActionMenuContent>
-                        </PromptInputActionMenu>
-                        <ModelSelector
-                            onOpenChange={setModelSelectorOpen}
-                            open={modelSelectorOpen}
-                        >
-                            <ModelSelectorTrigger asChild>
-                                <PromptInputButton className="w-max">
-                                    {chat.selectedModelId ? (
-                                        <ModelSelectorName>
-                                            {chat.selectedModelId}
-                                        </ModelSelectorName>
-                                    ) : ('Select Model')}
-                                </PromptInputButton>
-                            </ModelSelectorTrigger>
-                            <ModelSelectorContent>
-                                <ModelSelectorInput placeholder="Search models..."/>
-                                <ModelSelectorList>
-                                    <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
-                                    {providers.map((provider) => (
-                                        <ModelSelectorGroup heading={provider.name}
-                                                            key={provider.name}>
-                                            {provider.models
-                                                .map((m) => (
-                                                    <ModelSelectorItem
-                                                        key={m.modelId}
-                                                        onSelect={() => {
-                                                            setModelSelectorOpen(false);
-                                                            onModelChange(provider.name, m.modelId);
-                                                        }}
-                                                        value={m.modelId}
-                                                    >
-                                                        <ModelSelectorName>{m.name}</ModelSelectorName>
-                                                        <ModelSelectorLogo
-                                                            key={provider.type.toString()}
-                                                            provider={provider.type.toString()}
-                                                        />
-                                                        {chat.selectedProvider === provider.name &&
-                                                        chat.selectedModelId === m.modelId ? (
-                                                            <CheckIcon className="ml-auto size-4"/>
-                                                        ) : (
-                                                            <div className="ml-auto size-4"/>
-                                                        )}
-                                                    </ModelSelectorItem>
-                                                ))}
-                                        </ModelSelectorGroup>
-                                    ))}
-                                </ModelSelectorList>
-                            </ModelSelectorContent>
-                        </ModelSelector>
-                        <PromptInputSelect
-                            onValueChange={onPersonaChange}
-                            value={chat.selectedPersonaId as string}
-                        >
-                            <PromptInputSelectTrigger className="w-max">
-                                <PromptInputSelectValue placeholder="Persona"/>
-                            </PromptInputSelectTrigger>
-                            <PromptInputSelectContent>
-                                {personaOptions.map((persona) => (
-                                    <PromptInputSelectItem
-                                        key={persona.id}
-                                        value={persona.id}
-                                    >
-                                        {persona.name}
-                                    </PromptInputSelectItem>
-                                ))}
-                            </PromptInputSelectContent>
-                        </PromptInputSelect>
-                    </PromptInputTools>
-                    <PromptInputSubmit
-                        disabled={!input || !chat.selectedModelId || status !== 'ready'}
-                        status={status}
-                    />
-                </PromptInputFooter>
-            </PromptInput>
+            <PromptInputContent
+                chat={chat}
+                handlePersonaSelection={handlePersonaSelection}
+                input={input}
+                modelSelectorOpen={modelSelectorOpen}
+                onModelChange={onModelChange}
+                personaOptions={personaOptions}
+                providers={providers}
+                selectedModelInfo={selectedModelInfo}
+                selectedPersonaId={chat.selectedPersonaId ?? null}
+                setInput={setInput}
+                setModelSelectorOpen={setModelSelectorOpen}
+                status={status}
+                submitForm={submitForm}
+            />
         </PromptInputProvider>
+    );
+}
+
+// Inner component that uses the attachments hook (must be inside PromptInputProvider)
+function PromptInputContent({
+                                chat,
+                                handlePersonaSelection,
+                                input,
+                                modelSelectorOpen,
+                                onModelChange,
+                                personaOptions,
+                                providers,
+                                selectedModelInfo,
+                                selectedPersonaId,
+                                setInput,
+                                setModelSelectorOpen,
+                                status,
+                                submitForm,
+                            }: {
+    chat: Chat;
+    handlePersonaSelection: (personaId: string | null) => void;
+    input: string;
+    modelSelectorOpen: boolean;
+    onModelChange: (providerName: string, modelId: string) => void;
+    personaOptions: { id: string; name: string }[];
+    providers: ProviderWithModels[];
+    selectedModelInfo: { inputModalities: string[] } | undefined;
+    selectedPersonaId: string | null;
+    setInput: (value: string) => void;
+    setModelSelectorOpen: (value: boolean) => void;
+    status: UseChatHelpers<UIMessage>['status'];
+    submitForm: (message: PromptInputMessage) => void;
+}) {
+    const attachments = usePromptInputAttachments();
+
+    return (
+        <PromptInput globalDrop multiple onSubmit={submitForm}>
+            <PromptInputHeader>
+                <Attachments>
+                    {attachments.files.map((file) => (
+                        <Attachment key={file.id} data={file} onRemove={() => attachments.remove(file.id)}>
+                            <AttachmentPreview/>
+                            <AttachmentRemove/>
+                        </Attachment>
+                    ))}
+                </Attachments>
+            </PromptInputHeader>
+            <PromptInputBody>
+                <PromptInputTextarea
+                    onChange={(e) => setInput(e.target.value)}
+                    value={input}
+                />
+            </PromptInputBody>
+            <PromptInputFooter>
+                <PromptInputTools>
+                    <PromptInputActionMenu>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span>
+                                    <PromptInputActionMenuTrigger
+                                        disabled={!selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE)}>
+                                    </PromptInputActionMenuTrigger>
+                                </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {selectedModelInfo?.inputModalities.includes(ModelModalityEnum.IMAGE) ? (
+                                    <p>Attach Images</p>
+                                ) : (
+                                    <p>Images not supported by selected Model</p>
+                                )}
+                            </TooltipContent>
+                        </Tooltip>
+                        <PromptInputActionMenuContent>
+                            <PromptInputActionAddAttachments/>
+                        </PromptInputActionMenuContent>
+                    </PromptInputActionMenu>
+                    <ModelSelector
+                        onOpenChange={setModelSelectorOpen}
+                        open={modelSelectorOpen}
+                    >
+                        <ModelSelectorTrigger asChild>
+                            <PromptInputButton className="w-max">
+                                {chat.selectedModelId ? (
+                                    <ModelSelectorName>
+                                        {chat.selectedModelId}
+                                    </ModelSelectorName>
+                                ) : ('Select Model')}
+                            </PromptInputButton>
+                        </ModelSelectorTrigger>
+                        <ModelSelectorContent>
+                            <ModelSelectorInput placeholder="Search models"/>
+                            <ModelSelectorList>
+                                <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
+                                {providers.map((provider) => (
+                                    <ModelSelectorGroup heading={provider.name}
+                                                        key={provider.name}>
+                                        {provider.models
+                                            .map((m) => (
+                                                <ModelSelectorItem
+                                                    key={m.modelId}
+                                                    onSelect={() => {
+                                                        setModelSelectorOpen(false);
+                                                        onModelChange(provider.name, m.modelId);
+                                                    }}
+                                                    value={m.modelId}
+                                                >
+                                                    <ModelSelectorName>{m.name}</ModelSelectorName>
+                                                    <ModelSelectorLogo
+                                                        key={provider.type.toString()}
+                                                        provider={provider.type.toString()}
+                                                    />
+                                                    {chat.selectedProvider === provider.name &&
+                                                    chat.selectedModelId === m.modelId ? (
+                                                        <CheckIcon className="ml-auto size-4"/>
+                                                    ) : (
+                                                        <div className="ml-auto size-4"/>
+                                                    )}
+                                                </ModelSelectorItem>
+                                            ))}
+                                    </ModelSelectorGroup>
+                                ))}
+                            </ModelSelectorList>
+                        </ModelSelectorContent>
+                    </ModelSelector>
+                    <PromptInputSelect
+                        onValueChange={(value) => handlePersonaSelection(value)}
+                        value={selectedPersonaId ?? undefined}
+                    >
+                        <PromptInputSelectTrigger className="w-max">
+                            <PromptInputSelectValue placeholder="Persona"/>
+                        </PromptInputSelectTrigger>
+                        <PromptInputSelectContent>
+                            {personaOptions.map((persona) => (
+                                <PromptInputSelectItem
+                                    key={persona.id}
+                                    value={persona.id}
+                                >
+                                    {persona.name}
+                                </PromptInputSelectItem>
+                            ))}
+                        </PromptInputSelectContent>
+                    </PromptInputSelect>
+                </PromptInputTools>
+                <PromptInputSubmit
+                    disabled={!input || !chat.selectedModelId || status !== 'ready'}
+                    status={status}
+                />
+            </PromptInputFooter>
+        </PromptInput>
     );
 }

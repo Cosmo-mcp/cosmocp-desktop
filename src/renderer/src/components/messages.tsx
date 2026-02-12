@@ -1,4 +1,4 @@
-import {memo, useEffect, useRef, useState} from 'react';
+import {memo, useEffect, useMemo, useRef, useState} from 'react';
 import equal from 'fast-deep-equal';
 import type {UseChatHelpers} from '@ai-sdk/react';
 import {
@@ -20,6 +20,42 @@ import {Source, Sources, SourcesContent, SourcesTrigger} from "@/components/ai-e
 import {Loader} from "@/components/ai-elements/loader";
 import {UIMessage} from "ai";
 import {PreviewAttachment} from "@/components/preview-attachment";
+import type {ProviderWithModels} from "core/dto";
+import ProviderIcon from "@/components/ui/provider-icon";
+import {useTheme} from "next-themes";
+import {cn} from "@/lib/utils";
+
+const MODEL_NAME_COLORS = [
+    "text-emerald-600 dark:text-emerald-400",
+    "text-sky-600 dark:text-sky-400",
+    "text-amber-600 dark:text-amber-400",
+    "text-violet-600 dark:text-violet-400",
+    "text-rose-600 dark:text-rose-400",
+    "text-teal-600 dark:text-teal-400",
+    "text-lime-600 dark:text-lime-400",
+    "text-orange-600 dark:text-orange-400",
+    "text-cyan-600 dark:text-cyan-400",
+    "text-fuchsia-600 dark:text-fuchsia-400",
+] as const;
+
+type MessageMetadata = {
+    modelId?: string;
+};
+
+// Normalize a model identifier into provider/model parts for display.
+const splitModelIdentifier = (modelIdentifier: string) => {
+    const [providerName, ...modelParts] = modelIdentifier.split(":");
+    if (modelParts.length === 0) {
+        return {providerName: undefined, modelId: modelIdentifier};
+    }
+    return {providerName, modelId: modelParts.join(":")};
+};
+
+// Extract the model identifier from message metadata so UI can render per-model badges.
+const getMessageModelIdentifier = (message: UIMessage) => {
+    const metadata = message.metadata as MessageMetadata | undefined;
+    return metadata?.modelId;
+};
 
 
 interface MessagesProps {
@@ -35,14 +71,31 @@ interface MessagesProps {
 function PureMessages({
                           status,
                           messages,
-                          regenerate,
-                          searchQuery,
-                          currentMatchIndex,
-                          onMatchesFound
+                      searchQuery,
+                      currentMatchIndex,
+                      onMatchesFound
                       }: MessagesProps) {
+    const {resolvedTheme} = useTheme();
     const [matches, setMatches] = useState<{ messageId: string, partIndex: number }[]>([]);
     const [matchStartIndexMap, setMatchStartIndexMap] = useState<Record<string, number>>({});
+    const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const prevMatchIndexRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        let mounted = true;
+        window.api.modelProvider.getProvidersWithModels()
+            .then((list) => {
+                if (mounted) {
+                    setProviders(list);
+                }
+            })
+            .catch((error) => {
+                console.error("Failed to load providers", error);
+            });
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     useEffect(() => {
         if (!searchQuery) {
@@ -78,6 +131,41 @@ function PureMessages({
         setMatchStartIndexMap(newMatchStartIndexMap);
         if (onMatchesFound) onMatchesFound(newMatches.length);
     }, [searchQuery, messages, onMatchesFound]);
+
+    const providersByName = useMemo(() => {
+        return new Map(providers.map((provider) => [provider.name, provider]));
+    }, [providers]);
+
+    const modelColorMap = useMemo(() => {
+        const map = new Map<string, string>();
+        let index = 0;
+        messages.forEach((message) => {
+            if (message.role !== 'assistant') return;
+            const modelIdentifier = getMessageModelIdentifier(message);
+            if (!modelIdentifier || map.has(modelIdentifier)) return;
+            map.set(modelIdentifier, MODEL_NAME_COLORS[index % MODEL_NAME_COLORS.length]);
+            index += 1;
+        });
+        return map;
+    }, [messages]);
+
+    const modelInfoByMessageId = useMemo(() => {
+        const map = new Map<string, {identifier: string; label: string; providerType?: ProviderWithModels["type"]}>();
+        messages.forEach((message) => {
+            if (message.role !== 'assistant') return;
+            const modelIdentifier = getMessageModelIdentifier(message);
+            if (!modelIdentifier) return;
+            const {providerName, modelId} = splitModelIdentifier(modelIdentifier);
+            const provider = providerName ? providersByName.get(providerName) : undefined;
+            const label = modelId ?? modelIdentifier;
+            map.set(message.id, {
+                identifier: modelIdentifier,
+                label,
+                providerType: provider?.type,
+            });
+        });
+        return map;
+    }, [messages, providersByName]);
 
     useEffect(() => {
         // Reset previous match style
@@ -155,99 +243,136 @@ function PureMessages({
                     />
                 ) : (
                     messages.map((message) => {
+                        const isAssistant = message.role === 'assistant';
+                        const modelInfo = isAssistant ? modelInfoByMessageId.get(message.id) : undefined;
+                        const modelColorClass = modelInfo ? modelColorMap.get(modelInfo.identifier) : undefined;
+                        const iconTheme = resolvedTheme === "light" ? "light" : "dark";
+                        const modelLabel = modelInfo?.label ?? "Assistant";
+
+                        const reasoningParts = isAssistant
+                            ? message.parts.filter(part => part.type === 'reasoning')
+                            : [];
+                        const hasTextContent = message.parts.some(p => p.type === 'text' && p.text.length > 0);
+                        const isReasoningStreaming = status === 'streaming' && !hasTextContent;
+
+                        const sourcesParts = isAssistant
+                            ? message.parts.filter(part => part.type === 'source-url')
+                            : [];
+
+                        const assistantAvatar = isAssistant ? (
+                            <div className="flex size-7 items-center justify-center rounded-full border bg-background">
+                                {modelInfo?.providerType ? (
+                                    <ProviderIcon
+                                        className="mr-0 rounded-full"
+                                        size={14}
+                                        theme={iconTheme}
+                                        type={modelInfo.providerType}
+                                    />
+                                ) : (
+                                    <MessageSquare className="size-3 text-muted-foreground" />
+                                )}
+                            </div>
+                        ) : null;
+                        const assistantName = isAssistant ? (
+                            <span
+                                className={cn(
+                                    "text-xs font-semibold",
+                                    modelColorClass ?? "text-muted-foreground"
+                                )}
+                                title={modelInfo?.identifier ?? modelLabel}
+                            >
+                                {modelLabel}
+                            </span>
+                        ) : null;
+
+                        const renderedParts = message.parts.map((part, i) => {
+                            switch (part.type) {
+                                case 'text':
+                                    return (
+                                        <Message
+                                            key={`${message.id}-${i}`}
+                                            from={message.role}
+                                            id={`message-${message.id}-part-${i}`}
+                                        >
+                                            <MessageContent>
+                                                <MessageResponse key={searchQuery}>
+                                                    {highlightText(part.text, searchQuery || '', message.id, i)}
+                                                </MessageResponse>
+                                            </MessageContent>
+                                            {message.role === 'assistant' && (
+                                                <MessageActions>
+                                                    {/*<MessageAction
+                                                        onClick={() => regenerate()}
+                                                        label="Retry"
+                                                    >
+                                                        <RefreshCcwIcon className="size-3"/>
+                                                    </MessageAction>*/}
+                                                    <MessageAction
+                                                        onClick={() =>
+                                                            navigator.clipboard.writeText(part.text)
+                                                        }
+                                                        label="Copy"
+                                                    >
+                                                        <CopyIcon className="size-3" />
+                                                    </MessageAction>
+                                                </MessageActions>
+                                            )}
+                                        </Message>
+                                    );
+                                case 'file':
+                                    return (
+                                        <div key={`${message.id}-${i}`} className="flex flex-row justify-end gap-2 m-2">
+                                            <PreviewAttachment
+                                                attachment={{
+                                                    name: part.filename ?? "file",
+                                                    contentType: part.mediaType,
+                                                    url: part.url,
+                                                }}
+                                            />
+                                        </div>
+                                    );
+                                default:
+                                    return null;
+                            }
+                        });
+
                         return (
                             <div key={message.id}>
-                                {/* Render reasoning parts first */}
-                                {message.role === 'assistant' && (() => {
-                                    const reasoningParts = message.parts.filter(part => part.type === 'reasoning');
-                                    if (reasoningParts.length === 0) return null;
-                                    
-                                    const hasTextContent = message.parts.some(p => p.type === 'text' && p.text.length > 0);
-                                    const isReasoningStreaming = status === 'streaming' && !hasTextContent;
-
-                                    return reasoningParts.map((part, i) => (
-                                        <Reasoning
-                                            key={`${message.id}-reasoning-${i}`}
-                                            className="w-full"
-                                            isStreaming={isReasoningStreaming}
-                                        >
-                                            <ReasoningTrigger />
-                                            <ReasoningContent>{part.text}</ReasoningContent>
-                                        </Reasoning>
-                                    ));
-                                })()}
-                                {/* Render sources */}
-                                {message.role === 'assistant' && message.parts.filter(part => part.type === 'source-url').length > 0 && (
-                                    <Sources>
-                                        <SourcesTrigger
-                                            count={
-                                                message.parts.filter(
-                                                    (part) => part.type === 'source-url',
-                                                ).length
-                                            }
-                                        />
-                                        {message.parts.filter((part) => part.type === 'source-url').map((part, idx) => (
-                                            <SourcesContent key={`${message.id}-source-${idx}`}>
-                                                <Source
-                                                    key={`${message.id}-source-${idx}`}
-                                                    href={part.url}
-                                                    title={part.url}
-                                                />
-                                            </SourcesContent>
-                                        ))}
-                                    </Sources>
-                                )}
-                                {/* Render other parts (text, file, etc.) */}
-                                {message.parts.map((part, i) => {
-                                    switch (part.type) {
-                                        case 'text':
-                                            return (
-                                                <Message
-                                                    key={`${message.id}-${i}`}
-                                                    from={message.role}
-                                                    id={`message-${message.id}-part-${i}`}
+                                {isAssistant ? (
+                                    <div className="flex items-start gap-3">
+                                        <div className="mt-1">{assistantAvatar}</div>
+                                        <div className="flex flex-col gap-2">
+                                            {assistantName}
+                                            {reasoningParts.length > 0 && reasoningParts.map((part, i) => (
+                                                <Reasoning
+                                                    key={`${message.id}-reasoning-${i}`}
+                                                    className="w-full"
+                                                    isStreaming={isReasoningStreaming}
                                                 >
-                                                    <MessageContent>
-                                                        <MessageResponse key={searchQuery}>
-                                                            {highlightText(part.text, searchQuery || '', message.id, i)}
-                                                        </MessageResponse>
-                                                    </MessageContent>
-                                                    {message.role === 'assistant' && (
-                                                        <MessageActions>
-                                                            {/*<MessageAction
-                                                                onClick={() => regenerate()}
-                                                                label="Retry"
-                                                            >
-                                                                <RefreshCcwIcon className="size-3"/>
-                                                            </MessageAction>*/}
-                                                            <MessageAction
-                                                                onClick={() =>
-                                                                    navigator.clipboard.writeText(part.text)
-                                                                }
-                                                                label="Copy"
-                                                            >
-                                                                <CopyIcon className="size-3" />
-                                                            </MessageAction>
-                                                        </MessageActions>
-                                                    )}
-                                                </Message>
-                                            );
-                                        case 'file':
-                                            return (
-                                                <div key={`${message.id}-${i}`} className="flex flex-row justify-end gap-2 m-2">
-                                                    <PreviewAttachment
-                                                        attachment={{
-                                                            name: part.filename ?? "file",
-                                                            contentType: part.mediaType,
-                                                            url: part.url,
-                                                        }}
-                                                    />
-                                                </div>
-                                            );
-                                        default:
-                                            return null;
-                                    }
-                                })}
+                                                    <ReasoningTrigger />
+                                                    <ReasoningContent>{part.text}</ReasoningContent>
+                                                </Reasoning>
+                                            ))}
+                                            {sourcesParts.length > 0 && (
+                                                <Sources>
+                                                    <SourcesTrigger count={sourcesParts.length} />
+                                                    {sourcesParts.map((part, idx) => (
+                                                        <SourcesContent key={`${message.id}-source-${idx}`}>
+                                                            <Source
+                                                                key={`${message.id}-source-${idx}`}
+                                                                href={part.url}
+                                                                title={part.url}
+                                                            />
+                                                        </SourcesContent>
+                                                    ))}
+                                                </Sources>
+                                            )}
+                                            {renderedParts}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    renderedParts
+                                )}
                             </div>
                         );
                     }))}
