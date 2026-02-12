@@ -346,82 +346,77 @@ function PureMessages({
                                         </div>
                                     );
 
-                                case 'tool-call': {
-                                    const toolPart = part as any;
-                                    const { toolCallId, toolName, state = 'input-available' } = toolPart;
-                                    const approval = toolPart.approval;
+                                default: {
+                                    // Handle dynamic tool types (e.g., tool-getWeather, tool-searchFiles)
+                                    if (part.type.startsWith('tool-')) {
+                                        const toolPart = part as any;
+                                        const { toolCallId, state = 'input-available' } = toolPart;
+                                        const approval = toolPart.approval;
+                                        const toolName = part.type.slice(5); // Remove 'tool-' prefix
 
-                                    return (
-                                        <Tool key={`${message.id}-${i}`} defaultOpen={true}>
-                                            <ToolHeader
-                                                title={toolName}
-                                                type={`tool-${toolName}`}
-                                                state={state}
-                                            />
-                                            <ToolContent>
-                                                <ToolInput input={toolPart.input} />
-                                                <Confirmation approval={approval} state={state}>
-                                                    <ConfirmationTitle>
-                                                        This tool requires your approval to run.
-                                                    </ConfirmationTitle>
-                                                    <ConfirmationRequest>
-                                                        <ConfirmationActions>
-                                                            <ConfirmationAction
-                                                                variant="outline"
-                                                                onClick={() => {
-                                                                    addToolApprovalResponse?.({
-                                                                        id: approval?.id,
-                                                                        approved: false,
-                                                                        reason: 'User denied tool call',
-                                                                    });
-                                                                }}
-                                                            >
-                                                                Deny
-                                                            </ConfirmationAction>
-                                                            <ConfirmationAction
-                                                                onClick={() => {
-                                                                    addToolApprovalResponse?.({
-                                                                        id: approval?.id,
-                                                                        approved: true,
-                                                                    });
-                                                                }}
-                                                            >
-                                                                Allow
-                                                            </ConfirmationAction>
-                                                        </ConfirmationActions>
-                                                    </ConfirmationRequest>
-                                                    <ConfirmationAccepted>
-                                                        Tool execution approved.
-                                                    </ConfirmationAccepted>
-                                                    <ConfirmationRejected>
-                                                        Tool call was denied.
-                                                    </ConfirmationRejected>
-                                                </Confirmation>
-                                            </ToolContent>
-                                        </Tool>
-                                    );
-                                }
-                                case 'tool-result': {
-                                    const toolPart = part as any;
-                                    const isError = toolPart.output?.isError ?? false;
-                                    return (
-                                        <Tool key={`${message.id}-${i}`}>
-                                            <ToolHeader
-                                                title={toolPart.toolName}
-                                                type={`tool-${toolPart.toolName}`}
-                                                state={isError ? 'output-error' : 'output-available'}
-                                            />
-                                            <ToolContent>
-                                                <ToolOutput
-                                                    output={toolPart.output}
-                                                    errorText={isError ? toolPart.output?.errorText : undefined}
+                                        // Check if this is a completed tool with output
+                                        const hasOutput = state === 'output-available' || state === 'output-error';
+                                        const isError = state === 'output-error';
+
+                                        return (
+                                            <Tool key={`${message.id}-${i}`} defaultOpen={true}>
+                                                <ToolHeader
+                                                    title={toolName}
+                                                    type={part.type as `tool-${string}`}
+                                                    state={state}
                                                 />
-                                            </ToolContent>
-                                        </Tool>
-                                    );
-                                }
-                                default:
+                                                <ToolContent>
+                                                    {toolPart.input && <ToolInput input={toolPart.input} />}
+                                                    {hasOutput ? (
+                                                        <ToolOutput
+                                                            output={toolPart.output}
+                                                            errorText={isError ? toolPart.output?.errorText : undefined}
+                                                        />
+                                                    ) : (
+                                                        <Confirmation approval={approval} state={state}>
+                                                            <ConfirmationTitle>
+                                                                This tool requires your approval to run.
+                                                            </ConfirmationTitle>
+                                                            <ConfirmationRequest>
+                                                                <ConfirmationActions>
+                                                                    <ConfirmationAction
+                                                                        variant="outline"
+                                                                        onClick={() => {
+                                                                            addToolApprovalResponse?.({
+                                                                                id: approval?.id,
+                                                                                approved: false,
+                                                                                reason: 'User denied tool call',
+                                                                            });
+                                                                        }}
+                                                                    >
+                                                                        Deny
+                                                                    </ConfirmationAction>
+                                                                    <ConfirmationAction
+                                                                        onClick={() => {
+                                                                            addToolApprovalResponse?.({
+                                                                                id: approval?.id,
+                                                                                approved: true,
+                                                                            });
+                                                                        }}
+                                                                    >
+                                                                        Allow
+                                                                    </ConfirmationAction>
+                                                                </ConfirmationActions>
+                                                            </ConfirmationRequest>
+                                                            <ConfirmationAccepted>
+                                                                Tool execution approved.
+                                                            </ConfirmationAccepted>
+                                                            <ConfirmationRejected>
+                                                                Tool call was denied.
+                                                            </ConfirmationRejected>
+                                                        </Confirmation>
+                                                    )}
+                                                </ToolContent>
+                                            </Tool>
+                                        );
+                                    }
                                     return null;
+                                }
                             }
                         });
 

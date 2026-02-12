@@ -10,7 +10,7 @@ import { IpcChatTransport } from "@/chat-transport";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { MessageCirclePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { UIMessage } from "ai";
+import { lastAssistantMessageIsCompleteWithApprovalResponses, UIMessage } from "ai";
 import { toast } from "sonner"
 import { logger } from "../../../logger";
 
@@ -33,8 +33,9 @@ export default function Page(): JSX.Element {
     } = useChat<UIMessage>({
         id: selectedChat?.id,
         transport: new IpcChatTransport(),
+        sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
         onFinish: () => {
-            setRefreshHistory(true);
+            //setRefreshHistory(true);
         },
         onError: (error) => {
             toast.error("Failed to Stream Data", {

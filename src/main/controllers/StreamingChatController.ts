@@ -1,4 +1,4 @@
-import {convertToModelMessages, ModelMessage, RetryError, smoothStream, streamText} from 'ai';
+import {convertToModelMessages, ModelMessage, RetryError, smoothStream, streamText, tool} from 'ai';
 import {IpcMainEvent, WebContents} from "electron";
 import {inject, injectable} from "inversify";
 import {IpcController, IpcOn, IpcRendererOn} from "../ipc/Decorators";
@@ -10,20 +10,22 @@ import {MessageService} from "core/services/MessageService";
 import {PersonaService} from "core/services/PersonaService";
 import {McpClientManager} from "core/services/McpClientManager";
 import {logger} from "../logger";
+import z from 'zod';
 
 @injectable()
 @IpcController("streamingChat")
 export class StreamingChatController implements Controller {
     private readonly activeStreams = new Map<string, AbortController>();
 
-    constructor(@inject(CORETYPES.ModelProviderService)
-                private modelProviderService: ModelProviderService,
-                @inject(CORETYPES.MessageService)
-                private messageService: MessageService,
-                @inject(CORETYPES.PersonaService)
-                private personaService: PersonaService,
-                @inject(CORETYPES.McpClientManager)
-                private mcpClientManager: McpClientManager) {
+    constructor(
+        @inject(CORETYPES.ModelProviderService)
+        private modelProviderService: ModelProviderService,
+        @inject(CORETYPES.MessageService)
+        private messageService: MessageService,
+        @inject(CORETYPES.PersonaService)
+        private personaService: PersonaService,
+        @inject(CORETYPES.McpClientManager)
+        private mcpClientManager: McpClientManager) {
     }
 
     @IpcOn("sendMessage")
@@ -49,11 +51,23 @@ export class StreamingChatController implements Controller {
         const txtMsg = lastUserMsg.parts.find(part => part.type === 'text')?.text;
         const rsnMsg = lastUserMsg.parts.find(part => part.type === 'reasoning')?.text;
 
+
+        // Validate modelIdentifier before proceeding
+        if (!args.modelIdentifier) {
+            const errorMsg = "modelIdentifier is required but was not provided";
+            logger.error(errorMsg, args);
+            if (!webContents.isDestroyed()) {
+                webContents.send(`${args.streamChannel}-error`, { message: errorMsg });
+            }
+            return;
+        }
+
         await this.messageService.createMessage({
             chatId: args.chatId,
             role: lastUserMsg.role,
             text: txtMsg ?? null,
-            reasoning: rsnMsg ?? null
+            reasoning: rsnMsg ?? null,
+            modelIdentifier: args.modelIdentifier,
         });
         try {
 
@@ -114,7 +128,6 @@ export class StreamingChatController implements Controller {
                     break;
                 }
                 webContents.send(`${args.streamChannel}-data`, chunk);
-
             }
         } catch (error) {
             logger.error("Failed to start streamText:", error);
