@@ -58,7 +58,7 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
         let modelId = metadata?.modelId;
         let personaId = metadata?.personaId;
 
-        // Fallback: fetch from chat if not in metadata (e.g., tool approval continuation)
+        // Fallback: fetch from chat if not in metadata (e.g., tool approval continuation - modelId is not passed from sendMessage)
         if (!modelId) {
             try {
                 const chat = await window.api.chat.getChatById(chatId);
@@ -72,11 +72,8 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
         }
 
         if (!modelId) {
-            return Promise.reject(new Error('modelId is required - neither in metadata nor found in chat'));
+            return Promise.reject(new Error('modelId is required'));
         }
-
-        const finalModelId = modelId;
-        const finalPersonaId = personaId;
 
         const stream = new ReadableStream<UIMessageChunk>({
             start(controller) {
@@ -108,8 +105,8 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
 
                 window.api.streaming.sendMessage({
                     chatId, messages, streamChannel,
-                    modelIdentifier: finalModelId,
-                    personaId: finalPersonaId,
+                    modelIdentifier: modelId,
+                    personaId: personaId,
                 });
 
                 if (options.abortSignal) {
