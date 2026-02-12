@@ -42,6 +42,7 @@ export default function Page(): JSX.Element {
     } = useChat<UIMessage>({
         id: selectedChat?.id,
         transport: new IpcChatTransport(),
+        sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
         onFinish: ({ message }) => {
             // locally update the chat history
             if (!selectedChat) return;
@@ -86,7 +87,7 @@ export default function Page(): JSX.Element {
     }, [refreshHistory, searchHistoryQuery]);
 
     useEffect(() => {
-        if (selectedChat) {
+        if (selectedChat?.id) {
             window.api.message.getByChat(selectedChat.id)
                 .then((chat) => {
                     if (chat) {
@@ -99,7 +100,7 @@ export default function Page(): JSX.Element {
                 });
         }
 
-    }, [selectedChat, setMessages]);
+    }, [selectedChat?.id, setMessages]);
 
     const handleNewChat = () => {
         // TODO: return chat after creation, instead of reloading all chats

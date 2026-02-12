@@ -73,7 +73,6 @@ export class StreamingChatController implements Controller {
 
             const result = streamText({
                 // @ts-expect-error/type-does-not-exist
-                // model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 messages: modelMessages,
                 tools: await this.mcpClientManager.getAllTools(),
