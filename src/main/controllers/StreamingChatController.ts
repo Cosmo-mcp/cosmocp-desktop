@@ -16,14 +16,15 @@ import {logger} from "../logger";
 export class StreamingChatController implements Controller {
     private readonly activeStreams = new Map<string, AbortController>();
 
-    constructor(@inject(CORETYPES.ModelProviderService)
-                private modelProviderService: ModelProviderService,
-                @inject(CORETYPES.MessageService)
-                private messageService: MessageService,
-                @inject(CORETYPES.PersonaService)
-                private personaService: PersonaService,
-                @inject(CORETYPES.McpClientManager)
-                private mcpClientManager: McpClientManager) {
+    constructor(
+        @inject(CORETYPES.ModelProviderService)
+        private modelProviderService: ModelProviderService,
+        @inject(CORETYPES.MessageService)
+        private messageService: MessageService,
+        @inject(CORETYPES.PersonaService)
+        private personaService: PersonaService,
+        @inject(CORETYPES.McpClientManager)
+        private mcpClientManager: McpClientManager) {
     }
 
     @IpcOn("sendMessage")
@@ -49,17 +50,28 @@ export class StreamingChatController implements Controller {
         const txtMsg = lastUserMsg.parts.find(part => part.type === 'text')?.text;
         const rsnMsg = lastUserMsg.parts.find(part => part.type === 'reasoning')?.text;
 
+
+        // Validate modelIdentifier before proceeding
+        if (!args.modelIdentifier) {
+            const errorMsg = "modelIdentifier is required but was not provided";
+            logger.error(errorMsg, args);
+            if (!webContents.isDestroyed()) {
+                webContents.send(`${args.streamChannel}-error`, { message: errorMsg });
+            }
+            return;
+        }
+
         await this.messageService.createMessage({
             chatId: args.chatId,
             role: lastUserMsg.role,
             text: txtMsg ?? null,
-            reasoning: rsnMsg ?? null
+            reasoning: rsnMsg ?? null,
+            modelIdentifier: args.modelIdentifier,
         });
         try {
 
             const result = streamText({
                 // @ts-expect-error/type-does-not-exist
-                // model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 model: modelProviderRegistry.languageModel(args.modelIdentifier),
                 messages: modelMessages,
                 tools: await this.mcpClientManager.getAllTools(),
@@ -114,7 +126,6 @@ export class StreamingChatController implements Controller {
                     break;
                 }
                 webContents.send(`${args.streamChannel}-data`, chunk);
-
             }
         } catch (error) {
             logger.error("Failed to start streamText:", error);

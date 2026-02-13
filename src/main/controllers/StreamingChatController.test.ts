@@ -174,6 +174,7 @@ describe("StreamingChatController", () => {
       role: "user",
       text: "Hello",
       reasoning: "Think",
+      modelIdentifier: "provider:model",
     })
     expect(messageService.createMessage).toHaveBeenCalledWith({
       chatId: "chat-id",
