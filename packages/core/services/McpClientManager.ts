@@ -1,9 +1,9 @@
-import {inject, injectable} from "inversify";
-import {createMCPClient, type MCPClient} from "@ai-sdk/mcp";
-import type {ToolSet} from "ai";
-import {CORETYPES} from "../types/types";
-import {McpServerService} from "./McpServerService";
-import {HttpTransportConfig, SseTransportConfig, StdioTransportConfig} from "../dto";
+import { inject, injectable } from "inversify";
+import { createMCPClient, type MCPClient } from "@ai-sdk/mcp";
+import type { ToolSet } from "ai";
+import { CORETYPES } from "../types/types";
+import { McpServerService } from "./McpServerService";
+import { HttpTransportConfig, SseTransportConfig, StdioTransportConfig } from "../dto";
 
 interface McpClientInstance {
     client: MCPClient;
@@ -80,7 +80,7 @@ export class McpClientManager {
             }
             case 'stdio': {
                 const config = server.config as StdioTransportConfig;
-                const {Experimental_StdioMCPTransport} = await import("@ai-sdk/mcp/mcp-stdio");
+                const { Experimental_StdioMCPTransport } = await import("@ai-sdk/mcp/mcp-stdio");
                 const stdioTransport = new Experimental_StdioMCPTransport({
                     command: config.command,
                     args: config.args,
@@ -155,6 +155,28 @@ export class McpClientManager {
      */
     public clearAll(): void {
         this.clients.clear();
+    }
+
+    /**
+     * Get tools for a specific server (serializable format for IPC)
+     */
+    public async getToolsForServer(serverId: string): Promise<Array<{ name: string; title?: string; description?: string }>> {
+        const instance = this.clients.get(serverId);
+        if (!instance) {
+            return [];
+        }
+
+        try {
+            const tools = await instance.client.tools();
+            return Object.entries(tools).map(([name, tool]) => ({
+                name,
+                title: (tool as { title?: string }).title,
+                description: (tool as { description?: string }).description,
+            }));
+        } catch (error) {
+            console.error(`Failed to get tools from MCP server ${instance.serverName}:`, error);
+            return [];
+        }
     }
 
     /**
