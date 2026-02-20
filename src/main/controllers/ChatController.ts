@@ -1,9 +1,20 @@
 import {inject, injectable} from "inversify";
+import {z} from "zod";
 import {CORETYPES} from "core/types/types";
 import {ChatService} from "core/services/ChatService";
 import {IpcController, IpcHandler} from "../ipc/Decorators";
 import {Controller} from "./Controller";
 import {Chat, ChatWithMessages, ModelIdentifier, NewChat, PersonaIdentifier} from "core/dto";
+
+const personaIdentifierSchema = z.object({
+    selectedPersonaId: z.preprocess((value) => {
+        if (typeof value !== "string") {
+            return value;
+        }
+        const trimmedValue = value.trim();
+        return trimmedValue === "" ? null : trimmedValue;
+    }, z.string().nullable())
+}).strict();
 
 @injectable()
 @IpcController("chat")
@@ -53,7 +64,8 @@ export class ChatController implements Controller {
 
     @IpcHandler("updateSelectedPersonaForChat")
     public async updateSelectedPersonaForChat(id: string, personaIdentifier: PersonaIdentifier): Promise<void> {
-        return this.chatService.updateSelectedPersonaForChat(id, personaIdentifier);
+        const parsedPersonaIdentifier = personaIdentifierSchema.parse(personaIdentifier);
+        return this.chatService.updateSelectedPersonaForChat(id, parsedPersonaIdentifier);
     }
 
     @IpcHandler("updateSelectedChat")
