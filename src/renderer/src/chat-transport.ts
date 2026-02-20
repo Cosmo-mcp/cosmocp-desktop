@@ -1,4 +1,4 @@
-import {ChatRequestOptions, ChatTransport, UIMessage, UIMessageChunk} from 'ai'
+import { ChatRequestOptions, ChatTransport, UIMessage, UIMessageChunk } from 'ai'
 
 // Note: The global AbortSignal type is used directly, no import needed for modern browsers/environments.
 // Note: The browser's native ReadableStream is used, no import needed.
@@ -47,7 +47,7 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
         return Promise.resolve(stream);
     }
 
-    sendMessages(
+    async sendMessages(
         options: {
             trigger: 'submit-message' | 'regenerate-message'
             chatId: string
@@ -61,6 +61,28 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
         let cleanup = () => {
             window.api.streaming.removeListeners(streamChannel);
         };
+
+        // Get modelId from metadata or fetch from chat
+        const metadata = options?.metadata as { modelId?: string; personaId?: string } | undefined;
+        let modelId = metadata?.modelId;
+        let personaId = metadata?.personaId;
+
+        // Fallback: fetch from chat if not in metadata (e.g., tool approval continuation - modelId is not passed from sendMessage)
+        if (!modelId) {
+            try {
+                const chat = await window.api.chat.getChatById(chatId);
+                if (chat?.selectedProvider && chat?.selectedModelId) {
+                    modelId = `${chat.selectedProvider}:${chat.selectedModelId}`;
+                    personaId = personaId || chat.selectedPersonaId || undefined;
+                }
+            } catch (e) {
+                console.error('Failed to fetch chat for model info:', e);
+            }
+        }
+
+        if (!modelId) {
+            return Promise.reject(new Error('modelId is required'));
+        }
 
         const stream = new ReadableStream<UIMessageChunk>({
             start(controller) {
@@ -123,7 +145,7 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 }
             }, cancel() {
                 cleanup();
-                window.api.streaming.abortMessage({streamChannel});
+                window.api.streaming.abortMessage({ streamChannel });
             }
         });
         return Promise.resolve(stream);

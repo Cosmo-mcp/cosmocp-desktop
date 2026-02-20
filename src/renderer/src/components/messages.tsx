@@ -1,6 +1,6 @@
-import {memo, useEffect, useMemo, useRef, useState} from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import equal from 'fast-deep-equal';
-import type {UseChatHelpers} from '@ai-sdk/react';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import {
     Conversation,
     ConversationContent,
@@ -14,16 +14,26 @@ import {
     MessageContent,
     MessageResponse
 } from "@/components/ai-elements/message";
-import {CopyIcon, MessageSquare} from "lucide-react";
-import {Reasoning, ReasoningContent, ReasoningTrigger} from "@/components/ai-elements/reasoning";
-import {Source, Sources, SourcesContent, SourcesTrigger} from "@/components/ai-elements/sources";
-import {Loader} from "@/components/ai-elements/loader";
-import {UIMessage} from "ai";
-import {PreviewAttachment} from "@/components/preview-attachment";
-import type {ProviderWithModels} from "core/dto";
+import { CopyIcon, MessageSquare } from "lucide-react";
+import { Reasoning, ReasoningContent, ReasoningTrigger } from "@/components/ai-elements/reasoning";
+import { Source, Sources, SourcesContent, SourcesTrigger } from "@/components/ai-elements/sources";
+import { Loader } from "@/components/ai-elements/loader";
+import { UIMessage } from "ai";
+import { PreviewAttachment } from "@/components/preview-attachment";
+import { Tool, ToolHeader, ToolContent, ToolInput, ToolOutput, ToolPart } from './ai-elements/tool';
+import {
+    Confirmation,
+    ConfirmationTitle,
+    ConfirmationRequest,
+    ConfirmationAccepted,
+    ConfirmationRejected,
+    ConfirmationActions,
+    ConfirmationAction
+} from './ai-elements/confirmation';
+import type { ProviderWithModels } from "core/dto";
 import ProviderIcon from "@/components/ui/provider-icon";
-import {useTheme} from "next-themes";
-import {cn} from "@/lib/utils";
+import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
 const MODEL_NAME_COLORS = [
     "text-emerald-600 dark:text-emerald-400",
@@ -46,9 +56,9 @@ type MessageMetadata = {
 const splitModelIdentifier = (modelIdentifier: string) => {
     const [providerName, ...modelParts] = modelIdentifier.split(":");
     if (modelParts.length === 0) {
-        return {providerName: undefined, modelId: modelIdentifier};
+        return { providerName: undefined, modelId: modelIdentifier };
     }
-    return {providerName, modelId: modelParts.join(":")};
+    return { providerName, modelId: modelParts.join(":") };
 };
 
 // Extract the model identifier from message metadata so UI can render per-model badges.
@@ -66,16 +76,19 @@ interface MessagesProps {
     searchQuery?: string;
     currentMatchIndex?: number;
     onMatchesFound?: (count: number) => void;
+    addToolApprovalResponse?: UseChatHelpers<UIMessage>['addToolApprovalResponse'];
 }
 
 function PureMessages({
-                          status,
-                          messages,
-                      searchQuery,
-                      currentMatchIndex,
-                      onMatchesFound
-                      }: MessagesProps) {
-    const {resolvedTheme} = useTheme();
+    status,
+    messages,
+    regenerate,
+    searchQuery,
+    currentMatchIndex,
+    onMatchesFound,
+    addToolApprovalResponse
+}: MessagesProps) {
+    const { resolvedTheme } = useTheme();
     const [matches, setMatches] = useState<{ messageId: string, partIndex: number }[]>([]);
     const [matchStartIndexMap, setMatchStartIndexMap] = useState<Record<string, number>>({});
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
@@ -120,7 +133,7 @@ function PureMessages({
                     newMatchStartIndexMap[partKey] = newMatches.length;
 
                     while ((index = text.indexOf(query, startIndex)) > -1) {
-                        newMatches.push({messageId: m.id, partIndex: pIndex});
+                        newMatches.push({ messageId: m.id, partIndex: pIndex });
                         startIndex = index + query.length;
                     }
                 }
@@ -150,12 +163,12 @@ function PureMessages({
     }, [messages]);
 
     const modelInfoByMessageId = useMemo(() => {
-        const map = new Map<string, {identifier: string; label: string; providerType?: ProviderWithModels["type"]}>();
+        const map = new Map<string, { identifier: string; label: string; providerType?: ProviderWithModels["type"] }>();
         messages.forEach((message) => {
             if (message.role !== 'assistant') return;
             const modelIdentifier = getMessageModelIdentifier(message);
             if (!modelIdentifier) return;
-            const {providerName, modelId} = splitModelIdentifier(modelIdentifier);
+            const { providerName, modelId } = splitModelIdentifier(modelIdentifier);
             const provider = providerName ? providersByName.get(providerName) : undefined;
             const label = modelId ?? modelIdentifier;
             map.set(message.id, {
@@ -183,12 +196,11 @@ function PureMessages({
 
         if (currentMatchIndex && currentMatchIndex > 0 && currentMatchIndex <= matches.length) {
             const matchIndex = currentMatchIndex - 1;
-
             // We need a small delay to allow render to update the DOM with new IDs if search query changed
             highlightTimer = window.setTimeout(() => {
                 const matchElement = document.getElementById(`match-${matchIndex}`);
                 if (matchElement) {
-                    matchElement.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    matchElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     matchElement.style.backgroundColor = '#f97316';
                     matchElement.style.color = 'white';
                     prevMatchIndexRef.current = currentMatchIndex;
@@ -199,7 +211,7 @@ function PureMessages({
                         const elementId = `message-${match.messageId}-part-${match.partIndex}`;
                         const element = document.getElementById(elementId);
                         if (element) {
-                            element.scrollIntoView({behavior: 'smooth', block: 'center'});
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             element.classList.add('bg-muted');
                             fallbackResetTimer = window.setTimeout(() => element.classList.remove('bg-muted'), 2000);
                         }
@@ -249,7 +261,7 @@ function PureMessages({
             <ConversationContent>
                 {messages.length === 0 ? (
                     <ConversationEmptyState
-                        icon={<MessageSquare className="size-12"/>}
+                        icon={<MessageSquare className="size-12" />}
                         title="Start a conversation"
                         description="Type a message below to begin chatting"
                     />
@@ -343,8 +355,78 @@ function PureMessages({
                                             />
                                         </div>
                                     );
-                                default:
+
+                                default: {
+                                    // Handle dynamic tool types (e.g., tool-getWeather, tool-searchFiles)
+                                    if (part.type.startsWith('tool-')) {
+                                        const toolPart = part as ToolPart;
+                                        const { state = 'input-available' } = toolPart;
+                                        const approval = toolPart.approval;
+                                        const toolName = part.type.slice(5); // Remove 'tool-' prefix
+
+                                        // Check if this is a completed tool with output
+                                        const hasOutput = state === 'output-available' || state === 'output-error';
+                                        const isError = state === 'output-error';
+
+                                        return (
+                                            <Tool key={`${message.id}-${i}`} defaultOpen={true}>
+                                                <ToolHeader
+                                                    title={toolName}
+                                                    type={part.type as `tool-${string}`}
+                                                    state={state}
+                                                />
+                                                <ToolContent>
+                                                    {!!toolPart.input && <ToolInput input={toolPart.input} />}
+                                                    {hasOutput ? (
+                                                        <ToolOutput
+                                                            output={toolPart.output}
+                                                            errorText={isError ? toolPart.errorText : undefined}
+                                                        />
+                                                    ) : ( approval &&
+                                                        <Confirmation approval={approval} state={state}>
+                                                            <ConfirmationTitle>
+                                                                This tool requires your approval to run.
+                                                            </ConfirmationTitle>
+                                                            <ConfirmationRequest>
+                                                                <ConfirmationActions>
+                                                                    <ConfirmationAction
+                                                                        variant="outline"
+                                                                        onClick={() => {
+                                                                            addToolApprovalResponse?.({
+                                                                                id: approval.id,
+                                                                                approved: false,
+                                                                                reason: 'User denied tool call',
+                                                                            });
+                                                                        }}
+                                                                    >
+                                                                        Deny
+                                                                    </ConfirmationAction>
+                                                                    <ConfirmationAction
+                                                                        onClick={() => {
+                                                                            addToolApprovalResponse?.({
+                                                                                id: approval.id,
+                                                                                approved: true,
+                                                                            });
+                                                                        }}
+                                                                    >
+                                                                        Allow
+                                                                    </ConfirmationAction>
+                                                                </ConfirmationActions>
+                                                            </ConfirmationRequest>
+                                                            <ConfirmationAccepted>
+                                                                Tool execution approved.
+                                                            </ConfirmationAccepted>
+                                                            <ConfirmationRejected>
+                                                                Tool call was denied.
+                                                            </ConfirmationRejected>
+                                                        </Confirmation>
+                                                    )}
+                                                </ToolContent>
+                                            </Tool>
+                                        );
+                                    }
                                     return null;
+                                }
                             }
                         });
 
@@ -390,10 +472,10 @@ function PureMessages({
                     }))}
                 {status === 'submitted' &&
                     <div className="self-start">
-                        <Loader/>
+                        <Loader />
                     </div>}
             </ConversationContent>
-            <ConversationScrollButton/>
+            <ConversationScrollButton />
         </Conversation>
     );
 }

@@ -1,18 +1,18 @@
 'use client'
-import {JSX, useCallback, useEffect, useMemo, useState} from "react";
-import {ChatHistory} from "@/components/chat-history";
-import {Chat} from "core/dto";
-import {ChatHeader} from "@/components/chat-header";
-import {Messages} from "@/components/messages";
-import {MultimodalInput} from "@/components/multimodal-input";
-import {useChat} from "@ai-sdk/react";
-import {IpcChatTransport} from "@/chat-transport";
-import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty";
-import {MessageCirclePlus} from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {UIMessage} from "ai";
-import {toast} from "sonner"
-import {logger} from "../../../logger";
+import { JSX, useCallback, useEffect, useMemo, useState } from "react";
+import { ChatHistory } from "@/components/chat-history";
+import { Chat } from "core/dto";
+import { ChatHeader } from "@/components/chat-header";
+import { Messages } from "@/components/messages";
+import { MultimodalInput } from "@/components/multimodal-input";
+import { useChat } from "@ai-sdk/react";
+import { IpcChatTransport } from "@/chat-transport";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { MessageCirclePlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { lastAssistantMessageIsCompleteWithApprovalResponses, UIMessage } from "ai";
+import { toast } from "sonner"
+import { logger } from "../../../logger";
 
 export default function Page(): JSX.Element {
     const [chatHistory, setChatHistory] = useState<Chat[]>([]);
@@ -24,17 +24,44 @@ export default function Page(): JSX.Element {
     const [totalMatches, setTotalMatches] = useState(0);
     const transport = useMemo(() => new IpcChatTransport(), []);
 
+    const updateChatInHistory = useCallback((chatId: string, updates: Partial<Chat>) => {
+        setChatHistory(prev =>
+            prev.map(c => c.id === chatId ? { ...c, ...updates } : c)
+        );
+        setSelectedChat(prev =>
+            prev && prev.id === chatId ? { ...prev, ...updates } : prev
+        );
+    }, []);
+
     const {
         messages,
         sendMessage,
         status,
         regenerate,
         setMessages,
+        addToolApprovalResponse
     } = useChat<UIMessage>({
         id: selectedChat?.id,
         transport,
-        onFinish: () => {
-            setRefreshHistory(true);
+        sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
+        onFinish: ({ message }) => {
+            // locally update the chat history
+            if (!selectedChat) return;
+            const textPart = message.parts?.find(p => p.type === 'text') as { type: 'text'; text: string } | undefined;
+            const text = textPart?.text;
+            const updates: Partial<Chat> = {
+                lastMessage: text ? text.slice(0, 200) : selectedChat.lastMessage,
+                lastMessageAt: new Date(),
+            };
+            // Update title on first exchange (matches backend logic in MessageRepository)
+            const userMessages = messages.filter(m => m.role === 'user');
+            if (userMessages.length === 1) {
+                const userTextPart = userMessages[0].parts?.find(p => p.type === 'text') as { type: 'text'; text: string } | undefined;
+                if (userTextPart?.text) {
+                    updates.title = userTextPart.text.slice(0, 50);
+                }
+            }
+            updateChatInHistory(selectedChat.id, updates);
         },
         onError: (error) => {
             toast.error("Failed to Stream Data", {
@@ -74,7 +101,7 @@ export default function Page(): JSX.Element {
     }, [refreshHistory, searchHistoryQuery, setMessages]);
 
     useEffect(() => {
-        if (!selectedChat) {
+        if (!selectedChat?.id) {
             setMessages([]);
             return;
         }
@@ -101,7 +128,7 @@ export default function Page(): JSX.Element {
         return () => {
             active = false;
         };
-    }, [selectedChat, setMessages]);
+    }, [selectedChat?.id, setMessages]);
 
     const handleNewChat = useCallback(async () => {
         try {
@@ -276,6 +303,7 @@ export default function Page(): JSX.Element {
                                     searchQuery={searchQuery}
                                     currentMatchIndex={currentMatchIndex}
                                     onMatchesFound={handleMatchesFound}
+                                    addToolApprovalResponse={addToolApprovalResponse}
                                 />
                             </div>
                             <div className="p-4 bg-background shrink-0 max-w-3xl mx-auto w-full border-t">
@@ -293,7 +321,7 @@ export default function Page(): JSX.Element {
                             <Empty>
                                 <EmptyHeader>
                                     <EmptyMedia variant="icon">
-                                        <MessageCirclePlus/>
+                                        <MessageCirclePlus />
                                     </EmptyMedia>
                                     <EmptyTitle>Start a new Chat</EmptyTitle>
                                     <EmptyDescription>
