@@ -117,8 +117,8 @@ export class ModelProviderRepository {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {providerId: _, ...modelRest} = getTableColumns(model);
 
-        // If apiKey is being updated, encrypt it
-        if (updateObject.apiKey) {
+        // If apiKey is being updated, always encrypt it before persistence.
+        if (updateObject.apiKey !== undefined) {
             updateObject.apiKey = this.encryptApiKey(updateObject.apiKey);
         }
 

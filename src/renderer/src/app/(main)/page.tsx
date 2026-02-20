@@ -1,5 +1,5 @@
 'use client'
-import { JSX, useCallback, useEffect, useState } from "react";
+import { JSX, useCallback, useEffect, useMemo, useState } from "react";
 import { ChatHistory } from "@/components/chat-history";
 import { Chat } from "core/dto";
 import { ChatHeader } from "@/components/chat-header";
@@ -22,6 +22,7 @@ export default function Page(): JSX.Element {
     const [searchQuery, setSearchQuery] = useState("");
     const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
     const [totalMatches, setTotalMatches] = useState(0);
+    const transport = useMemo(() => new IpcChatTransport(), []);
 
     const updateChatInHistory = useCallback((chatId: string, updates: Partial<Chat>) => {
         setChatHistory(prev =>
@@ -41,7 +42,7 @@ export default function Page(): JSX.Element {
         addToolApprovalResponse
     } = useChat<UIMessage>({
         id: selectedChat?.id,
-        transport: new IpcChatTransport(),
+        transport,
         sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
         onFinish: ({ message }) => {
             // locally update the chat history
@@ -70,48 +71,109 @@ export default function Page(): JSX.Element {
     });
 
     useEffect(() => {
+        let active = true;
         window.api.chat.getAllChats(searchHistoryQuery)
             .then((chats) => {
+                if (!active) {
+                    return;
+                }
                 setChatHistory(chats);
-                if (chats && chats.length > 0) {
+                if (chats.length > 0) {
                     setSelectedChat(chats.find(chat => chat.selected) ?? chats[0]);
                 } else {
                     setSelectedChat(null);
+                    setMessages([]);
                 }
                 setRefreshHistory(false);
             })
             .catch((error) => {
-                console.log(error);
+                if (!active) {
+                    return;
+                }
                 logger.error(error);
+                toast.error("Failed to load chats");
+                setRefreshHistory(false);
             });
-    }, [refreshHistory, searchHistoryQuery]);
+
+        return () => {
+            active = false;
+        };
+    }, [refreshHistory, searchHistoryQuery, setMessages]);
 
     useEffect(() => {
-        if (selectedChat?.id) {
-            window.api.message.getByChat(selectedChat.id)
-                .then((chat) => {
-                    if (chat) {
-                        setMessages(chat);
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                    logger.error(error)
-                });
+        if (!selectedChat?.id) {
+            setMessages([]);
+            return;
         }
 
+        let active = true;
+        const chatId = selectedChat.id;
+        window.api.message.getByChat(chatId)
+            .then((chat) => {
+                if (!active || selectedChat.id !== chatId) {
+                    return;
+                }
+                if (chat) {
+                    setMessages(chat);
+                }
+            })
+            .catch((error) => {
+                if (!active) {
+                    return;
+                }
+                logger.error(error);
+                toast.error("Failed to load chat messages");
+            });
+
+        return () => {
+            active = false;
+        };
     }, [selectedChat?.id, setMessages]);
 
-    const handleNewChat = () => {
-        // TODO: return chat after creation, instead of reloading all chats
-        window.api.chat.createChat({ title: "New Chat" })
-            .then(() => setRefreshHistory(true));
-    }
+    const handleNewChat = useCallback(async () => {
+        try {
+            await window.api.chat.createChat({title: "New Chat"});
+            setRefreshHistory(true);
+        } catch (error) {
+            logger.error(error);
+            toast.error("Failed to create chat");
+        }
+    }, []);
 
-    const searchFromChatHistory = (searchQuery: string) => {
+    const searchFromChatHistory = useCallback((searchQuery: string) => {
         setSearchHistoryQuery(searchQuery);
         setRefreshHistory(true);
-    }
+    }, []);
+
+    const handleSelectChat = useCallback(async (chat: Chat) => {
+        try {
+            await window.api.chat.updateSelectedChat(chat.id);
+            setSelectedChat(chat);
+        } catch (error) {
+            logger.error(error);
+            toast.error("Failed to select chat");
+        }
+    }, []);
+
+    const handleDeleteChat = useCallback(async (chat: Chat) => {
+        try {
+            await window.api.chat.deleteChat(chat.id);
+            setRefreshHistory(true);
+        } catch (error) {
+            logger.error(error);
+            toast.error("Failed to delete chat");
+        }
+    }, []);
+
+    const handlePinChat = useCallback(async (chat: Chat) => {
+        try {
+            await window.api.chat.updatePinnedStatusForChat(chat.id, !chat.pinned);
+            setRefreshHistory(true);
+        } catch (error) {
+            logger.error(error);
+            toast.error("Failed to update chat pin status");
+        }
+    }, []);
 
     const handleSearch = useCallback((query: string) => {
         setSearchQuery(query);
@@ -208,14 +270,8 @@ export default function Page(): JSX.Element {
             className="flex-1 min-h-0 flex rounded-b-lg border-t-0 overflow-hidden bg-background">
             <ChatHistory
                 chats={chatHistory}
-                selectedChat={selectedChat as Chat}
-                onChangeSelectedChat={(chat) => {
-                    window.api.chat.updateSelectedChat(chat.id).then(() => {
-                        setSelectedChat(chat);
-                    }).catch((error) => {
-                        logger.error(error);
-                    })
-                }}
+                selectedChat={selectedChat}
+                onChangeSelectedChat={handleSelectChat}
                 onNewChat={handleNewChat}
                 onSearch={searchFromChatHistory}
             ></ChatHistory>
@@ -226,13 +282,9 @@ export default function Page(): JSX.Element {
                             <div className="flex items-center h-16 px-4 border-b bg-background shrink-0">
                                 <div className="flex-1">
                                     <ChatHeader
-                                        chat={selectedChat || null}
-                                        onDeleteChat={(chat) => {
-                                            window.api.chat.deleteChat(chat.id).then(() => setRefreshHistory(true));
-                                        }}
-                                        onPinChat={(chat) => {
-                                            window.api.chat.updatePinnedStatusForChat(chat.id, !chat.pinned).then(() => setRefreshHistory(true));
-                                        }}
+                                        chat={selectedChat}
+                                        onDeleteChat={handleDeleteChat}
+                                        onPinChat={handlePinChat}
                                         onSearch={handleSearch}
                                         currentMatch={currentMatchIndex}
                                         totalMatches={totalMatches}

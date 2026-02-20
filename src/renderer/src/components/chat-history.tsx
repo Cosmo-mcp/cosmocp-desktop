@@ -16,7 +16,7 @@ export function ChatHistory({
                                 onSearch
                             }: {
     chats: Chat[];
-    selectedChat: Chat;
+    selectedChat: Chat | null;
     onChangeSelectedChat: (chat: Chat) => void,
     onNewChat: () => void,
     onSearch: (query: string) => void

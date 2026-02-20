@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { UIMessage } from 'ai';
 import { ModelModalityEnum } from "core/database/schema/modelProviderSchema";
-import type { Chat, CommandDefinition, Persona, ProviderWithModels } from "core/dto";
+import type { Chat, Persona, ProviderWithModels } from "core/dto";
 import { CheckIcon } from "lucide-react";
 import type { FocusEvent, KeyboardEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -82,7 +82,6 @@ export function MultimodalInput({
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const [personas, setPersonas] = useState<Persona[]>([]);
-    const [commands, setCommands] = useState<CommandDefinition[]>([]);
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
@@ -93,12 +92,6 @@ export function MultimodalInput({
     useEffect(() => {
         window.api.persona.getAll()
             .then(fetchedPersonas => setPersonas(fetchedPersonas))
-            .catch(error => logger.error(error));
-    }, []);
-
-    useEffect(() => {
-        window.api.command.listAll()
-            .then(fetchedCommands => setCommands(fetchedCommands))
             .catch(error => logger.error(error));
     }, []);
 

@@ -11,6 +11,9 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
     ): Promise<ReadableStream<UIMessageChunk> | null> {
         const chatId = options.chatId;
         const streamChannel = `chat-stream-${chatId}`;
+        let cleanup = () => {
+            window.api.streaming.removeListeners(streamChannel);
+        };
 
         const stream = new ReadableStream<UIMessageChunk>({
             start(controller) {
@@ -28,7 +31,7 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                     controller.error(new Error(msg));
                 }
 
-                const cleanup = () => {
+                cleanup = () => {
                     window.api.streaming.removeListeners(streamChannel);
                 };
 
@@ -36,6 +39,9 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 window.api.streaming.onEnd(`${streamChannel}`, onEnd);
                 window.api.streaming.onError(`${streamChannel}`, onError);
 
+            },
+            cancel() {
+                cleanup();
             }
         });
         return Promise.resolve(stream);
@@ -52,6 +58,9 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
     ): Promise<ReadableStream<UIMessageChunk>> {
         const chatId = options.chatId;
         const streamChannel = `chat-stream-${chatId}`;
+        let cleanup = () => {
+            window.api.streaming.removeListeners(streamChannel);
+        };
 
         // Get modelId from metadata or fetch from chat
         const metadata = options?.metadata as { modelId?: string; personaId?: string } | undefined;
@@ -61,7 +70,7 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
         // Fallback: fetch from chat if not in metadata (e.g., tool approval continuation - modelId is not passed from sendMessage)
         if (!modelId) {
             try {
-                const chat = await window.api.chat.getChatById(chatId);
+                const chat = await window.api.chat?.getChatById(chatId);
                 if (chat?.selectedProvider && chat?.selectedModelId) {
                     modelId = `${chat.selectedProvider}:${chat.selectedModelId}`;
                     personaId = personaId || chat.selectedPersonaId || undefined;
@@ -77,6 +86,8 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
 
         const stream = new ReadableStream<UIMessageChunk>({
             start(controller) {
+                const abortSignal = options.abortSignal;
+
                 const onData = (chunk: unknown) => {
                     controller.enqueue(chunk as UIMessageChunk);
                 }
@@ -91,9 +102,15 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                     const msg = err?.error?.message || err?.message || err || 'Stream Error';
                     controller.error(new Error(msg));
                 }
+                const handleAbort = () => {
+                    cleanup();
+                    window.api.streaming.abortMessage({streamChannel});
+                    controller.error(new Error('Aborted by user'));
+                };
 
-                const cleanup = () => {
+                cleanup = () => {
                     window.api.streaming.removeListeners(streamChannel);
+                    abortSignal?.removeEventListener('abort', handleAbort);
                 };
 
                 window.api.streaming.onData(`${streamChannel}`, onData);
@@ -103,20 +120,23 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 // Send to main process
                 const messages = options.messages;
 
-                window.api.streaming.sendMessage({
-                    chatId, messages, streamChannel,
-                    modelIdentifier: modelId,
-                    personaId: personaId,
-                });
-
-                if (options.abortSignal) {
-                    options.abortSignal.addEventListener('abort', () => {
-                        cleanup();
-                        window.api.streaming.abortMessage({ streamChannel });
-                        controller.error(new Error('Aborted by user'));
+                try {
+                    window.api.streaming.sendMessage({
+                        chatId, messages, streamChannel,
+                        modelIdentifier: modelId,
+                        personaId,
                     });
+                } catch (error) {
+                    cleanup();
+                    controller.error(error instanceof Error ? error : new Error('Failed to send message'));
+                    return;
+                }
+
+                if (abortSignal) {
+                    abortSignal.addEventListener('abort', handleAbort, {once: true});
                 }
             }, cancel() {
+                cleanup();
                 window.api.streaming.abortMessage({ streamChannel });
             }
         });
