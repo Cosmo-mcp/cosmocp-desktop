@@ -1,27 +1,27 @@
 import { ipcRenderer } from 'electron';
 import {
-    NewChat,
-    ModelProviderLite,
-    ChatAbortArgs,
-    ChatSendMessageArgs,
-    Chat,
-    ModelProviderCreateInput,
-    NewMessage,
-    Message,
-    NewModel,
-    ProviderWithModels,
-    ChatWithMessages,
-    ModelIdentifier,
-    PersonaIdentifier,
-    Persona,
-    NewPersona,
-    McpServer,
-    McpServerCreateInput,
-    McpServerUpdateInput,
-    CommandCreateInput,
-    CommandDefinition,
-    CommandExecution,
-    CommandUpdateInput,
+  NewChat,
+  ModelProviderLite,
+  ChatAbortArgs,
+  ChatSendMessageArgs,
+  Chat,
+  ModelProviderCreateInput,
+  NewMessage,
+  Message,
+  NewModel,
+  ProviderWithModels,
+  ChatWithMessages,
+  ModelIdentifier,
+  PersonaIdentifier,
+  Persona,
+  NewPersona,
+  McpServer,
+  McpServerCreateInput,
+  McpServerUpdateInput,
+  CommandCreateInput,
+  CommandDefinition,
+  CommandExecution,
+  CommandUpdateInput,
 } from '../../packages/core/dto';
 import {UIMessage} from "ai";
 export interface ChatApi {
@@ -83,6 +83,7 @@ export interface McpServerApi {
     disable(id: string): Promise<McpServer>;
     refreshClient(id: string): Promise<void>;
     getClientCount(): Promise<number>;
+    getServerTools(id: string): Promise<Array<{ name: string; title?: string; description?: string }>>;
 }
 
 export interface StreamingApi {
@@ -158,7 +159,8 @@ export const api: Api = {
     enable: (id: string) => ipcRenderer.invoke('mcpServer:enable', id),
     disable: (id: string) => ipcRenderer.invoke('mcpServer:disable', id),
     refreshClient: (id: string) => ipcRenderer.invoke('mcpServer:refreshClient', id),
-    getClientCount: () => ipcRenderer.invoke('mcpServer:getClientCount')
+    getClientCount: () => ipcRenderer.invoke('mcpServer:getClientCount'),
+    getServerTools: (id: string) => ipcRenderer.invoke('mcpServer:getServerTools', id)
   },
   streaming: {
     sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('streamingChat:sendMessage', args),

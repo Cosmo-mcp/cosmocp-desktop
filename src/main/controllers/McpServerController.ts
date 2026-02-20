@@ -1,10 +1,10 @@
-import {inject, injectable} from "inversify";
-import {IpcController, IpcHandler} from "../ipc/Decorators";
-import {CORETYPES} from "core/types/types";
-import {McpServerService} from "core/services/McpServerService";
-import {McpClientManager} from "core/services/McpClientManager";
-import {Controller} from "./Controller";
-import {McpServer, McpServerCreateInput, McpServerUpdateInput} from "core/dto";
+import { inject, injectable } from "inversify";
+import { IpcController, IpcHandler } from "../ipc/Decorators";
+import { CORETYPES } from "core/types/types";
+import { McpServerService } from "core/services/McpServerService";
+import { McpClientManager } from "core/services/McpClientManager";
+import { Controller } from "./Controller";
+import { McpServer, McpServerCreateInput, McpServerUpdateInput } from "core/dto";
 
 @injectable()
 @IpcController("mcpServer")
@@ -93,5 +93,10 @@ export class McpServerController implements Controller {
     @IpcHandler("getClientCount")
     public async getClientCount(): Promise<number> {
         return this.mcpClientManager.getClientCount();
+    }
+
+    @IpcHandler("getServerTools")
+    public async getServerTools(id: string): Promise<Array<{ name: string; title?: string; description?: string }>> {
+        return this.mcpClientManager.getToolsForServer(id);
     }
 }
