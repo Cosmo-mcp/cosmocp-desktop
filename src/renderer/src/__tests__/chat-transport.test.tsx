@@ -11,6 +11,10 @@ type StreamingApiMock = {
     abortMessage: ReturnType<typeof vi.fn>;
 };
 
+type ChatApiMock = {
+    getChatById: ReturnType<typeof vi.fn>;
+};
+
 const createStreamingApiMock = (): StreamingApiMock => ({
     onData: vi.fn(),
     onEnd: vi.fn(),
@@ -20,9 +24,13 @@ const createStreamingApiMock = (): StreamingApiMock => ({
     abortMessage: vi.fn(),
 });
 
-const setWindowApi = (streaming: StreamingApiMock) => {
+const createChatApiMock = (): ChatApiMock => ({
+    getChatById: vi.fn().mockResolvedValue(undefined),
+});
+
+const setWindowApi = (streaming: StreamingApiMock, chat: ChatApiMock = createChatApiMock()) => {
     Object.defineProperty(window, "api", {
-        value: {streaming},
+        value: {streaming, chat},
         writable: true,
         configurable: true,
     });
@@ -96,20 +104,20 @@ describe("IpcChatTransport", () => {
 
     it("fails early when model metadata is missing", async () => {
         const streaming = createStreamingApiMock();
-        setWindowApi(streaming);
+        const chat = createChatApiMock();
+        setWindowApi(streaming, chat);
 
         const transport = new IpcChatTransport();
-        const stream = await transport.sendMessages({
+        await expect(transport.sendMessages({
             trigger: "submit-message",
             chatId: "chat-4",
             messageId: undefined,
             messages: [] as UIMessage[],
             abortSignal: undefined,
             metadata: {} as never,
-        });
-
-        await expect(stream.getReader().read()).rejects.toThrow("Model identifier is required");
+        })).rejects.toThrow("modelId is required");
+        expect(chat.getChatById).toHaveBeenCalledWith("chat-4");
         expect(streaming.sendMessage).not.toHaveBeenCalled();
-        expect(streaming.removeListeners).toHaveBeenCalledWith("chat-stream-chat-4");
+        expect(streaming.removeListeners).not.toHaveBeenCalled();
     });
 });

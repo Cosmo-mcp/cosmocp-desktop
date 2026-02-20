@@ -70,7 +70,7 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
         // Fallback: fetch from chat if not in metadata (e.g., tool approval continuation - modelId is not passed from sendMessage)
         if (!modelId) {
             try {
-                const chat = await window.api.chat.getChatById(chatId);
+                const chat = await window.api.chat?.getChatById(chatId);
                 if (chat?.selectedProvider && chat?.selectedModelId) {
                     modelId = `${chat.selectedProvider}:${chat.selectedModelId}`;
                     personaId = personaId || chat.selectedPersonaId || undefined;
@@ -120,19 +120,11 @@ export class IpcChatTransport implements ChatTransport<UIMessage> {
                 // Send to main process
                 const messages = options.messages;
 
-                const metadata = options?.metadata as {modelId?: string; personaId?: string} | undefined;
-                const modelId = metadata?.modelId;
-                if (!modelId) {
-                    cleanup();
-                    controller.error(new Error('Model identifier is required before sending a message.'));
-                    return;
-                }
-
                 try {
                     window.api.streaming.sendMessage({
                         chatId, messages, streamChannel,
                         modelIdentifier: modelId,
-                        personaId: metadata.personaId,
+                        personaId,
                     });
                 } catch (error) {
                     cleanup();
