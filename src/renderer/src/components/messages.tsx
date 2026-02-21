@@ -358,7 +358,7 @@ function PureMessages({
 
                                 default: {
                                     // Handle dynamic tool types (e.g., tool-getWeather, tool-searchFiles)
-                                    if (part.type.startsWith('tool-')) {
+                                    if (part.type.startsWith('tool-') || part.type.endsWith('-tool')) {
                                         const toolPart = part as ToolPart;
                                         const { state = 'input-available' } = toolPart;
                                         const approval = toolPart.approval;
