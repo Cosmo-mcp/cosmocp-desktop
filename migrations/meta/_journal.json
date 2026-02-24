@@ -162,6 +162,13 @@
       "when": 1770346489768,
       "tag": "0022_lethal_maestro",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1771893928765,
+      "tag": "0023_petite_jimmy_woo",
+      "breakpoints": true
     }
   ]
 }
