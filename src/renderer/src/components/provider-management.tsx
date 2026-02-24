@@ -75,29 +75,6 @@ export function ProviderManagement() {
 
     const handleCloseDialog = () => {
         setIsOpen(false);
-    const resetDialogState = () => {
-        setSelectedProviderType(null);
-        setName('');
-        setApiKey('');
-        setApiUrl('');
-        setError(null);
-        setIsSubmitting(false);
-        setIsLoadingModels(false);
-        setEditingProvider(null);
-        setSelectedModels([]);
-        setModels([]);
-        setProviderSearch('');
-    };
-
-    const handleOpenDialog = () => {
-        resetDialogState();
-        setIsOpen(true);
-        methods.goTo("step-1");
-    };
-
-    const handleCloseDialog = () => {
-        setIsOpen(false);
-        resetDialogState();
     };
 
     const handleDialogOpenChange = (open: boolean) => {
