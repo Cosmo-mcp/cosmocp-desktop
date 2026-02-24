@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "generate-api": "ts-node -r tsconfig-paths/register scripts/generate-api.ts",
+    "download-provider-logos": "ts-node scripts/download-provider-logos.ts",
     "next:dev": "cd src/renderer && npm run dev",
     "dev": "concurrently -k \"npm run next:dev\" \"npm run start\"",
     "start": "npm i && cross-env NODE_ENV=development electron-forge start",
@@ -67,9 +68,10 @@
   "dependencies": {
     "@ai-sdk/anthropic": "3.0.14",
     "@ai-sdk/google": "3.0.9",
+    "@ai-sdk/mcp": "1.0.9",
     "@ai-sdk/openai": "3.0.11",
     "@ai-sdk/provider": "^3.0.4",
-    "@ai-sdk/mcp": "1.0.9",
+    "@ai-sdk/xai": "^3.0.57",
     "@electric-sql/pglite": "0.3.15",
     "@stepperize/react": "5.1.9",
     "ai": "6.0.37",
