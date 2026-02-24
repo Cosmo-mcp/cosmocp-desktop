@@ -7,7 +7,8 @@ import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/
 import ProviderIcon from '@/components/ui/provider-icon';
 import {ProviderInfo} from '@/lib/types';
 import {NewModel, ProviderWithModels} from 'core/dto';
-import {CustomProvider, ModelProviderTypeEnum, PredefinedProviders} from 'core/database/schema/modelProviderSchema';
+import {ModelProviderTypeEnum} from 'core/database/schema/modelProviderSchema';
+import {ProviderCatalog} from 'core/providerCatalog';
 import {useTheme} from 'next-themes';
 import {Edit, Trash2} from 'lucide-react';
 import {defineStepper} from "@stepperize/react";
@@ -38,6 +39,7 @@ export function ProviderManagement() {
     const [apiUrl, setApiUrl] = useState('');
     const [editingProvider, setEditingProvider] = useState<ProviderWithModels | null>(null);
     const [selectedModels, setSelectedModels] = useState<NewModel[]>([]);
+    const [providerSearch, setProviderSearch] = useState('');
 
     const {useStepper} = defineStepper(
         {id: "step-1", title: "Select Provider"},
@@ -64,28 +66,15 @@ export function ProviderManagement() {
         loadProviders();
     }, []);
 
-    const resetDialogState = () => {
-        setSelectedProviderType(null);
-        setName('');
-        setApiKey('');
-        setApiUrl('');
-        setError(null);
-        setIsSubmitting(false);
-        setIsLoadingModels(false);
-        setEditingProvider(null);
-        setSelectedModels([]);
-        setModels([]);
-    };
-
     const handleOpenDialog = () => {
-        resetDialogState();
         setIsOpen(true);
+        setError(null);
+        setProviderSearch('');
         methods.goTo("step-1");
     };
 
     const handleCloseDialog = () => {
         setIsOpen(false);
-        resetDialogState();
     };
 
     const handleDialogOpenChange = (open: boolean) => {
@@ -131,10 +120,9 @@ export function ProviderManagement() {
         return null;
     };
 
-    const handleProviderTypeChange = (type: string) => {
-        const selectedType = type as ModelProviderTypeEnum;
-        setSelectedProviderType(selectedType);
-        const info = ProviderInfo[selectedType];
+    const handleProviderTypeChange = (type: ModelProviderTypeEnum) => {
+        setSelectedProviderType(type);
+        const info = ProviderInfo[type];
         setName(info.name);
         methods.next();
     };
@@ -259,6 +247,18 @@ export function ProviderManagement() {
         });
     };
 
+    const filteredProviders = ProviderCatalog.filter((provider) => {
+        if (!providerSearch.trim()) {
+            return true;
+        }
+        const query = providerSearch.trim().toLowerCase();
+        return (
+            provider.name.toLowerCase().includes(query) ||
+            provider.description.toLowerCase().includes(query) ||
+            provider.type.toLowerCase().includes(query)
+        );
+    });
+
     if (loading) {
         return <div className="text-sm text-muted-foreground">Loading providers...</div>;
     }
@@ -305,6 +305,7 @@ export function ProviderManagement() {
                                     variant="ghost"
                                     size="icon-sm"
                                     onClick={() => handleEditProvider(provider)}
+                                    aria-label="Edit provider"
                                     title="Edit provider">
                                     <Edit className="size-4"/>
                                 </Button>
@@ -314,6 +315,7 @@ export function ProviderManagement() {
                                     size="icon-sm"
                                     onClick={() => handleDeleteClick(provider.id)}
                                     disabled={isDeleting === provider.id}
+                                    aria-label="Delete provider"
                                     title="Delete provider"
                                     className="text-destructive hover:text-destructive hover:bg-destructive/10">
                                     <Trash2 className="size-4"/>
@@ -330,7 +332,7 @@ export function ProviderManagement() {
             )}
 
             <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[720px] max-h-[85dvh] overflow-hidden">
                     <DialogHeader>
                         <DialogTitle>{editingProvider ? 'Edit Provider' : 'Add Provider'}</DialogTitle>
                     </DialogHeader>
@@ -338,23 +340,43 @@ export function ProviderManagement() {
                         {methods.when("step-1", () => (
                             <div className="space-y-3">
                                 <p className="text-sm text-muted-foreground">Select a provider type:</p>
-                                {[...PredefinedProviders, CustomProvider].map((providerType) => {
-                                    const info = ProviderInfo[providerType];
-                                    return (
-                                        <button
-                                            key={providerType}
-                                            type="button"
-                                            onClick={() => handleProviderTypeChange(providerType)}
-                                            className={`w-full flex items-center gap-3 p-3 border rounded-lg transition-colors text-left ${selectedProviderType === providerType ? 'bg-secondary text-secondary-foreground' : 'hover:bg-accent'}`}
-                                        >
-                                            <ProviderIcon type={providerType} theme={resolvedTheme} size={40}/>
-                                            <div>
-                                                <p className="text-sm font-medium">{info.name}</p>
-                                                <p className="text-xs text-muted-foreground">{info.description}</p>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium" htmlFor="provider-search">Search</label>
+                                    <input
+                                        id="provider-search"
+                                        type="text"
+                                        placeholder="Search providers"
+                                        value={providerSearch}
+                                        onChange={(e) => setProviderSearch(e.target.value)}
+                                        className="w-full px-3 py-2 border rounded-md bg-background text-sm"
+                                    />
+                                </div>
+                                <ScrollArea type="always" className="max-h-[50dvh] rounded-md border">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">
+                                        {filteredProviders.map((providerType) => {
+                                            const info = ProviderInfo[providerType.type];
+                                            return (
+                                                <button
+                                                    key={providerType.type}
+                                                    type="button"
+                                                    onClick={() => handleProviderTypeChange(providerType.type)}
+                                                    className={`w-full flex items-center gap-3 p-3 border rounded-lg transition-colors text-left ${selectedProviderType === providerType.type ? 'bg-secondary text-secondary-foreground' : 'hover:bg-accent'}`}
+                                                >
+                                                    <ProviderIcon type={providerType.type} theme={resolvedTheme} size={40}/>
+                                                    <div>
+                                                        <p className="text-sm font-medium">{info.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{info.description}</p>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                        {filteredProviders.length === 0 && (
+                                            <div className="col-span-full text-sm text-muted-foreground px-2 py-4 text-center">
+                                                No providers match your search.
                                             </div>
-                                        </button>
-                                    );
-                                })}
+                                        )}
+                                    </div>
+                                </ScrollArea>
                             </div>
                         ))}
                         {selectedProviderType && methods.when("step-2", () => (
