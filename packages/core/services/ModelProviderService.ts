@@ -11,6 +11,7 @@ import {createOpenAI, OpenAIProviderSettings} from "@ai-sdk/openai";
 import {createOllama, OllamaProviderSettings} from "ollama-ai-provider-v2";
 import {createProviderRegistry, ProviderRegistryProvider} from "ai";
 import {logger} from "../../../src/main/logger";
+import {createXai} from "@ai-sdk/xai";
 
 
 export type RemoteProviderOptions =
@@ -26,6 +27,18 @@ export class ModelProviderService {
     private modelProviderRegistry: ProviderRegistryProvider;
     private static MODELS_DOT_DEV_URL = "https://models.dev/api.json";
     private static MODELS_OLLAMA_URL = "http://127.0.0.1:11434/api";
+    private readonly providerFactoryByType: Record<ModelProviderTypeEnum, (provider: ModelProviderLite) => ProviderV3> = {
+        [ModelProviderTypeEnum.ANTHROPIC]: (provider) => createAnthropic(this.createRemoteOptions(provider)),
+        [ModelProviderTypeEnum.GOOGLE]: (provider) => createGoogleGenerativeAI(this.createRemoteOptions(provider)),
+        [ModelProviderTypeEnum.OPENAI]: (provider) => createOpenAI(this.createRemoteOptions(provider)),
+        [ModelProviderTypeEnum.XAI]: (provider) => createXai(this.createRemoteOptions(provider)),
+        [ModelProviderTypeEnum.OLLAMA]: (provider) => createOllama(this.createLocalOptions(provider)),
+        [ModelProviderTypeEnum.CUSTOM]: (provider) => createOpenAI({
+            name: provider.name,
+            apiKey: provider.apiKey,
+            baseURL: provider.apiUrl,
+        }),
+    };
 
     constructor(
         @inject(CORETYPES.ModelProviderRepository) repository: ModelProviderRepository
@@ -258,7 +271,7 @@ export class ModelProviderService {
                     toolCall: m.tool_call,
                     inputModalities: m.modalities.input,
                     outputModalities: m.modalities.output,
-                    ...(m.status !== undefined && { status: m.status }),
+                    ...(m.status !== undefined && {status: m.status}),
                 });
             }
 

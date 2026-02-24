@@ -6,6 +6,7 @@ export enum ModelProviderTypeEnum {
     OPENAI = 'openai',
     ANTHROPIC = 'anthropic',
     GOOGLE = 'google',
+    XAI = 'xai',
     OLLAMA = 'ollama',
     CUSTOM = 'custom',
 }
@@ -23,6 +24,7 @@ export const providerTypeEnum = pgEnum('provider_type', [
     ModelProviderTypeEnum.OPENAI,
     ModelProviderTypeEnum.ANTHROPIC,
     ModelProviderTypeEnum.GOOGLE,
+    ModelProviderTypeEnum.XAI,
     ModelProviderTypeEnum.OLLAMA,
     ModelProviderTypeEnum.CUSTOM,
 ]);
