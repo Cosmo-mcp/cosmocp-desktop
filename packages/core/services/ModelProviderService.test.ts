@@ -122,7 +122,7 @@ describe("ModelProviderService", () => {
 
     expect(result).toEqual([])
     expect(logger.warn).toHaveBeenCalledWith(
-      "Model listing is not supported for CUSTOM provider type."
+      "Model listing is not supported for provider type: custom."
     )
   })
 
