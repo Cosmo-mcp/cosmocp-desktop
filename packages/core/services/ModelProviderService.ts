@@ -53,6 +53,10 @@ export class ModelProviderService {
 
     // Accepts ModelProviderCreateInput directly, relying on the caller/UI for data integrity.
     public async addProvider(providerData: ModelProviderCreateInput, modelsData: NewModel[]): Promise<ProviderWithModels> {
+        if (!providerData.name || providerData.name.trim().length === 0) {
+            throw new Error("Provider name is required.");
+        }
+
         // Note: Runtime validation (like checking if apiUrl is a valid URL or
         // if type is valid) must now be handled manually or by a different library.
 
@@ -96,12 +100,13 @@ export class ModelProviderService {
             this.updateModelProviderRegistry();
         } catch (error) {
             logger.error(error);
+            throw error;
         }
 
     }
 
     public async updateProvider(providerId: string, updateObject: Partial<ModelProviderCreateInput>, modelsData?: NewModel[]): Promise<ProviderWithModels> {
-        const result = this.repository.updateProvider(providerId, updateObject, modelsData);
+        const result = await this.repository.updateProvider(providerId, updateObject, modelsData);
         this.updateModelProviderRegistry();
         return result;
     }

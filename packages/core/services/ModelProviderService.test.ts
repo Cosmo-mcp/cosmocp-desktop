@@ -75,6 +75,19 @@ describe("ModelProviderService", () => {
     expect(repository.addProvider).not.toHaveBeenCalled()
   })
 
+  it("requires provider names when adding providers", async () => {
+    const service = new ModelProviderService(repository)
+    const provider: ModelProviderCreateInput = {
+      name: "   ",
+      apiKey: "secret",
+      type: ModelProviderTypeEnum.OPENAI,
+      apiUrl: "",
+    }
+
+    await expect(service.addProvider(provider, [])).rejects.toThrow("Provider name is required.")
+    expect(repository.addProvider).not.toHaveBeenCalled()
+  })
+
   it("decrypts api keys when reading providers", async () => {
     const encryptedKey = Buffer.from("secret").toString("base64")
     repository.findAll = vi.fn().mockResolvedValue([
@@ -151,5 +164,14 @@ describe("ModelProviderService", () => {
     expect(result[0].modelId).toBe("gpt-4")
     expect(result[0].reasoning).toBe(true)
     expect(result[0].inputModalities).toEqual(["text"])
+  })
+
+  it("rethrows provider deletion failures so renderer can surface errors", async () => {
+    const service = new ModelProviderService(repository)
+    const error = new Error("delete failed")
+    repository.deleteProviderById = vi.fn().mockRejectedValue(error)
+
+    await expect(service.deleteProvider("provider-id")).rejects.toThrow("delete failed")
+    expect(logger.error).toHaveBeenCalledWith(error)
   })
 })

@@ -38,8 +38,13 @@ export function PersonaList() {
     const [editingPersona, setEditingPersona] = useState<Persona | null>(null);
 
     const loadPersonas = useCallback(async () => {
-        const list = await window.api.persona.getAll();
-        setPersonas(list);
+        try {
+            const list = await window.api.persona.getAll();
+            setPersonas(list);
+            setListError(null);
+        } catch (error) {
+            setListError(getErrorMessage(error));
+        }
     }, []);
 
     useEffect(() => {

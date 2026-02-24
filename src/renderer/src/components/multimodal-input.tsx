@@ -16,9 +16,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { UIMessage } from 'ai';
 import { ModelModalityEnum } from "core/database/schema/modelProviderSchema";
-import type { Chat, CommandDefinition, Persona, ProviderWithModels } from "core/dto";
+import type { Chat, Persona, ProviderWithModels } from "core/dto";
 import { CheckIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { FocusEvent, KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { logger } from "../../logger";
 import { Attachment, AttachmentPreview, AttachmentRemove, Attachments, } from './ai-elements/attachments';
@@ -44,6 +45,8 @@ import {
     PromptInputTools,
     usePromptInputAttachments,
 } from './ai-elements/prompt-input';
+
+const PERSONA_NONE_VALUE = "__persona_none__";
 
 const parsePersonaDirective = (text: string) => {
     const match = text.match(/^\s*@persona(?:\s*[:=])?\s*(?:"([^"]+)"|'([^']+)'|([^\s]+))\s*/i);
@@ -79,7 +82,6 @@ export function MultimodalInput({
     const [providers, setProviders] = useState<ProviderWithModels[]>([]);
     const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
     const [personas, setPersonas] = useState<Persona[]>([]);
-    const [commands, setCommands] = useState<CommandDefinition[]>([]);
 
     useEffect(() => {
         window.api.modelProvider.getProvidersWithModels()
@@ -90,12 +92,6 @@ export function MultimodalInput({
     useEffect(() => {
         window.api.persona.getAll()
             .then(fetchedPersonas => setPersonas(fetchedPersonas))
-            .catch(error => logger.error(error));
-    }, []);
-
-    useEffect(() => {
-        window.api.command.listAll()
-            .then(fetchedCommands => setCommands(fetchedCommands))
             .catch(error => logger.error(error));
     }, []);
 
@@ -223,6 +219,61 @@ function PromptInputContent({
     submitForm: (message: PromptInputMessage) => void;
 }) {
     const attachments = usePromptInputAttachments();
+    const [personaSelectorOpen, setPersonaSelectorOpen] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const personaSelectorTriggeredByShortcutRef = useRef(false);
+
+    const selectedPersonaValue = useMemo(() => {
+        if (!selectedPersonaId) {
+            return PERSONA_NONE_VALUE;
+        }
+        return personaOptions.some((persona) => persona.id === selectedPersonaId) ?
+            selectedPersonaId :
+            PERSONA_NONE_VALUE;
+    }, [personaOptions, selectedPersonaId]);
+
+    const focusTextarea = useCallback(() => {
+        window.requestAnimationFrame(() => {
+            textareaRef.current?.focus();
+        });
+    }, []);
+
+    const handlePersonaValueChange = useCallback((value: string) => {
+        handlePersonaSelection(value === PERSONA_NONE_VALUE ? null : value);
+        personaSelectorTriggeredByShortcutRef.current = false;
+        focusTextarea();
+    }, [focusTextarea, handlePersonaSelection]);
+
+    const handlePersonaSelectorOpenChange = useCallback((open: boolean) => {
+        setPersonaSelectorOpen(open);
+        if (!open && personaSelectorTriggeredByShortcutRef.current) {
+            personaSelectorTriggeredByShortcutRef.current = false;
+            focusTextarea();
+        }
+    }, [focusTextarea]);
+
+    const handleTextareaFocus = useCallback((event: FocusEvent<HTMLTextAreaElement>) => {
+        textareaRef.current = event.currentTarget;
+    }, []);
+
+    const handleTextareaKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
+        textareaRef.current = event.currentTarget;
+        const isPersonaShortcut = event.key === "@" && !event.altKey && !event.ctrlKey && !event.metaKey;
+        if (!isPersonaShortcut) {
+            return;
+        }
+
+        const selectionStart = event.currentTarget.selectionStart ?? 0;
+        const textBeforeCursor = event.currentTarget.value.slice(0, selectionStart);
+        const isStartOfToken = textBeforeCursor.length === 0 || /\s$/.test(textBeforeCursor);
+        if (!isStartOfToken) {
+            return;
+        }
+
+        event.preventDefault();
+        personaSelectorTriggeredByShortcutRef.current = true;
+        setPersonaSelectorOpen(true);
+    }, []);
 
     return (
         <PromptInput globalDrop multiple onSubmit={submitForm}>
@@ -239,6 +290,8 @@ function PromptInputContent({
             <PromptInputBody>
                 <PromptInputTextarea
                     onChange={(e) => setInput(e.target.value)}
+                    onFocus={handleTextareaFocus}
+                    onKeyDown={handleTextareaKeyDown}
                     value={input}
                 />
             </PromptInputBody>
@@ -314,13 +367,18 @@ function PromptInputContent({
                         </ModelSelectorContent>
                     </ModelSelector>
                     <PromptInputSelect
-                        onValueChange={(value) => handlePersonaSelection(value)}
-                        value={selectedPersonaId ?? undefined}
+                        onOpenChange={handlePersonaSelectorOpenChange}
+                        onValueChange={handlePersonaValueChange}
+                        open={personaSelectorOpen}
+                        value={selectedPersonaValue}
                     >
                         <PromptInputSelectTrigger className="w-max">
                             <PromptInputSelectValue placeholder="Persona"/>
                         </PromptInputSelectTrigger>
                         <PromptInputSelectContent>
+                            <PromptInputSelectItem value={PERSONA_NONE_VALUE}>
+                                None
+                            </PromptInputSelectItem>
                             {personaOptions.map((persona) => (
                                 <PromptInputSelectItem
                                     key={persona.id}
