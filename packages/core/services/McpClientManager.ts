@@ -9,6 +9,7 @@ interface McpClientInstance {
     client: MCPClient;
     serverId: string;
     serverName: string;
+    toolApprovals: Record<string, boolean>;
 }
 
 @injectable()
@@ -100,6 +101,7 @@ export class McpClientManager {
             client,
             serverId: server.id,
             serverName: server.name,
+            toolApprovals: (server.toolApprovals as Record<string, boolean>) ?? {},
         });
     }
 
@@ -118,7 +120,7 @@ export class McpClientManager {
     }
 
     /**
-     * Get all tools from all active clients
+     * Get all tools from all active clients, applying per-tool needsApproval settings
      */
     public async getAllTools(): Promise<ToolSet> {
         const allTools: ToolSet = {};
@@ -126,7 +128,10 @@ export class McpClientManager {
         for (const instance of this.clients.values()) {
             try {
                 const tools = await instance.client.tools();
-                Object.assign(allTools, tools);
+                for (const [name, tool] of Object.entries(tools)) {
+                    const needsApproval = instance.toolApprovals[name] ?? true;
+                    allTools[name] = { ...tool, needsApproval };
+                }
             } catch (error) {
                 console.error(`Failed to get tools from MCP server ${instance.serverName}:`, error);
             }

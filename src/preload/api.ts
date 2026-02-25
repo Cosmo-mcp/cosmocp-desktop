@@ -84,6 +84,7 @@ export interface McpServerApi {
     refreshClient(id: string): Promise<void>;
     getClientCount(): Promise<number>;
     getServerTools(id: string): Promise<Array<{ name: string; title?: string; description?: string }>>;
+    updateToolApproval(serverId: string, toolName: string, needsApproval: boolean): Promise<McpServer>;
 }
 
 export interface StreamingApi {
@@ -160,7 +161,8 @@ export const api: Api = {
     disable: (id: string) => ipcRenderer.invoke('mcpServer:disable', id),
     refreshClient: (id: string) => ipcRenderer.invoke('mcpServer:refreshClient', id),
     getClientCount: () => ipcRenderer.invoke('mcpServer:getClientCount'),
-    getServerTools: (id: string) => ipcRenderer.invoke('mcpServer:getServerTools', id)
+    getServerTools: (id: string) => ipcRenderer.invoke('mcpServer:getServerTools', id),
+    updateToolApproval: (serverId: string, toolName: string, needsApproval: boolean) => ipcRenderer.invoke('mcpServer:updateToolApproval', serverId, toolName, needsApproval)
   },
   streaming: {
     sendMessage: (args: ChatSendMessageArgs) => ipcRenderer.send('streamingChat:sendMessage', args),

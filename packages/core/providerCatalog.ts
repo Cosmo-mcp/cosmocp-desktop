@@ -28,6 +28,13 @@ export const ProviderCatalog: ProviderCatalogEntry[] = [
         modelsSource: "models-dev",
     },
     {
+        type: ModelProviderTypeEnum.XAI,
+        name: "xAI",
+        description: "Truth-seeking AI Chatbot by xAI",
+        modelsSource: "models-dev",
+        modelsDevKey: "xai"
+    },
+    {
         type: ModelProviderTypeEnum.OLLAMA,
         name: "Ollama",
         description: "Chat & build with open models using Ollama.",

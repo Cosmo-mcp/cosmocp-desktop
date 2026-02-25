@@ -18,7 +18,7 @@ import { CopyIcon, MessageSquare } from "lucide-react";
 import { Reasoning, ReasoningContent, ReasoningTrigger } from "@/components/ai-elements/reasoning";
 import { Source, Sources, SourcesContent, SourcesTrigger } from "@/components/ai-elements/sources";
 import { Loader } from "@/components/ai-elements/loader";
-import { UIMessage } from "ai";
+import { DynamicToolUIPart, UIMessage } from "ai";
 import { PreviewAttachment } from "@/components/preview-attachment";
 import { Tool, ToolHeader, ToolContent, ToolInput, ToolOutput, ToolPart } from './ai-elements/tool';
 import {
@@ -357,12 +357,12 @@ function PureMessages({
                                     );
 
                                 default: {
-                                    // Handle dynamic tool types (e.g., tool-getWeather, tool-searchFiles)
+                                    // Handle dynamic tool types (e.g., tool-getWeather, tool-searchFiles, dynamic-tool)
                                     if (part.type.startsWith('tool-') || part.type.endsWith('-tool')) {
-                                        const toolPart = part as ToolPart;
+                                        const toolPart = part as DynamicToolUIPart;
                                         const { state = 'input-available' } = toolPart;
                                         const approval = toolPart.approval;
-                                        const toolName = part.type.slice(5); // Remove 'tool-' prefix
+                                        const toolName = toolPart.toolName;
 
                                         // Check if this is a completed tool with output
                                         const hasOutput = state === 'output-available' || state === 'output-error';
@@ -382,7 +382,7 @@ function PureMessages({
                                                             output={toolPart.output}
                                                             errorText={isError ? toolPart.errorText : undefined}
                                                         />
-                                                    ) : ( approval &&
+                                                    ) : (approval &&
                                                         <Confirmation approval={approval} state={state}>
                                                             <ConfirmationTitle>
                                                                 This tool requires your approval to run.
@@ -435,7 +435,7 @@ function PureMessages({
                                 {isAssistant ? (
                                     <div className="flex items-start gap-3">
                                         <div className="mt-1">{assistantAvatar}</div>
-                                        <div className="flex flex-col gap-2">
+                                        <div className="flex min-w-0 flex-col gap-2">
                                             {assistantName}
                                             {reasoningParts.length > 0 && reasoningParts.map((part, i) => (
                                                 <Reasoning

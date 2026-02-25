@@ -374,21 +374,48 @@ export function McpServerManagement() {
                                                                 <p className="text-xs text-muted-foreground">Loading tools...</p>
                                                             ) : tools && tools.length > 0 ? (
                                                                 <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                                                                    {tools.map((tool) => (
-                                                                        <div
-                                                                            key={tool.name}
-                                                                            className="flex flex-col gap-0.5 rounded-md border bg-background px-3 py-2 overflow-hidden"
-                                                                        >
-                                                                            <span className="text-xs font-medium font-mono break-all">
-                                                                                {tool.name}
-                                                                            </span>
-                                                                            {(tool.title || tool.description) && (
-                                                                                <span className="text-[11px] text-muted-foreground leading-tight break-words whitespace-normal">
-                                                                                    {tool.description || tool.title}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    ))}
+                                                                    {tools.map((tool) => {
+                                                                        const serverData = servers.find(s => s.id === server.id);
+                                                                        const approvals = (serverData?.toolApprovals as Record<string, boolean>) ?? {};
+                                                                        const isApprovalRequired = approvals[tool.name] ?? true;
+
+                                                                        return (
+                                                                            <div
+                                                                                key={tool.name}
+                                                                                className="flex items-center justify-between gap-2 rounded-md border bg-background px-3 py-2 overflow-hidden"
+                                                                            >
+                                                                                <div className="flex flex-col gap-0.5 min-w-0">
+                                                                                    <span className="text-xs font-medium font-mono break-all">
+                                                                                        {tool.name}
+                                                                                    </span>
+                                                                                    {(tool.title || tool.description) && (
+                                                                                        <span className="text-[11px] text-muted-foreground leading-tight break-words whitespace-normal">
+                                                                                            {tool.description || tool.title}
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                                                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                                                                        Approval
+                                                                                    </span>
+                                                                                    <Switch
+                                                                                        size="sm"
+                                                                                        checked={isApprovalRequired}
+                                                                                        onCheckedChange={async (checked) => {
+                                                                                            try {
+                                                                                                const updated = await window.api.mcpServer.updateToolApproval(server.id, tool.name, checked);
+                                                                                                setServers((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+                                                                                            } catch (error) {
+                                                                                                console.error("Failed to update tool approval", error);
+                                                                                                toast.error("Failed to update tool approval");
+                                                                                            }
+                                                                                        }}
+                                                                                        aria-label={`Require approval for ${tool.name}`}
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
                                                                 </div>
                                                             ) : (
                                                                 <p className="text-xs text-muted-foreground">
