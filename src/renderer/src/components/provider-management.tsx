@@ -4,7 +4,7 @@ import React, {useEffect, useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Card} from '@/components/ui/card';
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
-import ProviderIcon from '@/components/ui/provider-icon';
+import ProviderIcon from '@/components/provider-icon';
 import {ProviderInfo} from '@/lib/types';
 import {NewModel, ProviderWithModels} from 'core/dto';
 import {ModelProviderTypeEnum} from 'core/database/schema/modelProviderSchema';
