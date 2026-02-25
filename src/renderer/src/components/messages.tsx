@@ -31,7 +31,7 @@ import {
     ConfirmationAction
 } from './ai-elements/confirmation';
 import type { ProviderWithModels } from "core/dto";
-import ProviderIcon from "@/components/ui/provider-icon";
+import ProviderIcon from "@/components/provider-icon";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
