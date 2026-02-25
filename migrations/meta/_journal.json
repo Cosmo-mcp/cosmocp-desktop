@@ -169,6 +169,13 @@
       "when": 1771893928765,
       "tag": "0023_petite_jimmy_woo",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1771989123962,
+      "tag": "0024_gorgeous_firedrake",
+      "breakpoints": true
     }
   ]
 }

@@ -21,6 +21,7 @@ describe("McpClientManager", () => {
       transportType: "sse",
       config: {url: "https://example.com/sse"},
       enabled: true,
+      toolApprovals: {},
       createdAt: now,
       updatedAt: now,
       ...overrides,
@@ -194,7 +195,7 @@ describe("McpClientManager", () => {
     expect(createMCPClient).not.toHaveBeenCalled()
   })
 
-  it("returns all active clients and tools, skipping failed clients", async () => {
+  it("returns all active clients and tools with needsApproval defaulting to true", async () => {
     const serverById: Record<string, McpServer> = {
       a: createServer({id: "a", name: "A", transportType: "sse", config: {url: "https://a"}}),
       b: createServer({id: "b", name: "B", transportType: "http", config: {url: "https://b"}}),
@@ -203,11 +204,11 @@ describe("McpClientManager", () => {
       async (id: string) => serverById[id]
     )
 
-    const clientA = {tools: vi.fn().mockResolvedValue({alpha: 1, shared: "a"})}
-    const clientB = {tools: vi.fn().mockRejectedValue(new Error("tools failed"))}
-    ;(createMCPClient as unknown as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce(clientA)
-      .mockResolvedValueOnce(clientB)
+    const clientA = { tools: vi.fn().mockResolvedValue({ alpha: { execute: vi.fn() }, shared: { execute: vi.fn() } }) }
+    const clientB = { tools: vi.fn().mockRejectedValue(new Error("tools failed")) }
+      ; (createMCPClient as unknown as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce(clientA)
+        .mockResolvedValueOnce(clientB)
 
     const manager = new McpClientManager(mcpServerService)
     await manager.createClient("a")
@@ -216,11 +217,34 @@ describe("McpClientManager", () => {
     expect(manager.getAllClients()).toEqual([clientA, clientB])
     expect(manager.getClientCount()).toBe(2)
 
-    await expect(manager.getAllTools()).resolves.toEqual({alpha: 1, shared: "a"})
+    const allTools = await manager.getAllTools()
+    expect(allTools.alpha).toMatchObject({ needsApproval: true })
+    expect(allTools.shared).toMatchObject({ needsApproval: true })
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "Failed to get tools from MCP server B:",
       expect.any(Error)
     )
+  })
+
+  it("respects per-tool approval overrides from toolApprovals", async () => {
+    const server = createServer({
+      id: "a",
+      name: "A",
+      transportType: "sse",
+      config: { url: "https://a" },
+      toolApprovals: { alpha: false },
+    })
+      ; (mcpServerService.getById as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(server)
+
+    const client = { tools: vi.fn().mockResolvedValue({ alpha: { execute: vi.fn() }, beta: { execute: vi.fn() } }) }
+      ; (createMCPClient as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(client)
+
+    const manager = new McpClientManager(mcpServerService)
+    await manager.createClient("a")
+
+    const allTools = await manager.getAllTools()
+    expect(allTools.alpha).toMatchObject({ needsApproval: false })
+    expect(allTools.beta).toMatchObject({ needsApproval: true })
   })
 
   it("refreshes and removes clients", async () => {
