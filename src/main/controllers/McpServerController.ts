@@ -99,4 +99,26 @@ export class McpServerController implements Controller {
     public async getServerTools(id: string): Promise<Array<{ name: string; title?: string; description?: string }>> {
         return this.mcpClientManager.getToolsForServer(id);
     }
+
+    @IpcHandler("updateToolApproval")
+    public async updateToolApproval(serverId: string, toolName: string, needsApproval: boolean): Promise<McpServer> {
+        const server = await this.mcpServerService.getById(serverId);
+        if (!server) {
+            throw new Error(`MCP server with ID ${serverId} not found.`);
+        }
+
+        const currentApprovals = (server.toolApprovals as Record<string, boolean>) ?? {};
+        const updatedApprovals = { ...currentApprovals, [toolName]: needsApproval };
+
+        const updated = await this.mcpServerService.update(serverId, { toolApprovals: updatedApprovals });
+
+        // Refresh the cached client to pick up updated tool approvals
+        try {
+            await this.mcpClientManager.refreshClient(serverId);
+        } catch (error) {
+            console.error(`Failed to refresh MCP client for server ${server.name}:`, error);
+        }
+
+        return updated;
+    }
 }
