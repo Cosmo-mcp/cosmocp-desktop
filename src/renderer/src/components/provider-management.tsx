@@ -67,6 +67,12 @@ export function ProviderManagement() {
     }, []);
 
     const handleOpenDialog = () => {
+        setEditingProvider(null);
+        setSelectedProviderType(null);
+        setName('');
+        setApiKey('');
+        setApiUrl('');
+        setSelectedModels([]);
         setIsOpen(true);
         setError(null);
         setProviderSearch('');
@@ -282,46 +288,46 @@ export function ProviderManagement() {
                     <div className="space-y-3">
                         {providers.map((provider) => (
                             <Card key={provider.id} className="p-4 justify-between flex-row">
-                            <div className="flex items-center gap-3">
-                                <ProviderIcon type={provider.type} theme={resolvedTheme} size={40}/>
-                                <div className="flex-1">
-                                    <p className="font-medium text-sm">{provider.name}</p>
-                                    <p className="text-xs text-muted-foreground capitalize">{provider.type}</p>
-                                    {provider.models && provider.models.length > 0 && (
-                                        <div className="mt-2 flex flex-wrap gap-1">
-                                            {provider.models.map((model) => (
-                                                <span key={model.modelId}
-                                                      className="inline-block px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded">
-                                                    {model.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
+                                <div className="flex items-center gap-3">
+                                    <ProviderIcon type={provider.type} theme={resolvedTheme} size={40} />
+                                    <div className="flex-1">
+                                        <p className="font-medium text-sm">{provider.name}</p>
+                                        <p className="text-xs text-muted-foreground capitalize">{provider.type}</p>
+                                        {provider.models && provider.models.length > 0 && (
+                                            <div className="mt-2 flex flex-wrap gap-1">
+                                                {provider.models.map((model) => (
+                                                    <span key={model.modelId}
+                                                        className="inline-block px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded">
+                                                        {model.name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    onClick={() => handleEditProvider(provider)}
-                                    aria-label="Edit provider"
-                                    title="Edit provider">
-                                    <Edit className="size-4"/>
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    onClick={() => handleDeleteClick(provider.id)}
-                                    disabled={isDeleting === provider.id}
-                                    aria-label="Delete provider"
-                                    title="Delete provider"
-                                    className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                    <Trash2 className="size-4"/>
-                                </Button>
-                            </div>
-                        </Card>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        onClick={() => handleEditProvider(provider)}
+                                        aria-label="Edit provider"
+                                        title="Edit provider">
+                                        <Edit className="size-4" />
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        onClick={() => handleDeleteClick(provider.id)}
+                                        disabled={isDeleting === provider.id}
+                                        aria-label="Delete provider"
+                                        title="Delete provider"
+                                        className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                        <Trash2 className="size-4" />
+                                    </Button>
+                                </div>
+                            </Card>
                         ))}
                     </div>
                 </ScrollArea>
@@ -332,26 +338,28 @@ export function ProviderManagement() {
             )}
 
             <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-                <DialogContent className="sm:max-w-[720px] max-h-[85dvh] overflow-hidden">
+                <DialogContent className="sm:max-w-[720px] max-h-[85dvh] p-6 overflow-hidden flex flex-col">
                     <DialogHeader>
                         <DialogTitle>{editingProvider ? 'Edit Provider' : 'Add Provider'}</DialogTitle>
                     </DialogHeader>
-                    <React.Fragment>
+                    <div className="py-2">
                         {methods.when("step-1", () => (
-                            <div className="space-y-3">
-                                <p className="text-sm text-muted-foreground">Select a provider type:</p>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium" htmlFor="provider-search">Search</label>
-                                    <input
-                                        id="provider-search"
-                                        type="text"
-                                        placeholder="Search providers"
-                                        value={providerSearch}
-                                        onChange={(e) => setProviderSearch(e.target.value)}
-                                        className="w-full px-3 py-2 border rounded-md bg-background text-sm"
-                                    />
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-sm text-muted-foreground mb-2">Select a provider type:</p>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium" htmlFor="provider-search">Search</label>
+                                        <input
+                                            id="provider-search"
+                                            type="text"
+                                            placeholder="Search providers"
+                                            value={providerSearch}
+                                            onChange={(e) => setProviderSearch(e.target.value)}
+                                            className="w-full px-3 py-2 border rounded-md bg-background text-sm"
+                                        />
+                                    </div>
                                 </div>
-                                <ScrollArea type="always" className="max-h-[50dvh] rounded-md border">
+                                <ScrollArea type="always" className="h-[50dvh] rounded-md border w-full">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">
                                         {filteredProviders.map((providerType) => {
                                             const info = ProviderInfo[providerType.type];
@@ -362,7 +370,7 @@ export function ProviderManagement() {
                                                     onClick={() => handleProviderTypeChange(providerType.type)}
                                                     className={`w-full flex items-center gap-3 p-3 border rounded-lg transition-colors text-left ${selectedProviderType === providerType.type ? 'bg-secondary text-secondary-foreground' : 'hover:bg-accent'}`}
                                                 >
-                                                    <ProviderIcon type={providerType.type} theme={resolvedTheme} size={40}/>
+                                                    <ProviderIcon type={providerType.type} theme={resolvedTheme} size={40} />
                                                     <div>
                                                         <p className="text-sm font-medium">{info.name}</p>
                                                         <p className="text-xs text-muted-foreground">{info.description}</p>
@@ -380,9 +388,9 @@ export function ProviderManagement() {
                             </div>
                         ))}
                         {selectedProviderType && methods.when("step-2", () => (
-                            <div className="space-y-4">
+                            <div className="space-y-4 pr-2 max-h-[60dvh] overflow-y-auto">
                                 <div className="flex items-center gap-2 pb-2 border-b">
-                                    <ProviderIcon type={selectedProviderType} theme={resolvedTheme} size={32}/>
+                                    <ProviderIcon type={selectedProviderType} theme={resolvedTheme} size={32} />
                                     <div>
                                         <p className="text-sm font-medium">
                                             {ProviderInfo[selectedProviderType].name}
@@ -443,9 +451,9 @@ export function ProviderManagement() {
                         {methods.when("step-3", () => (
                             //iterate over the models
                             <div className="space-y-4">
-                                <ScrollArea type="always" className="h-72 rounded-md border">
+                                <ScrollArea type="always" className="h-[50dvh] rounded-md border w-full">
                                     {isLoadingModels ? (
-                                        <Loader/>
+                                        <Loader />
                                     ) : models.length === 0 ? (
                                         <div className="p-3 text-sm text-muted-foreground">No models available.</div>
                                     ) :
@@ -459,7 +467,7 @@ export function ProviderManagement() {
                                                     onChange={() => handleModelToggle(model.modelId)}
                                                 />
                                                 <label htmlFor={model.modelId}
-                                                       className="text-sm font-medium cursor-pointer">
+                                                    className="text-sm font-medium cursor-pointer">
                                                     {model.name}
                                                 </label>
                                             </div>
@@ -467,53 +475,54 @@ export function ProviderManagement() {
                                 </ScrollArea>
                             </div>
                         ))}
-
-                    </React.Fragment>
-                    {error && (
-                        <div
-                            className="p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
-                            {error}
-                        </div>
-                    )}
-                    <DialogFooter>
-                        {!methods.isFirst && (
+                    </div>
+                    <div className="mt-2 space-y-4">
+                        {error && (
+                            <div
+                                className="p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
+                                {error}
+                            </div>
+                        )}
+                        <DialogFooter>
+                            {!methods.isFirst && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => methods.prev()}
+                                >
+                                    Prev
+                                </Button>
+                            )}
+                            {!methods.isLast && !(selectedProviderType === ModelProviderTypeEnum.CUSTOM) && (
+                                <Button
+                                    type="button"
+                                    disabled={(methods.current.id === 'step-1' && !selectedProviderType)}
+                                    onClick={() => {
+                                        if (methods.current.id === 'step-2') {
+                                            void loadModelsForSelectedProvider();
+                                        }
+                                        methods.next()
+                                    }}
+                                >
+                                    Next
+                                </Button>
+                            )}
+                            {(methods.isLast || (methods.current.id === 'step-2' && selectedProviderType === ModelProviderTypeEnum.CUSTOM)) && (
+                                <Button
+                                    type="button"
+                                    onClick={handleAddProvider}>
+                                    Save
+                                </Button>
+                            )}
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => methods.prev()}
+                                onClick={handleCloseDialog}
                             >
-                                Prev
+                                Cancel
                             </Button>
-                        )}
-                        {!methods.isLast && !(selectedProviderType === ModelProviderTypeEnum.CUSTOM) && (
-                            <Button
-                                type="button"
-                                disabled={(methods.current.id === 'step-1' && !selectedProviderType)}
-                                onClick={() => {
-                                    if (methods.current.id === 'step-2') {
-                                        void loadModelsForSelectedProvider();
-                                    }
-                                    methods.next()
-                                }}
-                            >
-                                Next
-                            </Button>
-                        )}
-                        {(methods.isLast || (methods.current.id === 'step-2' && selectedProviderType === ModelProviderTypeEnum.CUSTOM)) && (
-                            <Button
-                                type="button"
-                                onClick={handleAddProvider}>
-                                Save
-                            </Button>
-                        )}
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleCloseDialog}
-                        >
-                            Cancel
-                        </Button>
-                    </DialogFooter>
+                        </DialogFooter>
+                    </div>
                 </DialogContent>
             </Dialog>
             <ConfirmDialog
