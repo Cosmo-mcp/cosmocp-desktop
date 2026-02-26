@@ -13,7 +13,7 @@ import {createProviderRegistry, ProviderRegistryProvider} from "ai";
 import {logger} from "../../../src/main/logger";
 import {createXai} from "@ai-sdk/xai";
 import {createGroq} from '@ai-sdk/groq';
-import { createMistral } from '@ai-sdk/mistral';
+import {createMistral} from '@ai-sdk/mistral';
 import {ProviderCatalogByType} from "../providerCatalog";
 
 
