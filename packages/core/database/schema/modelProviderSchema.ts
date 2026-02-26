@@ -10,6 +10,7 @@ export enum ModelProviderTypeEnum {
     GROQ = 'groq',
     MISTRAL = 'mistral',
     OLLAMA = 'ollama',
+    MOONSHOT = 'moonshotai',
     CUSTOM = 'custom',
 }
 
@@ -21,6 +22,7 @@ export const providerTypeEnum = pgEnum('provider_type', [
     ModelProviderTypeEnum.GROQ,
     ModelProviderTypeEnum.MISTRAL,
     ModelProviderTypeEnum.OLLAMA,
+    ModelProviderTypeEnum.MOONSHOT,
     ModelProviderTypeEnum.CUSTOM,
 ]);
 
