@@ -35,6 +35,12 @@ export const ProviderCatalog: ProviderCatalogEntry[] = [
         modelsDevKey: "xai"
     },
     {
+        type: ModelProviderTypeEnum.GROQ,
+        name: "Groq",
+        description: "Fast, low cost inference.",
+        modelsSource: "models-dev",
+    },
+    {
         type: ModelProviderTypeEnum.OLLAMA,
         name: "Ollama",
         description: "Chat & build with open models using Ollama.",

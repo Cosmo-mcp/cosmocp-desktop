@@ -12,6 +12,7 @@ import {createOllama, OllamaProviderSettings} from "ollama-ai-provider-v2";
 import {createProviderRegistry, ProviderRegistryProvider} from "ai";
 import {logger} from "../../../src/main/logger";
 import {createXai} from "@ai-sdk/xai";
+import {createGroq} from '@ai-sdk/groq';
 import {ProviderCatalogByType} from "../providerCatalog";
 
 
@@ -33,6 +34,7 @@ export class ModelProviderService {
         [ModelProviderTypeEnum.GOOGLE]: (provider) => createGoogleGenerativeAI(this.createRemoteOptions(provider)),
         [ModelProviderTypeEnum.OPENAI]: (provider) => createOpenAI(this.createRemoteOptions(provider)),
         [ModelProviderTypeEnum.XAI]: (provider) => createXai(this.createRemoteOptions(provider)),
+        [ModelProviderTypeEnum.GROQ]: (provider) => createGroq(this.createRemoteOptions(provider)),
         [ModelProviderTypeEnum.OLLAMA]: (provider) => createOllama(this.createLocalOptions(provider)),
         [ModelProviderTypeEnum.CUSTOM]: (provider) => createOpenAI({
             name: provider.name,
