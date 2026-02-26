@@ -43,7 +43,7 @@ export const ProviderCatalog: ProviderCatalogEntry[] = [
     {
         type: ModelProviderTypeEnum.MISTRAL,
         name: "Mistral AI",
-        description: "Fast, low cost inference.",
+        description: "Frontier AI. In your hands.",
         modelsSource: "models-dev",
         modelsDevKey: "mistral"
     },
