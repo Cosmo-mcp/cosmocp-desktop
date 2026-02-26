@@ -41,6 +41,12 @@ export const ProviderCatalog: ProviderCatalogEntry[] = [
         modelsSource: "ollama",
     },
     {
+        type: ModelProviderTypeEnum.MOONSHOT,
+        name: "Moonshot",
+        description: "Access Kimi and other Moonshot AI models.",
+        modelsSource: "models-dev",
+    },
+    {
         type: ModelProviderTypeEnum.CUSTOM,
         name: "Custom",
         description: "Connect to any OpenAI-compatible API endpoint.",

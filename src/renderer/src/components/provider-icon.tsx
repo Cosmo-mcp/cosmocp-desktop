@@ -1,8 +1,6 @@
-import React from "react";
 import {ModelProviderTypeEnum} from "core/database/schema/modelProviderSchema";
 import {cn} from "@/lib/utils";
 
-type ThemeType = "light" | "dark";
 
 type ProviderIconProps = {
     type: ModelProviderTypeEnum;

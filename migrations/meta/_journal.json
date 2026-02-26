@@ -176,6 +176,13 @@
       "when": 1771989123962,
       "tag": "0024_gorgeous_firedrake",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1772134043175,
+      "tag": "0025_sticky_black_bolt",
+      "breakpoints": true
     }
   ]
 }
