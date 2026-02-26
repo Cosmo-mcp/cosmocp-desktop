@@ -38,6 +38,7 @@
   "license": "AGPL",
   "private": true,
   "devDependencies": {
+    "@ai-sdk/groq": "^3.0.24",
     "@ai-sdk/xai": "^3.0.57",
     "@electron-forge/cli": "^7.11.1",
     "@electron-forge/maker-deb": "^7.11.1",
@@ -69,9 +70,9 @@
   "dependencies": {
     "@ai-sdk/anthropic": "3.0.14",
     "@ai-sdk/google": "3.0.9",
+    "@ai-sdk/mcp": "1.0.9",
     "@ai-sdk/openai": "3.0.11",
     "@ai-sdk/provider": "^3.0.4",
-    "@ai-sdk/mcp": "1.0.9",
     "@electric-sql/pglite": "0.3.15",
     "@stepperize/react": "5.1.9",
     "ai": "6.0.37",
