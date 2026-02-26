@@ -16,6 +16,7 @@ import {createMoonshotAI} from "@ai-sdk/moonshotai";
 import {createGroq} from '@ai-sdk/groq';
 import {createMistral} from '@ai-sdk/mistral';
 import {ProviderCatalogByType} from "../providerCatalog";
+import {createDeepSeek} from "@ai-sdk/deepseek";
 
 
 export type RemoteProviderOptions =
@@ -39,6 +40,7 @@ export class ModelProviderService {
         [ModelProviderTypeEnum.MOONSHOT]: (provider) => createMoonshotAI(this.createRemoteOptions(provider)),
         [ModelProviderTypeEnum.GROQ]: (provider) => createGroq(this.createRemoteOptions(provider)),
         [ModelProviderTypeEnum.MISTRAL]: (provider) => createMistral(this.createRemoteOptions(provider)),
+        [ModelProviderTypeEnum.DEEPSEEK]: (provider) => createDeepSeek(this.createRemoteOptions(provider)),
         [ModelProviderTypeEnum.OLLAMA]: (provider) => createOllama(this.createLocalOptions(provider)),
         [ModelProviderTypeEnum.CUSTOM]: (provider) => createOpenAI({
             name: provider.name,
