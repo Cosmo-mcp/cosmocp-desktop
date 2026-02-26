@@ -1,19 +1,18 @@
 'use client';
 
-import { ConfirmDialog } from "@/components/confirm-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-import type { CommandCreateInput, CommandDefinition, CommandUpdateInput } from "core/dto";
-import { Edit, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
-import { logger } from "../../logger";
+import {ConfirmDialog} from "@/components/confirm-dialog";
+import {Badge} from "@/components/ui/badge";
+import {Button} from "@/components/ui/button";
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {Input} from "@/components/ui/input";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {Textarea} from "@/components/ui/textarea";
+import type {CommandCreateInput, CommandDefinition, CommandUpdateInput} from "core/dto";
+import {Edit, Trash2} from "lucide-react";
+import {useCallback, useEffect, useState} from "react";
+import {toast} from "sonner";
+import {logger} from "../../logger";
 
 type ArgumentMode = "none" | "optional";
 
@@ -32,7 +31,7 @@ export function CommandManagement() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingCommand, setEditingCommand] = useState<CommandDefinition | null>(null);
-    const [deleteConfirmation, setDeleteConfirmation] = useState<{isOpen: boolean; commandId: string | null}>({
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; commandId: string | null }>({
         isOpen: false,
         commandId: null,
     });
@@ -165,65 +164,63 @@ export function CommandManagement() {
                 <Button onClick={handleOpenDialog}>Add Command</Button>
             </div>
 
-            <Card className="p-3">
-                {hasCommands ? (
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[160px]">Name</TableHead>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead className="w-[160px]">Type</TableHead>
-                                    <TableHead className="w-[180px]">Argument</TableHead>
-                                    <TableHead className="w-[120px] text-right">Actions</TableHead>
+            {hasCommands ? (
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[160px]">Name</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead className="w-[160px]">Type</TableHead>
+                                <TableHead className="w-[180px]">Argument</TableHead>
+                                <TableHead className="w-[120px] text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {commands.map((command) => (
+                                <TableRow key={command.id ?? command.name}>
+                                    <TableCell className="font-medium">{command.name}</TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        {command.description}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant={command.builtIn ? "outline" : "secondary"}>
+                                            {command.builtIn ? "Built-in" : "Custom"}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        {command.argumentLabel ?? "—"}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            aria-label={`Edit ${command.name}`}
+                                            onClick={() => handleEdit(command)}
+                                            disabled={command.builtIn}
+                                        >
+                                            <Edit className="size-4"/>
+                                        </Button>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            aria-label={`Delete ${command.name}`}
+                                            onClick={() => handleDeleteClick(command.id as string)}
+                                            disabled={command.builtIn}
+                                        >
+                                            <Trash2 className="size-4"/>
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {commands.map((command) => (
-                                    <TableRow key={command.id ?? command.name}>
-                                        <TableCell className="font-medium">{command.name}</TableCell>
-                                        <TableCell className="text-muted-foreground">
-                                            {command.description}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={command.builtIn ? "outline" : "secondary"}>
-                                                {command.builtIn ? "Built-in" : "Custom"}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-muted-foreground">
-                                            {command.argumentLabel ?? "—"}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                aria-label={`Edit ${command.name}`}
-                                                onClick={() => handleEdit(command)}
-                                                disabled={command.builtIn}
-                                            >
-                                                <Edit className="size-4"/>
-                                            </Button>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                aria-label={`Delete ${command.name}`}
-                                                onClick={() => handleDeleteClick(command.id as string)}
-                                                disabled={command.builtIn}
-                                            >
-                                                <Trash2 className="size-4"/>
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
-                ) : (
-                    <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-                        No commands yet. Create one to get started.
-                    </div>
-                )}
-            </Card>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            ) : (
+                <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+                    No commands yet. Create one to get started.
+                </div>
+            )}
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
@@ -294,7 +291,8 @@ export function CommandManagement() {
                             </Select>
                             {formState.argumentMode === "optional" && (
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium" htmlFor="command-argument-label">Argument label</label>
+                                    <label className="text-sm font-medium" htmlFor="command-argument-label">Argument
+                                        label</label>
                                     <Input
                                         id="command-argument-label"
                                         placeholder="Focus (optional)"
