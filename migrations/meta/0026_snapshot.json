@@ -1,6 +1,6 @@
 {
-  "id": "f05994fe-e3f0-4f30-ba15-c627ec2d8eb5",
-  "prevId": "3e2d9c27-57d8-4ad5-a66e-3198c7370890",
+  "id": "b535d271-9019-40e2-b71f-f864a1c6a1ac",
+  "prevId": "f05994fe-e3f0-4f30-ba15-c627ec2d8eb5",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -592,6 +592,7 @@
         "google",
         "xai",
         "groq",
+        "mistral",
         "ollama",
         "custom"
       ]

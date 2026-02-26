@@ -180,8 +180,15 @@
     {
       "idx": 25,
       "version": "7",
-      "when": 1772134043175,
-      "tag": "0025_sticky_black_bolt",
+      "when": 1772064970401,
+      "tag": "0025_typical_ken_ellis",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1772065742345,
+      "tag": "0026_boring_klaw",
       "breakpoints": true
     }
   ]
