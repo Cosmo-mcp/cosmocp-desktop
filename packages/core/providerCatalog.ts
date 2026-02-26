@@ -41,6 +41,13 @@ export const ProviderCatalog: ProviderCatalogEntry[] = [
         modelsSource: "models-dev",
     },
     {
+        type: ModelProviderTypeEnum.MISTRAL,
+        name: "Mistral AI",
+        description: "Fast, low cost inference.",
+        modelsSource: "models-dev",
+        modelsDevKey: "mistral"
+    },
+    {
         type: ModelProviderTypeEnum.OLLAMA,
         name: "Ollama",
         description: "Chat & build with open models using Ollama.",
