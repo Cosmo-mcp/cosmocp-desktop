@@ -265,7 +265,6 @@ export function McpServerManagement() {
                 </Button>
             </div>
 
-            <Card className="p-3">
                 {hasServers ? (
                     <div className="rounded-md border">
                         <Table>
@@ -437,7 +436,6 @@ export function McpServerManagement() {
                         No MCP servers configured yet. Add one to extend AI capabilities with external tools.
                     </div>
                 )}
-            </Card>
 
             {/* Add/Edit Dialog */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
