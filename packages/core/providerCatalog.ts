@@ -48,6 +48,12 @@ export const ProviderCatalog: ProviderCatalogEntry[] = [
         modelsDevKey: "mistral"
     },
     {
+        type: ModelProviderTypeEnum.DEEPSEEK,
+        name: "DeepSeek",
+        description: "Into the unknown",
+        modelsSource: "models-dev",
+    },
+    {
         type: ModelProviderTypeEnum.OLLAMA,
         name: "Ollama",
         description: "Chat & build with open models using Ollama.",
