@@ -41,6 +41,10 @@ export function ProviderManagement() {
     const [selectedModels, setSelectedModels] = useState<NewModel[]>([]);
     const [providerSearch, setProviderSearch] = useState('');
 
+    // Providers that don't require an API key
+    const LOCAL_PROVIDERS = [ModelProviderTypeEnum.OLLAMA, ModelProviderTypeEnum.LMSTUDIO];
+    const isLocalProvider = selectedProviderType !== null && LOCAL_PROVIDERS.includes(selectedProviderType);
+
     const {useStepper} = defineStepper(
         {id: "step-1", title: "Select Provider"},
         {id: "step-2", title: "Enter Info"},
@@ -106,7 +110,7 @@ export function ProviderManagement() {
         if (!trimmedName) {
             return "Name is required.";
         }
-        if (!trimmedApiKey) {
+        if (!isLocalProvider && !trimmedApiKey) {
             return "API key is required.";
         }
 
@@ -407,17 +411,19 @@ export function ProviderManagement() {
                                     />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">API Key *</label>
-                                    <input
-                                        type="password"
-                                        placeholder="Enter your API key"
-                                        value={apiKey}
-                                        onChange={(e) => setApiKey(e.target.value)}
-                                        required
-                                        className="w-full px-3 py-2 border rounded-md bg-background text-sm"
-                                    />
-                                </div>
+                                {!isLocalProvider && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">API Key *</label>
+                                        <input
+                                            type="password"
+                                            placeholder="Enter your API key"
+                                            value={apiKey}
+                                            onChange={(e) => setApiKey(e.target.value)}
+                                            required
+                                            className="w-full px-3 py-2 border rounded-md bg-background text-sm"
+                                        />
+                                    </div>
+                                )}
 
                                 {(selectedProviderType === ModelProviderTypeEnum.CUSTOM) && (
                                     <div className="space-y-2">

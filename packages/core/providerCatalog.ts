@@ -4,7 +4,7 @@ export type ProviderCatalogEntry = {
     type: ModelProviderTypeEnum;
     name: string;
     description: string;
-    modelsSource: "models-dev" | "ollama" | "none";
+    modelsSource: "models-dev" | "ollama" | "lmstudio" | "none";
     modelsDevKey?: string;
 };
 
@@ -90,7 +90,7 @@ export const ProviderCatalog: ProviderCatalogEntry[] = [
         type: ModelProviderTypeEnum.LMSTUDIO,
         name: "LM Studio",
         description: "Run open-source models locally with LM Studio.",
-        modelsSource: "none",
+        modelsSource: "lmstudio",
     },
     {
         type: ModelProviderTypeEnum.HUGGINGFACE,
