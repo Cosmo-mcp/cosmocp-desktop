@@ -260,7 +260,6 @@ export function ProviderManagement() {
         const query = providerSearch.trim().toLowerCase();
         return (
             provider.name.toLowerCase().includes(query) ||
-            provider.description.toLowerCase().includes(query) ||
             provider.type.toLowerCase().includes(query)
         );
     });
