@@ -66,6 +66,40 @@ export const ProviderCatalog: ProviderCatalogEntry[] = [
         modelsSource: "models-dev",
     },
     {
+        type: ModelProviderTypeEnum.PERPLEXITY,
+        name: "Perplexity",
+        description: "Real-time web search AI with Sonar models.",
+        modelsSource: "models-dev",
+        modelsDevKey: "perplexity"
+    },
+    {
+        type: ModelProviderTypeEnum.BEDROCK,
+        name: "Amazon Bedrock",
+        description: "Access foundation models via AWS Amazon Bedrock.",
+        modelsSource: "models-dev",
+        modelsDevKey: "amazon-bedrock"
+    },
+    {
+        type: ModelProviderTypeEnum.COHERE,
+        name: "Cohere",
+        description: "Enterprise-grade language models by Cohere.",
+        modelsSource: "models-dev",
+        modelsDevKey: "cohere"
+    },
+    {
+        type: ModelProviderTypeEnum.LMSTUDIO,
+        name: "LM Studio",
+        description: "Run open-source models locally with LM Studio.",
+        modelsSource: "none",
+    },
+    {
+        type: ModelProviderTypeEnum.HUGGINGFACE,
+        name: "HuggingFace",
+        description: "Access thousands of open-source models via HuggingFace.",
+        modelsSource: "models-dev",
+        modelsDevKey: "huggingface"
+    },
+    {
         type: ModelProviderTypeEnum.CUSTOM,
         name: "Custom",
         description: "Connect to any OpenAI-compatible API endpoint.",
