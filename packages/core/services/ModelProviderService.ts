@@ -17,7 +17,7 @@ import {createGroq} from '@ai-sdk/groq';
 import {createMistral} from '@ai-sdk/mistral';
 import {ProviderCatalogByType} from "../providerCatalog";
 import {createDeepSeek} from "@ai-sdk/deepseek";
-import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
+// import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createCohere } from "@ai-sdk/cohere";
 import { createHuggingFace } from "@ai-sdk/huggingface";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
@@ -49,7 +49,7 @@ export class ModelProviderService {
         [ModelProviderTypeEnum.DEEPSEEK]: (provider) => createDeepSeek(this.createRemoteOptions(provider)),
         [ModelProviderTypeEnum.OLLAMA]: (provider) => createOllama(this.createLocalOptions(provider)),
         [ModelProviderTypeEnum.PERPLEXITY]: (provider) => createPerplexity(this.createRemoteOptions(provider)),
-        [ModelProviderTypeEnum.BEDROCK]: (provider) => createAmazonBedrock(this.createRemoteOptions(provider)),
+        // [ModelProviderTypeEnum.BEDROCK]: (provider) => createAmazonBedrock(this.createRemoteOptions(provider)),
         [ModelProviderTypeEnum.COHERE]: (provider) => createCohere(this.createRemoteOptions(provider)),
         [ModelProviderTypeEnum.LMSTUDIO]: (provider) => createOpenAICompatible({
             name: provider.name,

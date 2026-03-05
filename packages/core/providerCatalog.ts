@@ -72,13 +72,13 @@ export const ProviderCatalog: ProviderCatalogEntry[] = [
         modelsSource: "models-dev",
         modelsDevKey: "perplexity"
     },
-    {
-        type: ModelProviderTypeEnum.BEDROCK,
-        name: "Amazon Bedrock",
-        description: "Access foundation models via AWS Amazon Bedrock.",
-        modelsSource: "models-dev",
-        modelsDevKey: "amazon-bedrock"
-    },
+    // {
+    //     type: ModelProviderTypeEnum.BEDROCK,
+    //     name: "Amazon Bedrock",
+    //     description: "Access foundation models via AWS Amazon Bedrock.",
+    //     modelsSource: "models-dev",
+    //     modelsDevKey: "amazon-bedrock"
+    // },
     {
         type: ModelProviderTypeEnum.COHERE,
         name: "Cohere",

@@ -70,7 +70,6 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
-    "@ai-sdk/amazon-bedrock": "^4.0.74",
     "@ai-sdk/anthropic": "3.0.14",
     "@ai-sdk/cohere": "^3.0.23",
     "@ai-sdk/google": "3.0.9",

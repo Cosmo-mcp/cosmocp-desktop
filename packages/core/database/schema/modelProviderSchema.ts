@@ -13,7 +13,7 @@ export enum ModelProviderTypeEnum {
     OLLAMA = 'ollama',
     MOONSHOT = 'moonshotai',
     PERPLEXITY = 'perplexity',
-    BEDROCK = 'amazon-bedrock',
+    // BEDROCK = 'amazon-bedrock',
     COHERE = 'cohere',
     LMSTUDIO = 'lmstudio',
     HUGGINGFACE = 'huggingface',
