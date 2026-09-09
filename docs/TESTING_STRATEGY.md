@@ -16,49 +16,49 @@ The quality bar is “no untested behavior”. New code should ship with unit + 
 
 ### Provider registry test matrix
 
-The v1 registry contract requires the following representative matrix. Gaurav
-Saini is the decision owner for matrix changes and stable-support approval.
+The version 1 contract uses five providers to prove that the design is broad
+enough. Gaurav Saini owns changes to this list and approval for stable support.
 
-| Representative    | Route / target level                                      | Configuration exercised                                                                   | Discovery                             | Adapter expectations                                         |
-| ----------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------ |
-| OpenAI            | `direct` / `stable`                                       | Required secret; advanced HTTPS base URL; model-scoped option                             | models.dev plus manual fallback       | Native adapter and direct credential path                    |
-| Azure OpenAI      | `direct` / `experimental` until enterprise auth is proven | Endpoint, deployment, API version, named credential/tenant fields; conditional validation | Provider API or static/manual         | Dedicated enterprise adapter; no generic-header escape hatch |
-| Ollama            | `local` / `stable`                                        | Optional loopback URL; no required secret; explicit private-network approval branch       | Local API                             | Local adapter, bounded `/tags` and model-detail calls        |
-| OpenAI-compatible | `compatible` / `compatible`                               | Required endpoint, optional secret, loopback HTTP versus hosted HTTPS                     | Compatible model-list API plus manual | Shared compatibility adapter and documented feature subset   |
-| AI Gateway        | `gateway` / `experimental` until stable bar is met        | Gateway credential, optional routing/account fields                                       | Gateway catalog                       | Dedicated gateway adapter; gateway data path is visible      |
+| Example           | Route and target level      | What it proves                                                                                 |
+| ----------------- | --------------------------- | ---------------------------------------------------------------------------------------------- |
+| OpenAI            | `direct` / `stable`         | Required API key, optional HTTPS URL, native adapter, models.dev discovery, and a model option |
+| Azure OpenAI      | `direct` / `experimental`   | Enterprise endpoint, deployment, API version, named account fields, and rules between fields   |
+| Ollama            | `local` / `stable`          | No required key, a local URL, private-address approval, and local model discovery              |
+| OpenAI-compatible | `compatible` / `compatible` | Required URL, optional key, safe local HTTP, hosted HTTPS, shared adapter, and manual models   |
+| AI Gateway        | `gateway` / `experimental`  | Gateway key, routing fields, gateway model list, and a clear gateway data path                 |
 
-This matrix approves contract coverage, not the release support level of a
-provider that the current application does not yet ship.
+This list approves what the tests must cover. It does not promise that every
+example already ships at that support level.
 
-For every representative, tests must cover:
+Each example must test:
 
-- Definition parsing, unknown-key rejection, uniqueness, cross-field rules,
-  simple/advanced presentation, and connection/model/chat scope separation.
-- Public projection redaction and identical Electron IPC/HTTP RPC validation.
-- Normalization idempotence, secret `unchanged`/`replace`/`clear`, endpoint and
-  header policy, sanitized errors, and sentinel-secret absence from logs.
-- Adapter key/API/range resolution, provider construction, connection success,
-  authentication failure, timeout, cancellation, malformed response, and
-  response-size limits.
-- Discovery success, empty catalog, stale cache, partial/malformed data,
-  capability provenance, manual fallback, ordering, and provider failure.
-- Add, edit, restart, runtime resolution, deprecate/hide/unknown behavior,
-  export/delete recovery, and transactional migration failure/rollback.
+- valid and invalid local registry entries, duplicate IDs, unknown fields, and
+  simple versus advanced fields;
+- the split between connection, model, and chat settings;
+- a frontend output with no secrets and the same input checks in Electron and
+  HTTP;
+- keeping, replacing, and removing secrets;
+- safe URLs and headers, clean error messages, and no secret values in logs;
+- missing and wrong adapter versions;
+- connection success, bad credentials, timeout, cancel, bad responses, and
+  response-size limits;
+- model discovery success, no models, old cache, bad data, manual models, and
+  provider errors; and
+- add, edit, restart, deprecate, hide, remove, export, delete, migration, and
+  rollback flows.
 
 Minimum test bar by support level:
 
-| Level          | Required bar                                                                                                                                                                                                                                                                                                    |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `stable`       | All shared contract suites; adapter unit tests with every branch; Electron and HTTP integration parity; persistence/migration golden tests; one real-provider or recorded protocol conformance run; packaged Electron and built HTTP smoke tests; no open critical/high security defects; named owner approval. |
-| `experimental` | Shared schema/redaction/security suites; adapter unit tests; both transport validation paths; deterministic mocked discovery and connection tests; limitations documented.                                                                                                                                      |
-| `compatible`   | Shared schema/redaction/security suites; compatibility-subset conformance against a reference server; both transport paths; endpoint/origin tests; unsupported features fail explicitly.                                                                                                                        |
-| `deprecated`   | Existing-config load/runtime or explicit blocked-state test; migration/export/delete recovery; no new-config path.                                                                                                                                                                                              |
-| `hidden`       | Absent from add flow; existing config preserved and inspectable; runtime behavior matches recorded reason.                                                                                                                                                                                                      |
+| Level          | Tests required                                                                                                                                                                                                                      |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stable`       | All shared tests; every adapter branch; Electron and HTTP flows; saved-data and migration tests; one real or recorded protocol test; packaged Electron and built HTTP smoke tests; no open high-risk security issue; owner approval |
+| `experimental` | Shared schema, secret, and security tests; adapter unit tests; both transports; fake connection and discovery tests; written limits                                                                                                 |
+| `compatible`   | Shared safety tests; the documented compatibility feature set against a reference server; both transports; safe endpoint tests; clear errors for unsupported features                                                               |
+| `deprecated`   | Existing setup still loads or shows a clear blocked state; migration, export, and delete work; users cannot add a new setup                                                                                                         |
+| `hidden`       | Missing from the add screen; existing setup remains visible; runtime behavior matches the stated reason                                                                                                                             |
 
-A provider cannot be labelled stable from unit mocks alone. CI secrets are not a
-prerequisite for pull requests: protocol recordings or an owned conformance
-server cover deterministic CI, while credentialed smoke tests run in a protected
-environment on release candidates.
+Unit-test mocks alone are not enough for `stable`. Pull-request tests use a
+recorded protocol or test server. Release checks can use protected credentials.
 
 ### `packages/core`
 

@@ -1,78 +1,85 @@
-# Decision record: provider registry source, support, and lifecycle
+# Decision record: one local provider registry
 
-Status: Proposed  
-Date: 2026-09-09  
-Decision owner: Gaurav Saini  
+Status: Proposed
+
+Date: 2026-09-09
+
+Decision owner: Gaurav Saini
+
 Related work: COS-DEV-006, COS-CHAT-001
 
-## Context
+## Problem
 
-Cosmo currently combines a static display catalog, a database type enum,
-renderer form branches, discovery branches, and a backend provider factory map.
-Adding or retiring a provider therefore requires coordinated changes and can
-produce inconsistent validation across renderer, IPC/HTTP, persistence, and
-runtime construction. AI SDK's runtime registry does not solve product metadata,
-configuration, migration, support, or trust concerns.
+Provider information is spread across the catalog, database types, UI forms,
+model discovery code, and backend factory code. Adding or removing a provider
+means changing many files. Those files can easily disagree.
+
+AI SDK's registry does not solve this problem. It only finds running models. It
+does not define setup forms, saved settings, support levels, or migrations.
 
 ## Decision
 
-Adopt the versioned, serializable product contract in
-[Provider registry v1 specification](provider-registry.md) with these boundaries:
+Cosmo will use one local JSON registry as the provider source of truth. Its
+layout takes the [ACP registry](https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json)
+as a reference: a versioned document with a list of entries.
 
-- App-bundled definitions are authoritative for behavior. Signed remote refresh
-  is optional and limited to non-executable metadata for bundled identities.
-- Backend-only adapter maps own executable construction, validation,
-  normalization, discovery, connection tests, and migrations.
-- Support is expressed as an independent route and level. AI Gateway is an
-  optional gateway route, not a default or compatibility fallback.
-- Versioned copy-and-validate migrations preserve unknown, deprecated, hidden,
-  removed, newer, and failed configurations without silent data loss.
-- V1 UI generation uses connection fields. Model/chat runtime options stay in a
-  separate namespace even before the UI exposes them.
-- Only named, bundled header fields are allowed. Endpoint access is governed by
-  a central deny-by-default network policy.
+The source files will live in the product repository:
 
-## Alternatives considered
+```text
+packages/core/provider-registry/registry.json
+packages/core/provider-registry/registry.schema.json
+```
 
-### Keep app-bundled definitions only forever
+A build script will check the registry and create:
 
-This is simplest and safest, but forces an application release for harmless
-description or lifecycle-advisory changes. The selected approach preserves the
-same executable trust boundary while allowing a narrowly scoped future refresh.
+- the full backend registry; and
+- a safe public registry for the frontend setup forms.
 
-### Permit fully remote provider definitions
+The app will not download provider definitions at build time or runtime. The ACP
+URL is a reference, not a build input. Provider icons will also be local.
 
-Rejected. Remote fields, adapter locations, validation expressions, headers, or
-request templates would create a code/configuration supply-chain channel and
-could exfiltrate secrets or enable SSRF.
+Other decisions:
 
-### Treat AI Gateway as the universal provider path
+- Reviewed backend adapters contain all executable code.
+- Every provider shows both a route and a support level.
+- AI Gateway is optional, not the default.
+- Connection fields and runtime options stay separate.
+- Only named headers in the local definition are allowed.
+- Provider changes and migrations never silently delete saved settings.
 
-Rejected. It changes billing, credentials, data path, privacy, availability,
-and provider-specific feature access. Gateway remains useful as an explicit
-route alongside direct, compatible, and local routes.
+The full rules are in the
+[provider registry specification](provider-registry.md).
 
-### Store all settings in one untyped JSON object
+## Options we did not choose
 
-Rejected. It conflates secrets, connection identity, and runtime behavior;
-weakens renderer redaction; and makes safe migrations and generated forms
-ambiguous.
+### Download the registry from a server
 
-## Consequences
+Rejected. It would make builds or the app depend on a network service and would
+add a supply-chain risk. Provider changes should go through normal code review
+and ship with the app.
 
-- Later implementation needs strict Zod schemas, new persistence fields or
-  tables, adapter manifests, and migration machinery.
-- Existing enum values become legacy inputs; canonical string IDs must not
-  require a database enum migration.
-- Provider additions remain reviewed changes even when they reuse the
-  compatible adapter.
-- Remote metadata can reduce support visibility but cannot enable executable
-  behavior or broaden permissions.
-- Unknown configurations remain recoverable, which adds UI and persistence
-  complexity but prevents silent loss.
+### Use AI Gateway for every provider
+
+Rejected. A gateway changes billing, credentials, privacy, and where requests
+go. Users must be able to choose direct, compatible, local, or gateway routes.
+
+### Save every setting in one untyped object
+
+Rejected. That makes it hard to hide secrets, create forms, check input, and
+move old data safely.
+
+## Result
+
+Adding a provider becomes one reviewed registry entry, a local icon, tests, and
+an adapter only when needed. Backend and frontend code come from the same file,
+so they cannot keep separate provider lists.
+
+The build becomes stricter: it fails when the registry is invalid or references
+a missing adapter or icon. Saved configurations need clear versions and safe
+migrations.
 
 ## Approval
 
-The representative test matrix and all product decisions are owned by Gaurav
-Saini. Change `Status` to `Accepted` after review; record incompatible changes
-in a superseding decision record rather than silently editing this decision.
+Gaurav Saini owns this decision and the test matrix. Change `Status` to
+`Accepted` after review. Record any future incompatible choice in a new decision
+record.

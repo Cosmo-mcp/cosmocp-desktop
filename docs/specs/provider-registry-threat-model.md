@@ -1,80 +1,84 @@
 # Provider registry threat model
 
-Status: Proposed  
-Owner: Gaurav Saini  
+Status: Proposed
+
+Owner: Gaurav Saini
+
 Reviewed: 2026-09-09
 
-## Assets and trust boundaries
+## What we protect
 
-Protected assets are provider credentials, account/organization identifiers,
-endpoint and header configuration, prompt/model traffic, local-network services,
-model metadata, persisted configurations, logs, and the integrity of runtime
-adapter selection.
+Cosmo must protect:
 
-Trust boundaries are renderer to preload, Electron IPC or HTTP RPC to main,
-main/core to `SecretStore` and PGlite, main/core to provider endpoints, bundled
-definition to executable adapter maps, and optional remote metadata to the local
-registry cache. The renderer, IPC/HTTP input, provider responses, models.dev,
-local services, stored legacy records, and all remote metadata are untrusted.
+- API keys and other secrets;
+- account, organization, endpoint, and header settings;
+- prompts and model responses;
+- services on the user's computer and private network;
+- saved provider settings; and
+- the adapter that Cosmo chooses for a provider.
 
-## Threats and required controls
+The renderer, IPC and HTTP input, provider responses, model lists, local
+services, and old saved records are untrusted. The local registry is trusted
+only after the build checks it and the normal code review and release process
+approves it.
 
-| Threat                              | Example impact                                                          | Required controls                                                                                                                                                                                                             | Verification                                                |
-| ----------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Secret disclosure to renderer       | Edit/list response contains an API key                                  | Public DTO omits secret values; return only `hasSecret`/field status; generated APIs use redacted DTOs                                                                                                                        | Contract snapshots and Electron/HTTP integration tests      |
-| Secret leakage in logs/errors       | SDK exception includes authorization header or prompt                   | Structured allowlisted logging; stable sanitized error codes; recursive redaction at logger boundary; never log full request/response bodies                                                                                  | Sentinel-secret log tests and error-path tests              |
-| Secret persistence exposure         | Plaintext credentials in PGlite, backup, or migration snapshot          | Store opaque `SecretStore` references; encrypt before DB write; migrations never materialize secrets in records                                                                                                               | Repository and migration inspection tests                   |
-| Secret confusion on edit            | Empty renderer field erases or echoes an existing key                   | Explicit operations: `unchanged`, `replace`, `clear`; clearing requires confirmation; never use empty-string ambiguity                                                                                                        | Update contract branch tests                                |
-| SSRF through endpoint               | User or metadata targets cloud metadata, LAN admin service, or redirect | Parse/canonicalize centrally; resolve DNS; deny link-local, multicast, unspecified, metadata, credentials-in-URL, and unsafe ports; revalidate every redirect; default HTTPS; explicit local-provider loopback/private policy | IPv4/IPv6, DNS rebinding, redirect, encoded-address tests   |
-| Header injection/exfiltration       | Custom `Authorization`, `Host`, forwarding, or newline header           | No arbitrary headers; bundled named fields map to fixed header names; reject CR/LF and forbidden hop-by-hop/proxy headers; secrets scoped to exact approved origin                                                            | Schema, origin-scope, and request-capture tests             |
-| Malicious remote registry           | Signed/unsigned metadata changes endpoint or adapter                    | Signature and pin verification; monotonic revision; expiry/size/schema limits; remote allowlist of display/advisory fields; no code, URLs used for requests, fields, defaults, or adapter keys                                | Tamper, replay, downgrade, expiry, and forbidden-diff tests |
-| Compromised provider/model response | Oversized JSON, hostile model text, active icon content                 | Timeouts and byte/item/depth limits; strict schemas; treat descriptions as text; bundled passive icons only; no unsafe HTML                                                                                                   | Fuzz, size-limit, and rendering tests                       |
-| Adapter substitution                | Definition selects unexpected package/factory                           | Closed bundled adapter map; API/version/range check; no dynamic import paths; release dependency review                                                                                                                       | Registry contract and packaging tests                       |
-| Cross-provider credential reuse     | Compatible endpoint receives a key intended for another host            | Bind secret reference to provider instance, field key, and approved origin; require confirmation when origin changes; do not follow cross-origin redirects with credentials                                                   | Origin-change and redirect tests                            |
-| Persisted-config data loss          | Rename/removal/migration drops fields or secrets                        | Copy-and-validate transaction; rollback snapshot; quarantine unknown fields; read-only handling for newer data; no destructive migration without consent                                                                      | Golden migration and interruption tests                     |
-| Process-boundary bypass             | HTTP or IPC accepts fields UI never showed                              | Strict Zod schemas with unknown-key rejection at both transports; backend repeats all validation and authorization                                                                                                            | Parity and adversarial payload tests                        |
-| Local-provider exposure             | `0.0.0.0` bind or remote HTTP endpoint is treated as safe local         | Route is a product label, not trust evidence; default loopback only; explicit user approval for private addresses; never classify hostname by string alone                                                                    | Endpoint-policy tests                                       |
-| Metadata capability spoofing        | UI enables tools/attachments the runtime cannot safely use              | Capabilities are advisory; runtime validates model/provider behavior; preserve provenance and staleness                                                                                                                       | Capability mismatch and stale-cache tests                   |
+## Main risks and controls
 
-## Endpoint policy baseline
+| Risk                                          | What could happen                                                | What Cosmo must do                                                                                                                      |
+| --------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Secret reaches the renderer                   | An API key appears in a list or edit response                    | Return only whether a secret is set. Never return its value. Test both Electron and HTTP responses.                                     |
+| Secret appears in a log or error              | An SDK error includes a key, header, prompt, or response         | Log only approved fields. Clean errors before logging or returning them. Test with a unique fake secret.                                |
+| Secret is stored as plain text                | A database or backup exposes keys                                | Save secrets through `SecretStore`. Keep only secret references in provider records and migrations.                                     |
+| Editing removes a secret by mistake           | An empty input silently overwrites a saved key                   | Use clear actions: keep, replace, or remove. Ask before removing a saved secret.                                                        |
+| Unsafe endpoint causes SSRF                   | A provider URL reaches cloud metadata or a private admin service | Check the URL before connecting, after DNS lookup, and after every redirect. Block unsafe addresses and ports.                          |
+| A custom header leaks data                    | A user sets `Host`, `Authorization`, or a proxy header           | Allow only named header fields from the local registry. Block line breaks and unsafe header names. Bind secrets to one approved origin. |
+| Registry change selects unsafe code           | A JSON entry points to a package or script                       | Allow only keys from reviewed backend adapter maps. Never load code, scripts, or import paths from JSON.                                |
+| Registry and generated code disagree          | The UI shows fields the backend does not check                   | Generate both backend and frontend registries from the same local file. Fail the build if generation is stale or invalid.               |
+| Bad provider response uses too many resources | A model list is huge or malformed                                | Set time, size, item, and nesting limits. Check response shapes before using them.                                                      |
+| Migration loses settings                      | A rename or upgrade drops fields or secrets                      | Move a copy, check it, save it in one transaction, and keep the original on failure. Never delete filled fields without permission.     |
+| IPC or HTTP bypasses the form                 | A caller sends fields the UI did not show                        | Use strict Zod schemas on both boundaries. Repeat all checks in the backend.                                                            |
+| A local route is treated as safe by name      | A fake local URL points somewhere else                           | Check the resolved address. Allow loopback by default and ask before using an approved private address.                                 |
+| Capability data is wrong                      | The UI enables a feature the model cannot use                    | Treat capabilities as helpful labels, not permissions. Check support again when the model runs.                                         |
 
-Endpoint validation happens before DNS/network access and again after DNS
-resolution and every redirect. Hosted and gateway routes require HTTPS. The
-compatible route permits HTTP only for canonical loopback. Local routes default
-to loopback; private-network access requires an explicit per-origin approval and
-cannot be introduced by remote metadata.
+## Endpoint rules
 
-Reject userinfo, fragments, non-HTTP protocols, ambiguous/encoded IP forms,
-IPv4-mapped IPv6 bypasses, link-local and metadata destinations, wildcard or
-unspecified addresses, and redirects to a less trusted origin. Pin the validated
-origin for each request sequence and apply connect/read timeouts plus response
-size limits. Proxy behavior must not bypass the same policy.
+Hosted and gateway providers must use HTTPS. An OpenAI-compatible provider can
+use HTTP only on the same computer. Local providers use loopback by default.
+Using a private-network address needs clear user approval for that address.
 
-## Secret and redaction baseline
+Block URLs with usernames or passwords, non-HTTP protocols, unusual encoded IP
+forms, cloud metadata addresses, link-local addresses, wildcard addresses, and
+redirects to a less trusted place. Apply the same checks when a proxy is used.
+Every request needs connection and read timeouts plus a response-size limit.
 
-Renderer DTOs contain field definitions, non-secret values allowed by policy,
-and `{configured: boolean}` for secret fields. Secret resolution occurs as late
-as possible in the backend and values are held only for the operation. Logs use
-an allowlist of stable identifiers such as provider instance ID, canonical
-provider ID, adapter key, operation, duration, and sanitized result code.
+## Secret and logging rules
 
-Never log credentials, configured header values, complete endpoints containing
-queries, prompts, provider response bodies, migrated configuration blobs, or
-exceptions before sanitization. Tests use a sentinel credential and assert it
-does not appear in logs, thrown messages, RPC responses, caches, or snapshots.
+The frontend only knows that a secret exists. The backend loads its value as
+late as possible and holds it only while needed.
 
-## Remote metadata response
+Logs may include the saved provider ID, provider type, adapter key, action,
+duration, and a safe result code. Logs must not include keys, header values,
+complete URLs with query strings, prompts, responses, or saved configuration
+objects.
 
-On signature, schema, expiry, replay, or forbidden-diff failure, discard the
-candidate, retain the last valid cache, and fall back to bundled metadata when
-no valid cache exists. Record only revision, failure code, and timestamps. Do
-not log the rejected document. Repeated failures never weaken verification.
+Tests use a unique fake key and prove that it never appears in logs, errors, API
+responses, generated frontend data, caches, or snapshots.
 
-## Residual risks and ownership
+## Local registry safety
 
-Provider SDKs and upstream services may mishandle data outside Cosmo's control;
-support copy must describe the selected route and data path. OS compromise can
-defeat application-level secret storage. DNS and proxy behavior varies across
-platforms and requires platform integration tests. Gaurav Saini owns acceptance
-of these residual risks and any exception to the endpoint or remote-metadata
-baseline.
+The provider registry and JSON Schema live in the repository. Builds do not
+download registry files. Normal code review protects changes to both files.
+
+The build must reject unknown fields, duplicate IDs, missing adapters, missing
+local icons, invalid versions, secret defaults, and backend-only data in the
+frontend output. Generated files include the source hash so CI can detect stale
+output. A registry entry cannot run a script or choose an import path.
+
+## Remaining risks
+
+Provider SDKs and services may handle data outside Cosmo's control. The UI must
+tell users which route their request takes. A compromised operating system can
+bypass app-level secret protection. DNS and proxy behavior differs by platform,
+so endpoint tests must run on supported platforms.
+
+Gaurav Saini owns any exception to these rules and accepts the remaining risks.

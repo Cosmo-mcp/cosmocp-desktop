@@ -1,106 +1,118 @@
 # Provider registry v1 specification
 
-Status: Proposed baseline for COS-DEV-006  
-Contract version: `1.0.0`  
-Decision owner: Gaurav Saini  
+Status: Proposed
+
+Contract version: `1.0.0`
+
+Decision owner: Gaurav Saini
+
 Last reviewed: 2026-09-09
 
-## Purpose and scope
+## Why we need this
 
-Cosmo's provider registry is the product source of truth for provider metadata,
-configuration fields, discovery, lifecycle, compatibility, and support. It is
-separate from AI SDK's `createProviderRegistry`, which remains the backend-only
-runtime resolver for configured model instances.
+Cosmo needs one place to describe every AI provider. We call this the **product
+registry**. It describes:
 
-Version 1 covers language-model providers and reserves extension points for
-other model families. It defines contracts and policy only. Implementing the
-registry, generating forms, changing persistence, upgrading packages, and
-adding providers belong to later work items.
+- what the provider is;
+- how users set it up;
+- how Cosmo checks its settings;
+- how Cosmo finds its models;
+- how well Cosmo supports it; and
+- how Cosmo handles changes over time.
 
-## Product decisions
+This is not the same as AI SDK's `createProviderRegistry`. The AI SDK registry
+only finds a running model by name. Cosmo will keep using it for that job.
 
-These decisions resolve the open questions in COS-CHAT-001:
+This document defines the contract and rules for version 1. It does not build
+the registry or change the app. Those changes belong to later tasks.
 
-1. A provider is "supported" only with a visible support level and route:
-   `direct`, `compatible`, `local`, or `gateway`. A catalog listing alone is not
-   a support claim.
-2. Executable definitions ship with the application. Cosmo may remotely refresh
-   signed data-only metadata, but a remote document cannot introduce adapters,
-   fields, scripts, URLs used for requests, or validation behavior.
-3. The first generated forms cover connection configuration. Runtime/model
-   options are represented by a distinct schema now and may be surfaced later.
-4. Arbitrary custom headers are not accepted. Only reviewed, named header
-   fields in an app-bundled definition may be configured.
-5. Hidden, deprecated, renamed, unknown, and removed providers retain persisted
-   configurations. Cosmo never silently rewrites or deletes them.
-6. `stable` requires the minimum automated test bar in
-   [Provider registry test matrix](../TESTING_STRATEGY.md#provider-registry-test-matrix).
-7. AI Gateway is an optional `gateway` provider. It is neither the default nor
-   a substitute for direct, compatible, or local support.
+The file layout follows the simple pattern used by the
+[ACP registry](https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json):
+one versioned JSON document with a list of entries. The ACP file is a design
+reference only. Cosmo never downloads it to build or run provider support.
 
-Any change to these decisions requires a replacement decision record approved
-by the decision owner.
+## Decisions
 
-## Terms and support policy
+These decisions answer the open questions in COS-CHAT-001:
 
-Support has two independent dimensions: route and level.
+1. Cosmo only calls a provider "supported" when it shows both its support route
+   and support level. These terms are explained below.
+2. The registry and its JSON Schema are local files in this repository. The
+   build reads those files and creates the backend and frontend registry code.
+   The app does not download provider definitions at build time or runtime.
+3. The first generated setup forms will cover connection settings. Model and
+   chat settings have a separate schema, but the first UI does not need to show
+   them.
+4. Users cannot add any HTTP header they want. A trusted provider definition
+   must list each allowed header field by name.
+5. Hiding, renaming, deprecating, or removing a provider never deletes a user's
+   saved settings.
+6. A provider can be called `stable` only after it passes the tests in the
+   [provider registry test matrix](../TESTING_STRATEGY.md#provider-registry-test-matrix).
+7. AI Gateway is an optional provider. It is not the default and does not
+   replace direct, compatible, or local providers.
 
-### Routes
+Changing these decisions requires a new decision record approved by the
+decision owner.
 
-| Route        | Product meaning                                                                                                                                     | Credential, billing, and data path                                                                   |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `direct`     | Cosmo uses a reviewed native provider adapter and the provider's supported API. Provider-specific features may be exposed when tested.              | User credentials; provider billing; requests go directly to that provider.                           |
-| `compatible` | Cosmo uses the reviewed OpenAI-compatible adapter against an explicitly configured service. Only the documented compatibility subset is promised.   | User credentials; service billing; requests go to the configured endpoint.                           |
-| `local`      | Cosmo connects to software on a loopback or explicitly approved private endpoint. Offline operation is possible but not guaranteed by the registry. | Usually no credential; no Cosmo-routed billing; requests stay at the approved endpoint.              |
-| `gateway`    | Cosmo connects through a reviewed routing provider such as AI Gateway. Downstream availability and capabilities depend on the gateway.              | Gateway credentials and billing; requests pass through the gateway and selected downstream provider. |
+## Support routes
 
-### Levels and lifecycle
+A **route** tells users where their request goes and who handles credentials and
+billing.
 
-| Level          | Meaning                                                                                                                                                             | User-visible behavior                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `stable`       | Meets the stable test bar, has an owned adapter, documented limitations, and is eligible for normal support.                                                        | Listed normally and enabled for new configurations.                                                    |
-| `experimental` | Works for bounded scenarios but has incomplete coverage, capability parity, or operational confidence.                                                              | Listed with an Experimental label and explicit limitations; opt-in configuration is allowed.           |
-| `compatible`   | Community/vendor service expected to work through the compatibility subset, without provider-specific guarantees. This level is valid only with route `compatible`. | Listed with a Compatible label; generic troubleshooting only.                                          |
-| `deprecated`   | Existing configurations remain usable during a published migration window, but new configurations should not be created.                                            | Visible for existing users, labelled Deprecated, absent from the default add-provider list.            |
-| `hidden`       | Not offered for new configurations. Used for emergency disablement, removal completion, or definitions not intended for direct selection.                           | Existing configurations remain inspectable/exportable; runtime use follows the lifecycle policy below. |
+| Route        | What it means                                                                                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `direct`     | Cosmo connects to the provider through its own supported API. The user has an account and key with that provider. The provider handles billing and receives the request directly. |
+| `compatible` | Cosmo connects through the common OpenAI-compatible adapter. Cosmo only promises the small feature set listed in its compatibility guide.                                         |
+| `local`      | Cosmo connects to software running on the user's computer or an approved private address. A local label does not make an address safe by itself.                                  |
+| `gateway`    | Cosmo sends the request through a routing service such as AI Gateway. The gateway handles credentials, billing, and routing to another provider.                                  |
 
-`gateway` and `local` are routes, not quality levels. A gateway or local
-provider must still declare `stable` or `experimental`. A provider cannot claim
-both `compatible` level and a non-`compatible` route.
+## Support levels
 
-## Contract boundaries
+A **level** tells users how well Cosmo has tested and supports the route.
+
+| Level          | What it means                                                                                                                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `stable`       | The provider passed the full stable test bar, has an owned adapter, and has documented limits. Users can expect normal support.                                                            |
+| `experimental` | The provider works for listed cases, but some tests, features, or operating experience are still missing. The UI must show its limits.                                                     |
+| `compatible`   | The service is expected to work through Cosmo's OpenAI-compatible feature set. Cosmo does not promise provider-specific features. This level can only be used with the `compatible` route. |
+| `deprecated`   | Existing setups can keep working for a stated period, but users should not create new ones. The UI points users to a replacement or explains why there is none.                            |
+| `hidden`       | Users cannot create a new setup. Existing setups stay visible so users can inspect, export, move, or delete them.                                                                          |
+
+`local` and `gateway` are routes, not support levels. They must also use
+`stable` or `experimental`.
+
+## What runs where
 
 ```text
-trusted bundled definition (serializable)
-  |-- public projection --> renderer-generated form and support labels
-  |-- full schema -------> boundary validation and normalization
-  |-- adapterKey --------> backend adapter map (executable, bundled)
-  `-- discovery ---------> backend discovery adapter --> normalized models
+local registry.json (data only)
+  |-- checked with local registry.schema.json
+  |-- safe public data --> setup form in the renderer
+  |-- field rules ------> backend checks and cleans user input
+  |-- adapter key ------> reviewed backend adapter
+  `-- discovery rule ---> reviewed model discovery adapter
 
-persisted configuration --> secrets resolved in backend --> AI SDK provider
-                                                   `-----> createProviderRegistry
+saved settings --> backend loads secrets --> AI SDK provider
+                                      `----> createProviderRegistry
 ```
 
-Definitions contain data only: JSON-compatible primitives, arrays, and objects.
-They must never contain functions, regular-expression source, template code,
-import paths, executable expressions, or arbitrary request headers. Executable
-adapter, discovery, migration, and connection-test implementations are selected
-from reviewed backend maps by stable keys.
+A provider definition is data, not code. It can use JSON values such as text,
+numbers, lists, and objects. It cannot contain functions, scripts, import paths,
+regular-expression text, request templates, or free-form headers.
 
-The renderer receives only the public projection. It never receives field
-values marked `secret`, adapter maps, stored secret values, endpoint-policy
-internals, or backend-only migration details.
+Code lives in reviewed adapter maps in the backend. The renderer only receives
+safe public data. It never receives saved secrets, executable adapter details,
+or private migration data.
 
 ## TypeScript contract
 
-The normative contract is the following discriminated, serializable shape.
-Later implementation may use Zod to validate it, but must preserve these names
-and semantics for contract version 1.
+The names and meanings below are the version 1 contract. The implementation can
+use Zod to check this data, but it must keep this public shape.
 
 ```ts
 type RegistrySchemaVersion = '1.0.0';
-type ProviderId = string; // lowercase ASCII: ^[a-z0-9]+(?:[.-][a-z0-9]+)*$
-type AdapterKey = string; // key into an app-bundled backend adapter map
+type ProviderId = string; // lowercase: ^[a-z0-9]+(?:[.-][a-z0-9]+)*$
+type AdapterKey = string; // key in a reviewed backend adapter map
 
 type ProviderRoute = 'direct' | 'compatible' | 'local' | 'gateway';
 type ProviderSupportLevel = 'stable' | 'experimental' | 'compatible' | 'deprecated' | 'hidden';
@@ -110,7 +122,7 @@ type ConfigurationScope = 'connection' | 'model' | 'chat';
 type FieldValue = string | number | boolean | string[];
 
 interface ProviderFieldDefinition {
-    key: string; // stable within provider; never repurposed
+    key: string; // stable within this provider; never reuse it for a new meaning
     scope: ConfigurationScope;
     type: 'string' | 'secret' | 'url' | 'number' | 'boolean' | 'select' | 'string-list';
     label: string;
@@ -118,8 +130,8 @@ interface ProviderFieldDefinition {
     placeholder?: string;
     group: PresentationGroup;
     required: boolean;
-    defaultValue?: FieldValue; // forbidden for secret fields
-    options?: Array<{ value: string; label: string }>; // select only
+    defaultValue?: FieldValue; // secrets cannot have defaults
+    options?: Array<{ value: string; label: string }>; // select fields only
     constraints?: {
         minLength?: number;
         maxLength?: number;
@@ -127,14 +139,13 @@ interface ProviderFieldDefinition {
         maximum?: number;
         allowedSchemes?: Array<'https' | 'http'>;
     };
-    mapsTo?: string; // adapter-owned setting name, never an object path
+    mapsTo?: string; // setting name owned by the adapter; not an object path
 }
 
 interface ProviderDefinitionV1 {
-    registrySchemaVersion: RegistrySchemaVersion;
     id: ProviderId;
+    version: string; // semantic version for this provider definition
     aliases?: ProviderId[];
-    revision: number; // monotonically increases for semantic definition changes
     display: {
         name: string;
         description: string;
@@ -146,19 +157,19 @@ interface ProviderDefinitionV1 {
         route: ProviderRoute;
         level: ProviderSupportLevel;
         limitations?: string[];
-        deprecatedAt?: string; // ISO 8601 date
+        deprecatedAt?: string;
         replacementProviderId?: ProviderId;
-        removalEligibleAfter?: string; // ISO 8601 date
+        removalEligibleAfter?: string;
     };
     adapter: {
         key: AdapterKey;
         apiVersion: 1;
-        compatibilityRange: string; // app-bundled adapter semantic-version range
+        compatibilityRange: string;
     };
     fields: ProviderFieldDefinition[];
     validation: {
-        ruleSetKey: string; // reviewed backend rule-set map
-        normalizationKey: string; // reviewed backend normalizer map
+        ruleSetKey: string;
+        normalizationKey: string;
     };
     discovery: {
         strategy: 'models-dev' | 'provider-api' | 'openai-compatible' | 'local-api' | 'static' | 'manual';
@@ -170,45 +181,43 @@ interface ProviderDefinitionV1 {
         modelFamilies: Array<'language' | 'embedding' | 'image' | 'speech' | 'transcription' | 'rerank'>;
     };
     migrations: Array<{
-        fromRevision: number;
-        toRevision: number;
-        migrationKey: string; // reviewed backend migration map
+        fromVersion: string;
+        toVersion: string;
+        migrationKey: string;
     }>;
 }
 
 interface ProviderRegistryDocumentV1 {
-    registrySchemaVersion: RegistrySchemaVersion;
-    registryRevision: number;
-    generatedAt: string;
-    definitions: ProviderDefinitionV1[];
+    version: RegistrySchemaVersion;
+    providers: ProviderDefinitionV1[];
+    extensions: unknown[]; // reserved; must be empty in version 1
 }
 ```
 
-Contract invariants:
+### Contract rules
 
-- IDs, aliases, field keys, and adapter keys are unique in their respective
-  scopes. A canonical ID is never reused for another provider.
-- `revision` and `registryRevision` are positive integers and never decrease.
-- Every adapter, validation, normalization, discovery, and migration key
-  resolves in the installed app before a definition is activated.
-- Connection fields precede model/chat fields in processing; simple/advanced
-  changes presentation only and never changes persistence or validation.
-- Secret fields cannot declare defaults, appear in renderer views, logs, errors,
-  analytics, registry metadata, or model discovery records.
-- `http` is allowed only for a `local` route or a compatible endpoint that
-  resolves to canonical loopback, and only after endpoint policy validation.
-  All other endpoints require `https`.
-- Unknown properties are rejected at the definition and IPC/HTTP boundaries.
+- Provider IDs, aliases, field keys, and adapter keys must be unique in their
+  own scope. Never reuse an old provider ID for a different provider.
+- Registry and provider versions use semantic versioning and can only move
+  forward.
+- Every code key must exist in the installed app before Cosmo enables the
+  definition.
+- Cosmo checks connection fields before model and chat fields.
+- `simple` and `advanced` only control how the form looks. They do not change
+  how a field is saved or checked.
+- Secret fields cannot have defaults. Secret values cannot appear in the
+  renderer, logs, errors, analytics, registry data, or model data.
+- Plain HTTP is only allowed for local routes or compatible services on the
+  same computer. All other endpoints must use HTTPS.
+- Cosmo rejects fields it does not know at the definition, IPC, and HTTP
+  boundaries.
 
-## Typed examples
-
-### Direct hosted provider
+## Example: direct hosted provider
 
 ```ts
 const openai: ProviderDefinitionV1 = {
-    registrySchemaVersion: '1.0.0',
     id: 'openai',
-    revision: 1,
+    version: '1.0.0',
     display: {
         name: 'OpenAI',
         description: 'Direct access to OpenAI models.',
@@ -246,21 +255,20 @@ const openai: ProviderDefinitionV1 = {
 };
 ```
 
-### OpenAI-compatible provider
+## Example: OpenAI-compatible provider
 
 ```ts
 const compatible: ProviderDefinitionV1 = {
-    registrySchemaVersion: '1.0.0',
     id: 'openai-compatible',
-    revision: 1,
+    version: '1.0.0',
     display: {
         name: 'OpenAI-compatible',
-        description: "Connect to an endpoint implementing Cosmo's tested compatibility subset.",
+        description: "Connect to a service that supports Cosmo's tested OpenAI-compatible features.",
         iconKey: 'compatible',
         documentationUrl: 'https://docs.cosmo.example/providers/compatible',
         categories: ['compatible'],
     },
-    support: { route: 'compatible', level: 'compatible', limitations: ['Language-model subset only'] },
+    support: { route: 'compatible', level: 'compatible', limitations: ['Language models only'] },
     adapter: { key: 'openai-compatible', apiVersion: 1, compatibilityRange: '^1.0.0' },
     fields: [
         { key: 'apiKey', scope: 'connection', type: 'secret', label: 'API key', group: 'simple', required: false },
@@ -281,29 +289,28 @@ const compatible: ProviderDefinitionV1 = {
 };
 ```
 
-The compatible example permits `http` in its raw field declaration so users
-can enter a loopback URL; centralized endpoint policy must still reject clear
-text non-loopback destinations. Field constraints never bypass network policy.
+The field allows HTTP so a user can enter a service on the same computer. The
+backend must still reject any unsafe non-HTTPS address.
 
-## Connection versus runtime options
+## Connection settings and runtime options
 
-Connection configuration constructs a provider and is stored per configured
-provider instance: credentials, endpoint, organization, project, region,
-account, and reviewed named headers. Runtime options affect generation and are
-stored separately at `model` or `chat` scope. They never participate in provider
-identity, credential testing, or discovery unless an adapter contract explicitly
-defines a read-only dependency.
+**Connection settings** are needed to connect to a provider. Examples are API
+keys, endpoints, organization IDs, projects, regions, accounts, and approved
+headers. Cosmo saves them for one configured provider.
 
-`simple` is the minimum successful configuration for the common path.
-`advanced` is progressive disclosure for optional or specialist configuration.
-Both groups receive identical backend validation. Required advanced fields are
-allowed only when conditional rules make them irrelevant to the common path;
-otherwise they belong in `simple`.
+**Runtime options** change how a model answers. Examples are temperature and
+token limits. Cosmo saves them for a model or chat. They do not identify a
+provider and do not take part in login or model discovery.
+
+**Simple fields** are the smallest set most users need. **Advanced fields** are
+optional settings for special cases. Both groups get the same backend checks.
+If every user must fill in a field, it belongs in the simple group unless it is
+only required after another advanced choice.
 
 ## Adapter contract
 
-Adapters are backend-only reviewed code. Each adapter implements the following
-behavior without exposing the resolved configuration to the renderer:
+An adapter is reviewed backend code. It turns checked settings into a working AI
+SDK provider.
 
 ```ts
 interface ProviderAdapterV1 {
@@ -316,105 +323,120 @@ interface ProviderAdapterV1 {
 }
 ```
 
-- `validateConnection` rejects unknown fields and applies cross-field and
-  endpoint policy before any network request.
-- `normalizeConnection` is deterministic and idempotent. It trims safe strings,
-  canonicalizes URLs, and never transforms secret values except to distinguish
-  absent, unchanged, replace, and clear operations.
-- `createProvider` may import an SDK only from the installed dependency graph.
-- `testConnection` uses bounded timeouts/response sizes and returns stable,
-  sanitized error codes plus user-safe guidance.
-- Discovery is a separate interface so model refresh cannot accidentally create
-  a runtime provider or broaden its network privileges.
+- `validateConnection` rejects unknown fields and unsafe combinations before
+  making a network request.
+- `normalizeConnection` trims safe text and puts URLs into one standard form.
+  Running it twice must give the same result. It keeps secret actions clear:
+  keep, replace, or remove.
+- `createProvider` can only use packages that ship with the app.
+- `testConnection` has time and response-size limits. It returns safe error
+  codes and helpful messages without leaking secrets.
+- Model discovery uses a separate adapter. Finding models cannot create a chat
+  provider or gain wider network access.
 
-The app maintains an explicit adapter compatibility manifest. A definition is
-inactive when its adapter key is absent, its API version differs, or the
-installed adapter version is outside `compatibilityRange`.
+Cosmo keeps a list of installed adapter versions. It disables a definition when
+the adapter is missing or has the wrong version.
 
-## Versioning and lifecycle
+## Versions and saved data
 
-### Version axes
+Cosmo tracks two kinds of version, like the ACP registry:
 
-- `registrySchemaVersion` uses semantic versioning. Major changes are not read
-  by older apps. Minor changes add backward-compatible optional semantics.
-- `registryRevision` changes whenever the document content changes and protects
-  against replay/downgrade.
-- Provider `revision` changes whenever fields, validation, discovery, support,
-  or adapter compatibility changes.
-- Persisted instances store canonical provider ID, definition revision used at
-  last validation, configuration schema version, non-secret configuration,
-  opaque secret references, and last migration result.
+- The top-level `version` changes when the registry contract changes. An older
+  app does not read a newer major version.
+- A provider's `version` changes whenever its fields, checks, discovery,
+  support, or adapter needs change.
 
-### Rename, deprecation, hide, and removal
+A saved provider stores its provider ID, provider version, configuration schema
+version, non-secret settings, secret references, and last migration result.
 
-- Display-name changes need no migration. Canonical ID changes are prohibited;
-  a historical ID may become an alias that resolves to the original canonical
-  ID before validation.
-- Deprecation requires a replacement or reason, notice in release notes, and a
-  minimum two-feature-release migration window unless security requires an
-  emergency disablement.
-- Hidden providers cannot be newly configured. Existing instances remain
-  visible in an inspect/export/delete recovery view.
-- Removing a definition from the active catalog does not remove persisted rows
-  or secrets. It becomes an unknown preserved configuration and cannot run until
-  a compatible definition is restored or the user migrates it.
-- Emergency runtime disablement is allowed only for a documented security
-  reason. The configuration stays exportable and deletable, and the UI explains
-  why execution is blocked.
+### Renaming, deprecating, hiding, and removing
 
-### Migration algorithm
+- Changing the display name needs no migration.
+- Do not change a provider's ID. An old ID may become an alias for the same
+  provider.
+- A deprecated provider needs a reason or replacement and release-note notice.
+  Users get at least two feature releases to move unless there is an urgent
+  security issue.
+- A hidden provider disappears from the add screen. Existing users can still
+  inspect, export, move, or delete their setup.
+- Removing a definition never deletes saved settings or secrets. Cosmo keeps the
+  setup as `unknown` and blocks it from running until support returns or the user
+  moves it.
+- Cosmo may stop a provider at once for a serious security problem. It must tell
+  the user why and keep export and delete actions available.
 
-1. Load persisted bytes into a quarantined legacy shape; never mutate in place.
-2. Resolve canonical ID through bundled aliases. If no definition exists,
-   preserve the instance as `unknown` and stop.
-3. Apply every contiguous, app-bundled migration from stored revision to target
-   revision to a copy, with secrets represented only by opaque references.
-4. Strictly validate and normalize the migrated copy.
-5. In one database transaction, write the new copy and an audit record, then
-   retain a rollback snapshot until the next successful app startup.
-6. On any error, keep the original bytes and secret references, mark migration
-   `failed`, disable runtime use, and show export/retry guidance.
+### Moving saved data to a new revision
 
-Migrations cannot delete a non-empty field or secret reference without explicit
-user confirmation. Unknown fields are preserved in a quarantined extension map
-for export but are never passed to an adapter. Downgrades do not rewrite newer
-data; older apps open unsupported revisions read-only.
+1. Read the old data without changing it.
+2. Find the provider by its ID or an approved alias. If it is unknown, keep the
+   data as-is and stop.
+3. Run each migration from the saved version to the current version on a copy.
+   Pass secret references, not secret
+   values.
+4. Check and clean the migrated copy with the new definition.
+5. Save the new copy and an audit record in one database transaction. Keep a
+   rollback copy until the next successful app start.
+6. If anything fails, keep the old data, mark the migration as failed, stop the
+   provider from running, and let the user export or retry.
 
-## Registry distribution and trust
+A migration cannot remove a filled field or secret reference without asking the
+user. Unknown fields stay in a separate export-only area and never reach an
+adapter. An older app opens newer data as read-only instead of rewriting it.
 
-The authoritative executable registry ships with each signed Cosmo release.
-Remote refresh is limited to presentation metadata and lifecycle advisories for
-already bundled provider IDs and revisions.
+## Local files and build output
 
-A remote document must be canonical JSON signed with an offline-controlled
-Cosmo registry key. The app pins the public key and verifies signature,
-schema version, monotonically increasing revision, issued/expiry times, maximum
-document size, and provider/field identity before caching it. It must fail
-closed to the last valid document or bundled metadata.
+Later implementation tasks must add these source files:
 
-Remote metadata cannot change adapter/discovery/migration keys, fields,
-validation, endpoint rules, documentation hosts, icons containing active
-content, defaults, capabilities used for authorization, or support from a more
-restrictive state to a less restrictive state. Key rotation requires an app
-release signed by the existing release trust chain. The registry is never a
-plugin or code-loading channel.
+```text
+packages/core/provider-registry/
+  registry.json
+  registry.schema.json
+```
 
-## Compatibility and failure behavior
+`registry.json` is the only provider list. Its top level follows the ACP pattern:
 
-- Missing definitions/adapters, newer major schemas, failed migrations, and
-  invalid signatures are explicit non-runnable states, not fallbacks.
-- Capability metadata is descriptive. Runtime code must handle provider/model
-  rejection and may not treat metadata as authorization.
-- Model discovery records provenance, fetch time, provider revision, and source.
-  Stale data is labelled and never silently promoted to current.
-- The same strict schemas and normalization run for Electron IPC and HTTP RPC.
-- All network activity is initiated in main/core runtime code, never renderer or
-  remote metadata.
+```json
+{
+    "version": "1.0.0",
+    "providers": [],
+    "extensions": []
+}
+```
 
-## Acceptance and change control
+`registry.schema.json` checks the document and all provider entries. Both files
+ship in the repository. They are not hosted or loaded from a network address.
+Provider icons used by the app are also local assets.
 
-Gaurav Saini is the named decision owner for the v1 baseline and representative
-matrix. Status remains Proposed until owner review. Approval is recorded by
-changing this document's status to `Accepted` in the same change that marks the
-decision record accepted. Later tasks may implement only the Proposed contract
-without incompatible assumptions and must escalate deviations to the owner.
+A build script reads `registry.json`, checks it against `registry.schema.json`,
+and creates two outputs:
+
+1. A backend registry with the full checked definitions and adapter keys.
+2. A frontend registry with only public display data and form fields. It never
+   contains saved secret values or backend code.
+
+Both Electron and HTTP builds use the same backend output. The static Next.js
+renderer uses the same frontend output. Developers do not maintain a second
+provider list in TypeScript or in the UI.
+
+The build fails on an invalid version, duplicate ID, bad field, missing adapter,
+missing local icon, or unsafe public projection. Generated files are never
+edited by hand. The build does not fetch the ACP registry or any other provider
+definition file from the network.
+
+## Safe failure rules
+
+- A missing adapter, unsupported schema, or failed migration blocks the
+  provider. Cosmo never guesses or silently falls back.
+- Capability data is a description, not a permission. Runtime code still checks
+  what the provider and model can do.
+- Discovered models record where and when the data came from. The UI labels old
+  data as stale.
+- Electron IPC and HTTP RPC use the same strict checks.
+- Only backend code can make provider and discovery network requests.
+
+## Ownership and approval
+
+Gaurav Saini owns this version 1 proposal and the test matrix. The status stays
+`Proposed` until the owner reviews it. Approval changes this document and the
+decision record to `Accepted`. Later work must ask the owner before making a
+change that breaks this contract.
