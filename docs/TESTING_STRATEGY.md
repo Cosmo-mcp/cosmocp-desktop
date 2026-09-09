@@ -14,6 +14,52 @@ The quality bar is “no untested behavior”. New code should ship with unit + 
 
 ## What to test
 
+### Provider registry test matrix
+
+The version 1 contract uses five providers to prove that the design is broad
+enough. Gaurav Saini owns changes to this list and approval for stable support.
+
+| Example           | Route and target level      | What it proves                                                                                 |
+| ----------------- | --------------------------- | ---------------------------------------------------------------------------------------------- |
+| OpenAI            | `direct` / `stable`         | Required API key, optional HTTPS URL, native adapter, models.dev discovery, and a model option |
+| Azure OpenAI      | `direct` / `experimental`   | Enterprise endpoint, deployment, API version, named account fields, and rules between fields   |
+| Ollama            | `local` / `stable`          | No required key, a local URL, private-address approval, and local model discovery              |
+| OpenAI-compatible | `compatible` / `compatible` | Required URL, optional key, safe local HTTP, hosted HTTPS, shared adapter, and manual models   |
+| AI Gateway        | `gateway` / `experimental`  | Gateway key, routing fields, gateway model list, and a clear gateway data path                 |
+
+This list approves what the tests must cover. It does not promise that every
+example already ships at that support level.
+
+Each example must test:
+
+- valid and invalid local registry entries, duplicate IDs, unknown fields, and
+  simple versus advanced fields;
+- the split between connection, model, and chat settings;
+- a frontend output with no secrets and the same input checks in Electron and
+  HTTP;
+- keeping, replacing, and removing secrets;
+- safe URLs and headers, clean error messages, and no secret values in logs;
+- missing and wrong adapter versions;
+- connection success, bad credentials, timeout, cancel, bad responses, and
+  response-size limits;
+- model discovery success, no models, old cache, bad data, manual models, and
+  provider errors; and
+- add, edit, restart, deprecate, hide, remove, export, delete, migration, and
+  rollback flows.
+
+Minimum test bar by support level:
+
+| Level          | Tests required                                                                                                                                                                                                                      |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stable`       | All shared tests; every adapter branch; Electron and HTTP flows; saved-data and migration tests; one real or recorded protocol test; packaged Electron and built HTTP smoke tests; no open high-risk security issue; owner approval |
+| `experimental` | Shared schema, secret, and security tests; adapter unit tests; both transports; fake connection and discovery tests; written limits                                                                                                 |
+| `compatible`   | Shared safety tests; the documented compatibility feature set against a reference server; both transports; safe endpoint tests; clear errors for unsupported features                                                               |
+| `deprecated`   | Existing setup still loads or shows a clear blocked state; migration, export, and delete work; users cannot add a new setup                                                                                                         |
+| `hidden`       | Missing from the add screen; existing setup remains visible; runtime behavior matches the stated reason                                                                                                                             |
+
+Unit-test mocks alone are not enough for `stable`. Pull-request tests use a
+recorded protocol or test server. Release checks can use protected credentials.
+
 ### `packages/core`
 
 - Unit test repositories and services:

@@ -87,6 +87,10 @@ flowchart LR
 
 - Shared DTOs and types (`packages/core/dto.ts`).
 - Provider catalog metadata shared across processes (`packages/core/providerCatalog.ts`).
+- The planned provider registry contract, executable-adapter boundary, support
+  policy, lifecycle, and migration rules are defined in
+  [`docs/specs/provider-registry.md`](specs/provider-registry.md). Its threat
+  model is [`docs/specs/provider-registry-threat-model.md`](specs/provider-registry-threat-model.md).
 - ACP agent metadata, registry cache, and redacted DTOs for local Agent Client Protocol runtimes.
 - Drizzle schema and DB manager (`packages/core/database/*`).
 - Repositories and services (`packages/core/repositories/*`, `packages/core/services/*`).

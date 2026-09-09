@@ -35,6 +35,11 @@ Use this file as the quick feature index. For implementation details, follow the
 - Model discovery from `models.dev`, Ollama, and LM Studio, including capability metadata such as reasoning, tool calling, context/output windows, attachments, status, and input/output modalities.
     - Service: `packages/core/services/ModelProviderService.ts`
     - UI capability display: `src/renderer/src/components/provider-management.tsx`
+- The planned scalable provider registry has a versioned data contract, explicit support routes/levels, backend-only adapter boundary, lifecycle and migration policy, threat model, and representative stable-support test matrix.
+    - Specification: `docs/specs/provider-registry.md`
+    - Decision record: `docs/specs/provider-registry-decision-record.md`
+    - Threat model: `docs/specs/provider-registry-threat-model.md`
+    - Test matrix: `docs/TESTING_STRATEGY.md#provider-registry-test-matrix`
 - Composer model selector with provider grouping, search, automatic first-model selection, and attachment gating based on image input support.
     - UI: `src/renderer/src/components/multimodal-input.tsx`
 
